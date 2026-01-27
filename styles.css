@@ -603,10 +603,63 @@ body {
   z-index: 10000;
 }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  /* Adjust hero text */
   .hero-header h1 {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+    max-width: 90%;
+  }
+
+  /* Services grid */
+  .services-parent {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .services-image img {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  /* Promotions grid */
+  .promotions-parent {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  /* Photo grid in our shop */
+  .photo-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  /* Navbar */
+  #navbar .container {
+    flex-direction: column;
+    gap: 10px;
+    height: auto;
+    padding: 10px 0;
+  }
+
+  .nav-auth {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  /* Hero section */
+  .hero-header h1 {
+    font-size: 2rem;
+  }
+
+  .hero-content p {
+    font-size: 0.95rem;
+    max-width: 95%;
   }
 
   .hero-btn {
@@ -618,7 +671,95 @@ body {
     width: 100%;
   }
 
-  #navbar .container {
-    justify-content: center;
+  /* About section */
+  #about > .container {
+    text-align: center;
+    gap: 15px;
+  }
+
+  /* Our Shop */
+  .photo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .span-2,
+  .span-3 {
+    grid-column: span 2;
+  }
+
+  /* Promotions */
+  .promotions-parent {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  /* Testimonials carousel */
+  .carousel {
+    width: 95%;
+  }
+
+  .carousel-inner img {
+    height: auto;
+  }
+
+  /* Services */
+  .services-parent {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .services-text {
+    max-width: 100%;
+  }
+
+  .services-image img {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Booking modal content */
+  .booking-content input,
+  .booking-content select,
+  .booking-content button,
+  .booking-content label {
+    width: 90%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hero section */
+  .hero-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .hero-content p {
+    font-size: 0.9rem;
+  }
+
+  /* Navbar links */
+  #navbar a {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+
+  /* Services images */
+  .services-image img {
+    max-width: 100%;
+  }
+
+  /* Promotions card */
+  .promotions-card {
+    padding: 20px 15px;
+  }
+
+  /* Contact section */
+  .contact-section .container {
+    padding: 2rem 1rem;
+  }
+
+  /* Footer */
+  .footer-container {
+    font-size: 0.9rem;
   }
 }
