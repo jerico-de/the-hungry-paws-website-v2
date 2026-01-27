@@ -23,6 +23,67 @@
           <a href="/services.html">Services</a>
           <a href="/contact.html" class="active">Contact</a>
         </div>
+
+        <!-- Auth Buttons -->
+        <div class="nav-auth">
+          <button id="loginBtn" class="login-btn">Login</button>
+          <button id="signupBtn" class="signup-btn">Sign Up</button>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="loginModal" class="booking-modal">
+          <div class="booking-content">
+            <span class="booking-close">&times;</span>
+
+            <h2>Welcome Back 🐶</h2>
+
+            <form>
+              <label>Email</label>
+              <input type="email" required />
+
+              <label>Password</label>
+              <input type="password" required />
+
+              <button type="submit">Login</button>
+            </form>
+            <p style="text-align: center">
+              Don’t have an account?
+              <a href="#" id="goSignup">Sign up</a>
+            </p>
+          </div>
+        </div>
+
+        <!-- Signup Modal -->
+        <div id="signupModal" class="booking-modal">
+          <div class="booking-content">
+            <span class="booking-close">&times;</span>
+
+            <h2>Create an Account 🐾</h2>
+
+            <form>
+              <label>Full Name</label>
+              <input type="text" required />
+
+              <label>Email</label>
+              <input type="email" required />
+
+              <label>Contact Number</label>
+              <input type="tel" required />
+
+              <label>Password</label>
+              <input type="password" required />
+
+              <label>Confirm Password</label>
+              <input type="password" required />
+
+              <button type="submit">Sign Up</button>
+            </form>
+            <p style="text-align: center">
+              Already have an account?
+              <a href="#" id="goLogin">Login</a>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -102,25 +163,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      const message = document.getElementById("message");
-      const charCount = document.getElementById("charCount");
-      const contactForm = document.getElementById("contactForm");
-
-      // Character counter
-      message.addEventListener("input", () => {
-        charCount.textContent = `${message.value.length} / 300 characters`;
-      });
-
-      // Submit handler
-      contactForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const modal = new bootstrap.Modal(document.getElementById("thankYouModal"));
-        modal.show();
-        contactForm.reset();
-        charCount.textContent = "0 / 300 characters";
-      });
-    </script>
   </body>
   <!-- Footer -->
   <footer>
