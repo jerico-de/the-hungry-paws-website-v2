@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TheHungryPaws</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <div id="navbar">
+      <div class="container">
+        <img src="images/logo.png" class="logo" alt="TheHungryPaws" />
+
+        <div class="nav-links">
+          <a href="/index.html">Home</a>
+          <a href="/services.html">Services</a>
+          <a href="/contact.html" class="active">Contact</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+
+    <section class="contact-section py-5 mt-5">
+      <div class="container">
+        <div class="row mb-4 text-center">
+          <div class="col">
+            <h1 class="fw-bold text-pink">Get In Touch</h1>
+            <p class="text-muted">We’d love to hear from you! Send us a message, visit us, or fill out our form below.</p>
+          </div>
+        </div>
+
+        <div class="row g-5 align-items-start">
+          <!-- Contact Form -->
+          <div class="col-md-6">
+            <form id="contactForm">
+              <div class="mb-3">
+                <label for="name" class="form-label fw-semibold">Your Name</label>
+                <input type="text" class="form-control" id="name" placeholder="Enter your name" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="email" class="form-label fw-semibold">Email Address</label>
+                <input type="email" class="form-control" id="email" placeholder="Enter your email" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="message" class="form-label fw-semibold">Your Message</label>
+                <textarea class="form-control" id="message" rows="4" maxlength="300" placeholder="Type your message..." required></textarea>
+                <small id="charCount" class="text-muted">0 / 300 characters</small>
+              </div>
+
+              <button type="submit" class="btn btn-pink px-4">Send Message</button>
+            </form>
+          </div>
+
+          <!-- Map and Info -->
+          <div class="col-md-6">
+            <div class="ratio ratio-4x3 rounded-3 shadow-sm mb-3">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.913851112695!2d121.03414827510182!3d14.631045477425054!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7c5d214123f%3A0x8f8e8a5f92eabcde!2s392%20Del%20Monte%20Ave%2C%20Quezon%20City%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1699259999999!5m2!1sen!2sph"
+                style="border: 0"
+                allowfullscreen=""
+                loading="lazy"
+              ></iframe>
+            </div>
+            <p class="text-muted mb-1">
+              <strong>Address:</strong>
+              392 Del Monte Ave, Quezon City, Metro Manila
+            </p>
+            <p class="text-muted mb-1">
+              <strong>Phone:</strong>
+              +63 912 345 6789
+            </p>
+            <p class="text-muted">
+              <strong>Email:</strong>
+              contact@thehungrypaws.ph
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Thank You Modal -->
+    <div class="modal fade thank-you-modal" id="thankYouModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4 position-relative">
+          <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+
+          <h4 class="text-pink mb-3">Thank You!</h4>
+          <p>Your message has been successfully sent. We’ll get back to you soon.</p>
+          <button class="btn btn-pink mt-3" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const message = document.getElementById("message");
+      const charCount = document.getElementById("charCount");
+      const contactForm = document.getElementById("contactForm");
+
+      // Character counter
+      message.addEventListener("input", () => {
+        charCount.textContent = `${message.value.length} / 300 characters`;
+      });
+
+      // Submit handler
+      contactForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const modal = new bootstrap.Modal(document.getElementById("thankYouModal"));
+        modal.show();
+        contactForm.reset();
+        charCount.textContent = "0 / 300 characters";
+      });
+    </script>
+  </body>
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <p>
+        &copy; 2024 The HungryPaws PH
+        <br />
+        Developed by Jerico Crisostomo
+      </p>
+    </div>
+  </footer>
+</html>
