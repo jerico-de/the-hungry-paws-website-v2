@@ -686,26 +686,12 @@ body {
   margin-bottom: 15px;
 }
 
-/* Add Pet Form */
-#addPetForm {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 400px;
-}
-
-#addPetForm input {
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-/* Pets grid */
+/* ========== MY PETS SECTION ========== */
 .pets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
+  width: 100%;
   margin-top: 20px;
 }
 
@@ -714,47 +700,304 @@ body {
   padding: 20px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  transition: 0.3s ease;
-}
-
-.pet-card h3 {
-  margin-bottom: 8px;
-  color: #d44d7c;
-}
-
-.pet-card p {
-  margin: 4px 0;
-  font-size: 0.95rem;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .pet-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.pet-card h3 {
+  color: #d44d7c;
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+
+.pet-card p {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.pet-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .pet-actions button {
-  padding: 5px 10px;
-  border-radius: 10px;
+  padding: 6px 14px;
   border: none;
-  margin-right: 5px;
-  cursor: pointer;
+  border-radius: 30px;
   font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
 }
 
-.pet-actions .editPetBtn {
+.editPetBtn {
   background-color: #1870c7;
   color: white;
 }
 
-.pet-actions .deletePetBtn {
+.editPetBtn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.deletePetBtn {
   background-color: #d44d7c;
   color: white;
 }
 
-.pet-actions button:hover {
+.deletePetBtn:hover {
   opacity: 0.85;
   transform: translateY(-1px);
+}
+
+/* Add/Edit Pet Form */
+#addPetForm,
+#editPetForm {
+  max-width: 400px;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background-color: #f9f9f9;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#addPetForm label,
+#editPetForm label {
+  font-weight: 600;
+  color: #333;
+}
+
+#addPetForm input,
+#editPetForm input {
+  padding: 10px 12px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: 0.3s ease;
+}
+
+#addPetForm input:focus,
+#editPetForm input:focus {
+  outline: none;
+  border-color: #d44d7c;
+}
+
+#addPetForm button,
+#editPetForm button {
+  background-color: #d44d7c;
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+#addPetForm button:hover,
+#editPetForm button:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+#cancelAddPet,
+#cancelEditPet {
+  background-color: #1870c7;
+  margin-top: 10px;
+}
+
+#cancelAddPet:hover,
+#cancelEditPet:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+/* ========== BOOKING TABS ========== */
+.booking-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.booking-tabs .tab-btn {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+  background-color: #f5d5d5;
+  color: #333;
+}
+
+.booking-tabs .tab-btn.active {
+  background-color: #d44d7c;
+  color: white;
+}
+
+/* ========== BOOKINGS GRID ========== */
+.bookings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 900px;
+  margin: auto;
+}
+
+/* Booking Card */
+.booking-card {
+  background-color: #f5d5d5;
+  padding: 20px;
+  border-radius: 12px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.booking-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.277);
+}
+
+.booking-card p {
+  font-size: 1rem;
+  color: #333;
+}
+
+.booking-card button {
+  margin-top: 8px;
+  padding: 8px 15px;
+  border-radius: 25px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.booking-card .editBookingBtn {
+  background-color: #1870c7;
+  color: white;
+  margin-right: 5px;
+}
+
+.booking-card .deleteBookingBtn {
+  background-color: #d44d7c;
+  color: white;
+}
+
+.booking-card button:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.booking-status.pending {
+  color: orange;
+}
+.booking-status.approved {
+  color: green;
+}
+.booking-status.rejected {
+  color: red;
+}
+
+/* ========== NEW BOOKING BUTTON ========== */
+#newBookingBtn {
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #d44d7c;
+  color: white;
+  transition: 0.3s ease;
+  display: block;
+  margin-bottom: 20px;
+}
+
+#newBookingBtn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* ========== BOOKING FORM ========== */
+#bookingForm {
+  background-color: #f5d5d5;
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 500px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#bookingForm label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+#bookingForm input,
+#bookingForm select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+#bookingForm button.user-link {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #1870c7;
+  color: white;
+  transition: 0.3s ease;
+}
+
+#bookingForm button.user-link:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+#bookingForm button.logout-btn {
+  background-color: #d44d7c;
+  color: white;
+  border: none;
+  border-radius: 30px;
+}
+
+#bookingForm button.logout-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* ========== MULTI-PET CONTAINER ========== */
+#petsBookingContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#petsBookingContainer select {
+  width: 100%;
 }
 
 /* ===== RESPONSIVE ===== */

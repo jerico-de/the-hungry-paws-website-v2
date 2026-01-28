@@ -1,17 +1,16 @@
 const sidebarLinks = document.querySelectorAll(".sidebar-link[data-section]");
 const content = document.getElementById("dashboardContent");
 
+/* ===============================
+   Sidebar Navigation
+================================ */
 sidebarLinks.forEach((link) => {
   link.addEventListener("click", () => {
-    // Remove active class from all
     sidebarLinks.forEach((l) => l.classList.remove("active"));
-
-    // Add active to clicked
     link.classList.add("active");
 
     const section = link.dataset.section;
 
-    // Swap content
     if (section === "profile") {
       content.innerHTML = `
         <h2>Profile</h2>
@@ -25,125 +24,277 @@ sidebarLinks.forEach((link) => {
     }
 
     if (section === "bookings") {
-      content.innerHTML = `
-        <h2>My Bookings</h2>
-        <p>No bookings found.</p>
-        <p>Your grooming history will appear here.</p>
-      `;
+      loadBookingsSection();
     }
   });
 });
 
-// -----------------------------
-// Load Pets Function
-// -----------------------------
+/* ===============================
+   BOOKINGS SECTION
+================================ */
+function loadBookingsSection() {
+  content.innerHTML = `
+    <h2>My Bookings</h2>
+    <div class="booking-tabs">
+      <button class="tab-btn active" data-type="grooming">Grooming</button>
+      <button class="tab-btn" data-type="hotel">Pet Hotel</button>
+    </div>
+    <div id="bookingsContent"><p>Loading bookings...</p></div>
+  `;
+
+  const bookingsContent = document.getElementById("bookingsContent");
+
+  const loadBookings = async (type) => {
+    const res = await fetch(`/api/bookings?type=${type}`);
+    const data = await res.json();
+
+    let html = `
+      <h3>${type === "grooming" ? "Grooming Bookings" : "Pet Hotel Bookings"}</h3>
+      <button id="newBookingBtn" class="user-link" style="margin-bottom:15px;">
+        + New ${type === "grooming" ? "Grooming" : "Pet Hotel"} Booking
+      </button>
+    `;
+
+    if (data.success && data.bookings.length) {
+      html += `<div class="bookings-grid">`;
+      data.bookings.forEach((b) => {
+        html += `
+          <div class="booking-card">
+            <p><strong>Pets:</strong> ${b.pets.map((p) => p.name).join(", ")}</p>
+            <p><strong>Date:</strong> ${new Date(b.appointmentDate).toLocaleDateString()}</p>
+            <p><strong>Time:</strong> ${b.appointmentTime || "N/A"}</p>
+            ${type === "hotel" ? `<p><strong>Checkout:</strong> ${b.hotelCheckoutDate ? new Date(b.hotelCheckoutDate).toLocaleDateString() : "N/A"} ${b.hotelCheckoutTime || ""}</p>` : ""}
+            <p><strong>Status:</strong><span class="booking-status ${b.status}">${b.status.toUpperCase()}</span></p>
+            <button class="deleteBookingBtn" data-id="${b._id}">Delete</button>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else {
+      html += `<p>No bookings found.</p>`;
+    }
+
+    bookingsContent.innerHTML = html;
+
+    document.getElementById("newBookingBtn").onclick = () => showBookingForm(type);
+
+    document.querySelectorAll(".deleteBookingBtn").forEach((btn) => {
+      btn.onclick = async () => {
+        if (!confirm("Delete this booking?")) return;
+        const res = await fetch(`/api/bookings/${btn.dataset.id}`, { method: "DELETE" });
+        const result = await res.json();
+        if (result.success) loadBookings(type);
+      };
+    });
+  };
+
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      loadBookings(btn.dataset.type);
+    };
+  });
+
+  loadBookings("grooming");
+}
+
+/* ===============================
+   BOOKING FORM
+================================ */
+async function showBookingForm(type) {
+  const petsRes = await fetch("/api/pets");
+  const petsData = await petsRes.json();
+
+  let petOptions = `<option value="">Select pet</option>`;
+  petsData.pets.forEach((p) => {
+    petOptions += `<option value="${p._id}">${p.name} (${p.breed})</option>`;
+  });
+
+  document.getElementById("bookingsContent").innerHTML = `
+    <h3>New ${type === "grooming" ? "Grooming" : "Pet Hotel"} Booking</h3>
+    <form id="bookingForm">
+      <div id="petsBookingContainer">
+        <label>Pet:</label>
+        <select class="booking-pet" required>${petOptions}</select>
+      </div>
+
+      ${
+        type === "grooming"
+          ? `
+        <label>Last Anti-Rabies Shot:</label>
+        <input type="date" name="antiRabiesDate" required />
+
+        <label>Appointment Date:</label>
+        <input type="date" name="appointmentDate" required />
+
+        <label>Time:</label>
+        <select name="appointmentTime" required>
+          <option value="">Select time</option>
+          ${[9, 10, 11, 12, 1, 2, 3, 4, 5, 6].map((h) => `<option>${h}:00 ${h < 9 ? "PM" : "AM"}</option>`).join("")}
+        </select>
+      `
+          : `
+        <label>Checkout Date:</label>
+        <input type="date" name="hotelCheckoutDate" required />
+        <label>Checkout Time:</label>
+        <input type="time" name="hotelCheckoutTime" required />
+      `
+      }
+
+      <label><input type="checkbox" id="addAnotherPet"> Add another pet</label>
+
+      <button class="user-link" type="submit">Book</button>
+      <button type="button" id="cancelBooking" class="logout-btn">Cancel</button>
+    </form>
+  `;
+
+  document.getElementById("cancelBooking").onclick = () => document.querySelector('[data-section="bookings"]').click();
+
+  document.getElementById("addAnotherPet").onchange = (e) => {
+    if (e.target.checked) {
+      const clone = document.querySelector(".booking-pet").cloneNode(true);
+      document.getElementById("petsBookingContainer").appendChild(clone);
+    }
+  };
+
+  document.getElementById("bookingForm").onsubmit = async (e) => {
+    e.preventDefault();
+
+    const pets = [...document.querySelectorAll(".booking-pet")].map((s) => s.value).filter(Boolean);
+
+    const formData = {
+      type,
+      pets,
+      antiRabiesDate: e.target.antiRabiesDate?.value,
+      appointmentDate: e.target.appointmentDate?.value,
+      appointmentTime: e.target.appointmentTime?.value,
+      hotelCheckoutDate: e.target.hotelCheckoutDate?.value,
+      hotelCheckoutTime: e.target.hotelCheckoutTime?.value,
+    };
+
+    const res = await fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      alert("Booking successful!");
+      document.querySelector('[data-section="bookings"]').click();
+    } else {
+      alert(result.message);
+    }
+  };
+}
+
+/* ===============================
+   PETS
+================================ */
 function loadPets() {
-  content.innerHTML = `<h2>My Pets</h2><p>Loading pets...</p>`;
+  content.innerHTML = `<h2>My Pets</h2><p>Loading...</p>`;
 
   fetch("/api/pets")
     .then((res) => res.json())
     .then((data) => {
-      let petsHTML = `<h2>My Pets</h2>`;
-      petsHTML += `<button id="addPetBtn" class="user-link" style="margin-bottom:15px;">+ Add Pet</button>`;
+      let html = `
+        <h2>My Pets</h2>
+        <button id="addPetBtn" class="user-link">+ Add Pet</button>
+      `;
 
-      if (data.success && data.pets.length > 0) {
-        petsHTML += `<div class="pets-grid">`;
-        data.pets.forEach((pet) => {
-          petsHTML += `
-            <div class="pet-card">
-              <h3>${pet.name}</h3>
-              <p><strong>Breed:</strong> ${pet.breed}</p>
-              <p><strong>Age:</strong> ${pet.age}</p>
-              <div class="pet-actions" style="margin-top:10px;">
-                <button class="editPetBtn" data-id="${pet._id}">Edit</button>
-                <button class="deletePetBtn" data-id="${pet._id}">Delete</button>
-              </div>
+      if (data.success && data.pets.length) {
+        html += `<div class="pets-grid">`;
+        data.pets.forEach((p) => {
+          html += `
+            <div class="pet-card" data-id="${p._id}">
+              <h3>${p.name}</h3>
+              <p><strong>Breed:</strong> ${p.breed}</p>
+              <p><strong>Age:</strong> ${p.age}</p>
+              <button class="editPetBtn">Edit</button>
+              <button class="deletePetBtn">Delete</button>
             </div>
           `;
         });
-        petsHTML += `</div>`;
+        html += `</div>`;
       } else {
-        petsHTML += `<p>You haven’t added any pets yet.</p>`;
+        html += `<p>No pets added yet.</p>`;
       }
 
-      content.innerHTML = petsHTML;
-    })
-    .catch((err) => {
-      console.error(err);
-      content.innerHTML = `<h2>My Pets</h2><p>Error loading pets.</p>`;
+      content.innerHTML = html;
     });
 }
 
-// -----------------------------
-// Delegated Event Handling
-// -----------------------------
-content.addEventListener("click", (e) => {
-  const target = e.target;
-
-  // ---------- Add Pet ----------
-  if (target.id === "addPetBtn") {
+/* ===============================
+   PET ACTIONS (DELEGATED)
+================================ */
+content.onclick = async (e) => {
+  // ---------- ADD PET ----------
+  if (e.target.id === "addPetBtn") {
     showAddPetForm();
+    return;
   }
 
-  // ---------- Delete Pet ----------
-  if (target.classList.contains("deletePetBtn")) {
-    const petId = target.dataset.id;
-    if (!confirm("Are you sure you want to delete this pet?")) return;
+  // ---------- DELETE PET ----------
+  if (e.target.classList.contains("deletePetBtn")) {
+    const card = e.target.closest(".pet-card");
+    const petId = card.dataset.id;
 
-    fetch(`/api/pets/${petId}`, { method: "DELETE" })
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.success) {
-          alert(result.message);
-          loadPets();
-        } else {
-          alert(result.message);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Error deleting pet");
-      });
+    if (!confirm("Delete this pet?")) return;
+
+    try {
+      await fetch(`/api/pets/${petId}`, { method: "DELETE" });
+      loadPets();
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting pet");
+    }
+    return;
   }
 
-  // ---------- Edit Pet ----------
-  if (target.classList.contains("editPetBtn")) {
-    const petCard = target.closest(".pet-card");
-    const petId = target.dataset.id;
-    const name = petCard.querySelector("h3").innerText;
-    const breed = petCard.querySelector("p:nth-of-type(1)").innerText.replace("Breed: ", "");
-    const age = petCard.querySelector("p:nth-of-type(2)").innerText.replace("Age: ", "");
+  // ---------- EDIT PET ----------
+  if (e.target.classList.contains("editPetBtn")) {
+    const card = e.target.closest(".pet-card");
+    const petId = card.dataset.id;
+
+    const name = card.querySelector("h3").innerText;
+    const breed = card.querySelector("p:nth-of-type(1)").innerText.replace("Breed: ", "");
+    const age = card.querySelector("p:nth-of-type(2)").innerText.replace("Age: ", "");
 
     content.innerHTML = `
       <h2>Edit Pet</h2>
-      <form id="editPetForm">
-        <label>Name:</label>
-        <input type="text" name="name" value="${name}" required />
-        <label>Breed:</label>
-        <input type="text" name="breed" value="${breed}" required />
-        <label>Age:</label>
-        <input type="number" name="age" value="${age}" min="0" required />
-        <button type="submit" class="user-link">Save Changes</button>
-        <button type="button" id="cancelEditPet" class="logout-btn" style="margin-top:10px;">Cancel</button>
+      <form id="editPetForm" data-id="${petId}">
+        <label>Name</label>
+        <input name="name" value="${name}" required />
+
+        <label>Breed</label>
+        <input name="breed" value="${breed}" required />
+
+        <label>Age</label>
+        <input name="age" type="number" value="${age}" min="0" required />
+
+        <button type="submit">Save</button>
+        <button type="button" id="cancelEditPet">Cancel</button>
       </form>
     `;
+    return;
   }
 
-  // ---------- Cancel Edit ----------
-  if (target.id === "cancelEditPet") {
+  // ---------- CANCEL EDIT ----------
+  if (e.target.id === "cancelEditPet") {
     loadPets();
+    return;
   }
 
-  // ---------- Submit Edit ----------
-  if (target.id === "editPetForm" || target.closest("#editPetForm")) {
-    const form = target.closest("#editPetForm");
-    if (!form) return;
+  // ---------- SUBMIT EDIT ----------
+  if (e.target.closest("#editPetForm")) {
+    const form = e.target.closest("#editPetForm");
 
-    form.addEventListener("submit", async (ev) => {
+    form.onsubmit = async (ev) => {
       ev.preventDefault();
-      const petId = form.querySelector(".editPetBtn")?.dataset.id || form.dataset.id;
 
-      const formData = {
+      const petId = form.dataset.id;
+      const data = {
         name: form.name.value,
         breed: form.breed.value,
         age: form.age.value,
@@ -153,11 +304,11 @@ content.addEventListener("click", (e) => {
         const res = await fetch(`/api/pets/${petId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(data),
         });
+
         const result = await res.json();
         if (result.success) {
-          alert(result.message);
           loadPets();
         } else {
           alert(result.message);
@@ -166,56 +317,38 @@ content.addEventListener("click", (e) => {
         console.error(err);
         alert("Error updating pet");
       }
-    });
+    };
   }
-});
+};
 
-// -----------------------------
-// Add Pet Form
-// -----------------------------
+/* ===============================
+   ADD PET
+================================ */
 function showAddPetForm() {
   content.innerHTML = `
-    <h2>Add a New Pet</h2>
+    <h2>Add Pet</h2>
     <form id="addPetForm">
-      <label>Name:</label>
-      <input type="text" name="name" required />
-      <label>Breed:</label>
-      <input type="text" name="breed" required />
-      <label>Age:</label>
-      <input type="number" name="age" min="0" required />
-      <button type="submit" class="user-link">Add Pet</button>
-      <button type="button" id="cancelAddPet" class="logout-btn" style="margin-top:10px;">Cancel</button>
+      <input name="name" placeholder="Name" required>
+      <input name="breed" placeholder="Breed" required>
+      <input name="age" type="number" placeholder="Age" required>
+      <button class="user-link">Add</button>
+      <button type="button" id="cancelAdd" class="logout-btn">Cancel</button>
     </form>
   `;
 
-  content.addEventListener("click", (e) => {
-    if (e.target.id === "cancelAddPet") loadPets();
-  });
+  document.getElementById("cancelAdd").onclick = loadPets;
 
-  document.getElementById("addPetForm").addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const formData = {
-      name: ev.target.name.value,
-      breed: ev.target.breed.value,
-      age: ev.target.age.value,
-    };
-
-    try {
-      const res = await fetch("/api/pets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const result = await res.json();
-      if (result.success) {
-        alert(result.message);
-        loadPets();
-      } else {
-        alert(result.message);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong");
-    }
-  });
+  document.getElementById("addPetForm").onsubmit = async (e) => {
+    e.preventDefault();
+    await fetch("/api/pets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: e.target.name.value,
+        breed: e.target.breed.value,
+        age: e.target.age.value,
+      }),
+    });
+    loadPets();
+  };
 }

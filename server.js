@@ -8,12 +8,12 @@ const { connectDB, getDB } = require("./db");
 const { ObjectId } = require("mongodb");
 
 const app = express();
-app.use(cors());
 const PORT = process.env.PORT || 3000;
 
 // =====================
 // Middleware
 // =====================
+app.use(cors());
 app.use(express.json());
 
 app.use(
@@ -32,28 +32,27 @@ app.use(
 );
 
 // =====================
-// API ROUTES
+// PETS API
 // =====================
 
 // Get logged-in user's pets
-app.get("/api/pets", (req, res) => {
+app.get("/api/pets", async (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({ success: false, message: "Not logged in" });
   }
 
-  const db = getDB();
-  const pets = db.collection("pets");
+  try {
+    const db = getDB();
+    const pets = await db
+      .collection("pets")
+      .find({ userId: new ObjectId(req.session.user.id) })
+      .toArray();
 
-  pets
-    .find({ userId: req.session.user.id })
-    .toArray()
-    .then((petsList) => {
-      res.json({ success: true, pets: petsList });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ success: false, message: "Server error" });
-    });
+    res.json({ success: true, pets });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 });
 
 // Add a new pet
@@ -64,16 +63,13 @@ app.post("/api/pets", async (req, res) => {
 
   try {
     const { name, breed, age } = req.body;
-
     if (!name || !breed || !age) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
     const db = getDB();
-    const pets = db.collection("pets");
-
-    await pets.insertOne({
-      userId: req.session.user.id, // link to logged-in user
+    await db.collection("pets").insertOne({
+      userId: new ObjectId(req.session.user.id),
       name,
       breed,
       age,
@@ -87,23 +83,29 @@ app.post("/api/pets", async (req, res) => {
   }
 });
 
-// Edit a pet
+// Edit pet
 app.put("/api/pets/:id", async (req, res) => {
-  if (!req.session.user) return res.status(401).json({ success: false, message: "Not logged in" });
-
-  const petId = req.params.id;
-  const { name, breed, age } = req.body;
-
-  if (!name || !breed || !age) return res.status(400).json({ success: false, message: "All fields are required" });
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: "Not logged in" });
+  }
 
   try {
-    const db = getDB();
-    const pets = db.collection("pets");
+    const { name, breed, age } = req.body;
+    if (!name || !breed || !age) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
 
-    const result = await pets.updateOne({ _id: new ObjectId(petId), userId: req.session.user.id }, { $set: { name, breed, age } });
+    const db = getDB();
+    const result = await db.collection("pets").updateOne(
+      {
+        _id: new ObjectId(req.params.id),
+        userId: new ObjectId(req.session.user.id),
+      },
+      { $set: { name, breed, age } },
+    );
 
     if (result.modifiedCount === 0) {
-      return res.status(404).json({ success: false, message: "Pet not found or no changes made" });
+      return res.status(404).json({ success: false, message: "Pet not found" });
     }
 
     res.json({ success: true, message: "Pet updated successfully" });
@@ -113,19 +115,22 @@ app.put("/api/pets/:id", async (req, res) => {
   }
 });
 
-// Delete a pet
+// Delete pet
 app.delete("/api/pets/:id", async (req, res) => {
-  if (!req.session.user) return res.status(401).json({ success: false, message: "Not logged in" });
-
-  const petId = req.params.id;
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: "Not logged in" });
+  }
 
   try {
     const db = getDB();
-    const pets = db.collection("pets");
+    const result = await db.collection("pets").deleteOne({
+      _id: new ObjectId(req.params.id),
+      userId: new ObjectId(req.session.user.id),
+    });
 
-    const result = await pets.deleteOne({ _id: new ObjectId(petId), userId: req.session.user.id });
-
-    if (result.deletedCount === 0) return res.status(404).json({ success: false, message: "Pet not found" });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "Pet not found" });
+    }
 
     res.json({ success: true, message: "Pet deleted successfully" });
   } catch (err) {
@@ -134,19 +139,19 @@ app.delete("/api/pets/:id", async (req, res) => {
   }
 });
 
-// Sign up API
+// =====================
+// AUTH API
+// =====================
+
+// Sign up
 app.post("/api/signup", async (req, res) => {
-  console.log("Signup request received!");
   try {
     const { fullName, email, contact, password } = req.body;
-
     if (!fullName || !email || !contact || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
     const db = getDB();
-    if (!db) return res.status(500).json({ success: false, message: "Database not connected" });
-
     const users = db.collection("users");
 
     const existingUser = await users.findOne({ email });
@@ -155,7 +160,6 @@ app.post("/api/signup", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     await users.insertOne({
       fullName,
       email,
@@ -166,81 +170,198 @@ app.post("/api/signup", async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Signup error:", err);
-    res.status(500).json({ success: false, message: "Server error: " + err.message });
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-// Log in API
+// Login
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Email and password are required" });
+      return res.status(400).json({ success: false, message: "Email and password required" });
     }
 
     const db = getDB();
-    const users = db.collection("users");
-
-    // Find the user by email
-    const user = await users.findOne({ email });
+    const user = await db.collection("users").findOne({ email });
     if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
-    // Compare the provided password with the hashed password in DB
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
-    // Success
     req.session.user = {
       id: user._id,
       fullName: user.fullName,
       email: user.email,
     };
 
-    res.json({
-      success: true,
-      message: "Login successful 🐾",
-    });
+    res.json({ success: true, message: "Login successful 🐾" });
   } catch (err) {
-    console.error("Login error:", err);
+    console.error(err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-function isLoggedIn(req, res, next) {
-  if (!req.session.user) {
-    return res.redirect("/");
+// =====================
+// BOOKINGS API
+// =====================
+
+// Create booking
+app.post("/api/bookings", async (req, res) => {
+  try {
+    const user = req.session.user;
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Not logged in" });
+    }
+
+    const { pets, type, antiRabiesDate, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime } = req.body;
+
+    if (!pets || !pets.length || !type || !appointmentDate || !appointmentTime || !antiRabiesDate) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    const db = getDB();
+    await db.collection("bookings").insertOne({
+      userId: new ObjectId(user.id),
+      type, // grooming | hotel
+      pets: pets.map((id) => new ObjectId(id)),
+      antiRabiesDate: new Date(antiRabiesDate),
+      appointmentDate: new Date(appointmentDate),
+      appointmentTime,
+      hotelCheckoutDate: hotelCheckoutDate ? new Date(hotelCheckoutDate) : null,
+      hotelCheckoutTime: hotelCheckoutTime || null,
+      status: "pending",
+      createdAt: new Date(),
+    });
+
+    res.json({ success: true, message: "Booking saved!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
-  next();
-}
+});
+
+// Get bookings by type
+app.get("/api/bookings", async (req, res) => {
+  try {
+    const user = req.session.user;
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Not logged in" });
+    }
+
+    const type = req.query.type || "grooming";
+    const db = getDB();
+
+    const bookings = await db
+      .collection("bookings")
+      .find({ userId: new ObjectId(user.id), type })
+      .toArray();
+
+    const petsCol = db.collection("pets");
+
+    const bookingsWithPets = await Promise.all(
+      bookings.map(async (b) => {
+        const pets = await petsCol.find({ _id: { $in: b.pets } }).toArray();
+        return { ...b, pets };
+      }),
+    );
+
+    res.json({ success: true, bookings: bookingsWithPets });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// -- Delete a booking
+app.delete("/api/bookings/:id", async (req, res) => {
+  try {
+    const user = req.session.user;
+    if (!user) return res.status(401).json({ success: false, message: "Not logged in" });
+
+    const bookingId = req.params.id;
+    const db = getDB();
+    const bookings = db.collection("bookings");
+
+    const result = await bookings.deleteOne({
+      _id: new ObjectId(bookingId),
+      userId: new ObjectId(user.id),
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    res.json({ success: true, message: "Booking deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 // =====================
-// Serve static files (frontend) last
+// ADMIN
 // =====================
-// HTML files
+
+// Approve or reject booking
+app.put("/api/admin/bookings/:id/status", async (req, res) => {
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ success: false });
+  }
+
+  const { status } = req.body; // approved | rejected
+  const bookingId = req.params.id;
+
+  if (!["approved", "rejected"].includes(status)) {
+    return res.status(400).json({ success: false, message: "Invalid status" });
+  }
+
+  const db = getDB();
+  await db.collection("bookings").updateOne({ _id: new ObjectId(bookingId) }, { $set: { status } });
+
+  res.json({ success: true });
+});
+
+// Admin View Booking
+app.get("/api/admin/bookings/pending", async (req, res) => {
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ success: false });
+  }
+
+  const db = getDB();
+  const bookings = await db.collection("bookings").find({ status: "pending" }).toArray();
+
+  res.json({ success: true, bookings });
+});
+
+// =====================
+// FRONTEND
+// =====================
 app.use(express.static("public"));
 
-// EJS files
 app.set("view engine", "ejs");
 app.set("views", "./views");
+
+function isLoggedIn(req, res, next) {
+  if (!req.session.user) return res.redirect("/");
+  next();
+}
 
 app.get("/user", isLoggedIn, (req, res) => {
   res.render("user", { user: req.session.user });
 });
 
 app.post("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.redirect("/");
-  });
+  req.session.destroy(() => res.redirect("/"));
 });
 
 // =====================
-// Start server
+// START SERVER
 // =====================
 async function startServer() {
   await connectDB();
