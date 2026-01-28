@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 // =====================
 app.use(cors());
 app.use(express.json());
+app.use(express.static("public"));
 
 app.use(
   session({
@@ -32,15 +33,101 @@ app.use(
 );
 
 // =====================
-// PETS API
+// AUTH & SESSION HELPERS
 // =====================
+function isAdmin(req, res, next) {
+  if (!req.session.user || !req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+  next();
+}
 
-// Get logged-in user's pets
-app.get("/api/pets", async (req, res) => {
+function isLoggedIn(req, res, next) {
   if (!req.session.user) {
     return res.status(401).json({ success: false, message: "Not logged in" });
   }
+  next();
+}
 
+// =====================
+// AUTH API
+// =====================
+app.post("/api/signup", async (req, res) => {
+  try {
+    const { fullName, email, contact, password, isAdmin } = req.body;
+
+    if (!fullName || !email || !contact || !password) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const db = getDB();
+    const users = db.collection("users");
+
+    const existingUser = await users.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await users.insertOne({
+      fullName,
+      email,
+      contact,
+      password: hashedPassword,
+      isAdmin: isAdmin || false,
+      createdAt: new Date(),
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password required" });
+    }
+
+    const db = getDB();
+    const user = await db.collection("users").findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+
+    req.session.user = {
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      isAdmin: user.isAdmin || false,
+    };
+
+    const redirect = req.session.user.isAdmin ? "/admin" : "/user";
+    res.json({ success: true, redirect });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.post("/logout", (req, res) => {
+  req.session.destroy(() => res.redirect("/"));
+});
+
+// =====================
+// PETS API
+// =====================
+app.get("/api/pets", isLoggedIn, async (req, res) => {
   try {
     const db = getDB();
     const pets = await db
@@ -55,15 +142,11 @@ app.get("/api/pets", async (req, res) => {
   }
 });
 
-// Add a new pet
-app.post("/api/pets", async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ success: false, message: "Not logged in" });
-  }
-
+app.post("/api/pets", isLoggedIn, async (req, res) => {
   try {
-    const { name, breed, age } = req.body;
-    if (!name || !breed || !age) {
+    const { name, breed, age, gender } = req.body;
+
+    if (!name || !breed || !age || !gender) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -73,6 +156,7 @@ app.post("/api/pets", async (req, res) => {
       name,
       breed,
       age,
+      gender,
       createdAt: new Date(),
     });
 
@@ -83,25 +167,17 @@ app.post("/api/pets", async (req, res) => {
   }
 });
 
-// Edit pet
-app.put("/api/pets/:id", async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ success: false, message: "Not logged in" });
-  }
-
+app.put("/api/pets/:id", isLoggedIn, async (req, res) => {
   try {
-    const { name, breed, age } = req.body;
-    if (!name || !breed || !age) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
-    }
-
+    const { name, breed, age, gender } = req.body;
     const db = getDB();
+
     const result = await db.collection("pets").updateOne(
       {
         _id: new ObjectId(req.params.id),
         userId: new ObjectId(req.session.user.id),
       },
-      { $set: { name, breed, age } },
+      { $set: { name, breed, age, gender } },
     );
 
     if (result.modifiedCount === 0) {
@@ -115,12 +191,7 @@ app.put("/api/pets/:id", async (req, res) => {
   }
 });
 
-// Delete pet
-app.delete("/api/pets/:id", async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ success: false, message: "Not logged in" });
-  }
-
+app.delete("/api/pets/:id", isLoggedIn, async (req, res) => {
   try {
     const db = getDB();
     const result = await db.collection("pets").deleteOne({
@@ -140,130 +211,22 @@ app.delete("/api/pets/:id", async (req, res) => {
 });
 
 // =====================
-// AUTH API
+// BOOKINGS API (USER)
 // =====================
-
-// Sign up
-app.post("/api/signup", async (req, res) => {
+app.get("/api/bookings", isLoggedIn, async (req, res) => {
   try {
-    const { fullName, email, contact, password } = req.body;
-    if (!fullName || !email || !contact || !password) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
-    }
-
-    const db = getDB();
-    const users = db.collection("users");
-
-    const existingUser = await users.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: "Email already registered" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await users.insertOne({
-      fullName,
-      email,
-      contact,
-      password: hashedPassword,
-      createdAt: new Date(),
-    });
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-// Login
-app.post("/api/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Email and password required" });
-    }
-
-    const db = getDB();
-    const user = await db.collection("users").findOne({ email });
-    if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
-    }
-
-    req.session.user = {
-      id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-    };
-
-    res.json({ success: true, message: "Login successful 🐾" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-// =====================
-// BOOKINGS API
-// =====================
-
-// Create booking
-app.post("/api/bookings", async (req, res) => {
-  try {
-    const user = req.session.user;
-    if (!user) {
-      return res.status(401).json({ success: false, message: "Not logged in" });
-    }
-
-    const { pets, type, antiRabiesDate, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime } = req.body;
-
-    if (!pets || !pets.length || !type || !appointmentDate || !appointmentTime || !antiRabiesDate) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-    }
-
-    const db = getDB();
-    await db.collection("bookings").insertOne({
-      userId: new ObjectId(user.id),
-      type, // grooming | hotel
-      pets: pets.map((id) => new ObjectId(id)),
-      antiRabiesDate: new Date(antiRabiesDate),
-      appointmentDate: new Date(appointmentDate),
-      appointmentTime,
-      hotelCheckoutDate: hotelCheckoutDate ? new Date(hotelCheckoutDate) : null,
-      hotelCheckoutTime: hotelCheckoutTime || null,
-      status: "pending",
-      createdAt: new Date(),
-    });
-
-    res.json({ success: true, message: "Booking saved!" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-// Get bookings by type
-app.get("/api/bookings", async (req, res) => {
-  try {
-    const user = req.session.user;
-    if (!user) {
-      return res.status(401).json({ success: false, message: "Not logged in" });
-    }
-
     const type = req.query.type || "grooming";
     const db = getDB();
 
     const bookings = await db
       .collection("bookings")
-      .find({ userId: new ObjectId(user.id), type })
+      .find({
+        userId: new ObjectId(req.session.user.id),
+        type,
+      })
       .toArray();
 
     const petsCol = db.collection("pets");
-
     const bookingsWithPets = await Promise.all(
       bookings.map(async (b) => {
         const pets = await petsCol.find({ _id: { $in: b.pets } }).toArray();
@@ -278,19 +241,45 @@ app.get("/api/bookings", async (req, res) => {
   }
 });
 
-// -- Delete a booking
-app.delete("/api/bookings/:id", async (req, res) => {
+app.post("/api/bookings", isLoggedIn, async (req, res) => {
   try {
-    const user = req.session.user;
-    if (!user) return res.status(401).json({ success: false, message: "Not logged in" });
+    const { pets, type, antiRabiesDate, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime } = req.body;
 
-    const bookingId = req.params.id;
+    if (!pets || !pets.length || !type || !appointmentDate || !appointmentTime) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    if (type === "grooming" && !antiRabiesDate) {
+      return res.status(400).json({ success: false, message: "Anti-rabies date required for grooming" });
+    }
+
     const db = getDB();
-    const bookings = db.collection("bookings");
+    await db.collection("bookings").insertOne({
+      userId: new ObjectId(req.session.user.id),
+      type,
+      pets: pets.map((id) => new ObjectId(id)),
+      antiRabiesDate: antiRabiesDate ? new Date(antiRabiesDate) : null,
+      appointmentDate: new Date(appointmentDate),
+      appointmentTime,
+      hotelCheckoutDate: hotelCheckoutDate ? new Date(hotelCheckoutDate) : null,
+      hotelCheckoutTime: hotelCheckoutTime || null,
+      status: "pending",
+      createdAt: new Date(),
+    });
 
-    const result = await bookings.deleteOne({
-      _id: new ObjectId(bookingId),
-      userId: new ObjectId(user.id),
+    res.json({ success: true, message: "Booking created successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.delete("/api/bookings/:id", isLoggedIn, async (req, res) => {
+  try {
+    const db = getDB();
+    const result = await db.collection("bookings").deleteOne({
+      _id: new ObjectId(req.params.id),
+      userId: new ObjectId(req.session.user.id),
     });
 
     if (result.deletedCount === 0) {
@@ -305,59 +294,88 @@ app.delete("/api/bookings/:id", async (req, res) => {
 });
 
 // =====================
-// ADMIN
+// ADMIN API
 // =====================
+app.get("/api/admin/bookings", isAdmin, async (req, res) => {
+  try {
+    const type = req.query.type || "grooming";
+    const status = req.query.status || "pending";
+    const db = getDB();
 
-// Approve or reject booking
-app.put("/api/admin/bookings/:id/status", async (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") {
-    return res.status(403).json({ success: false });
+    const bookings = await db.collection("bookings").find({ type, status }).toArray();
+
+    const petsCol = db.collection("pets");
+    const usersCol = db.collection("users");
+
+    const bookingsWithDetails = await Promise.all(
+      bookings.map(async (b) => {
+        const pets = await petsCol.find({ _id: { $in: b.pets } }).toArray();
+        const user = await usersCol.findOne({ _id: b.userId });
+
+        return {
+          ...b,
+          pets,
+          userName: user ? user.fullName : "Unknown",
+          userEmail: user ? user.email : "Unknown",
+        };
+      }),
+    );
+
+    res.json({ success: true, bookings: bookingsWithDetails });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
-
-  const { status } = req.body; // approved | rejected
-  const bookingId = req.params.id;
-
-  if (!["approved", "rejected"].includes(status)) {
-    return res.status(400).json({ success: false, message: "Invalid status" });
-  }
-
-  const db = getDB();
-  await db.collection("bookings").updateOne({ _id: new ObjectId(bookingId) }, { $set: { status } });
-
-  res.json({ success: true });
 });
 
-// Admin View Booking
-app.get("/api/admin/bookings/pending", async (req, res) => {
-  if (!req.session.user || req.session.user.role !== "admin") {
-    return res.status(403).json({ success: false });
+app.post("/api/admin/bookings/:id/approve", isAdmin, async (req, res) => {
+  try {
+    const db = getDB();
+    const result = await db.collection("bookings").updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status: "approved" } });
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    res.json({ success: true, message: "Booking approved!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
+});
 
-  const db = getDB();
-  const bookings = await db.collection("bookings").find({ status: "pending" }).toArray();
+app.post("/api/admin/bookings/:id/reject", isAdmin, async (req, res) => {
+  try {
+    const db = getDB();
+    const result = await db.collection("bookings").updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status: "rejected" } });
 
-  res.json({ success: true, bookings });
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    res.json({ success: true, message: "Booking rejected!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 });
 
 // =====================
-// FRONTEND
+// VIEWS
 // =====================
-app.use(express.static("public"));
-
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
-function isLoggedIn(req, res, next) {
+app.get("/user", (req, res) => {
   if (!req.session.user) return res.redirect("/");
-  next();
-}
-
-app.get("/user", isLoggedIn, (req, res) => {
+  if (req.session.user.isAdmin) return res.redirect("/admin");
   res.render("user", { user: req.session.user });
 });
 
-app.post("/logout", (req, res) => {
-  req.session.destroy(() => res.redirect("/"));
+app.get("/admin", (req, res) => {
+  if (!req.session.user) return res.redirect("/");
+  if (!req.session.user.isAdmin) return res.redirect("/user");
+  res.render("admin", { user: req.session.user });
 });
 
 // =====================
@@ -365,9 +383,7 @@ app.post("/logout", (req, res) => {
 // =====================
 async function startServer() {
   await connectDB();
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-  });
+  app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
 }
 
 startServer();

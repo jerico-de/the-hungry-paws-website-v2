@@ -1124,6 +1124,45 @@ body {
   }
 }
 
+/* ADMIN */
+.booking-card {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  background: #f9f9f9;
+}
+
+.booking-card button {
+  margin-right: 10px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.approve-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.approve-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.reject-btn {
+  background-color: #d44d7c;
+  color: white;
+}
+
+.reject-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 480px) {
   /* Hero section */
   .hero-header h1 {
