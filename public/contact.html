@@ -18,6 +18,32 @@
       <div class="container">
         <img src="images/logo.png" class="logo" alt="TheHungryPaws" />
 
+        <!-- Hamburger Menu -->
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu" id="mobileMenu">
+          <div class="mobile-menu-header">
+            <img src="images/logo.png" class="logo" alt="TheHungryPaws" />
+          </div>
+
+          <div class="mobile-nav-links">
+            <a href="index.html">Home</a>
+            <a href="services.html">Services</a>
+            <a href="contact.html" class="active">Contact</a>
+          </div>
+
+          <div class="mobile-auth">
+            <button id="mobileLoginBtn" class="login-btn">Login</button>
+            <button id="mobileSignupBtn" class="signup-btn">Sign Up</button>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation -->
         <div class="nav-links">
           <a href="index.html">Home</a>
           <a href="services.html">Services</a>
@@ -47,7 +73,7 @@
               <button type="submit">Login</button>
             </form>
             <p style="text-align: center">
-              Don’t have an account?
+              Don't have an account?
               <a href="#" id="goSignup">Sign up</a>
             </p>
           </div>
@@ -94,7 +120,7 @@
         <div class="row mb-4 text-center">
           <div class="col">
             <h1 class="fw-bold text-pink">Get In Touch</h1>
-            <p class="text-muted">We’d love to hear from you! Send us a message, visit us, or fill out our form below.</p>
+            <p class="text-muted">We'd love to hear from you! Send us a message, visit us, or fill out our form below.</p>
           </div>
         </div>
 
@@ -156,13 +182,14 @@
           <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
 
           <h4 class="text-pink mb-3">Thank You!</h4>
-          <p>Your message has been successfully sent. We’ll get back to you soon.</p>
+          <p>Your message has been successfully sent. We'll get back to you soon.</p>
           <button class="btn btn-pink mt-3" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
   </body>
   <!-- Footer -->
   <footer>

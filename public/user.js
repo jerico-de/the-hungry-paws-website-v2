@@ -2,6 +2,43 @@ const sidebarLinks = document.querySelectorAll(".sidebar-link[data-section]");
 const content = document.getElementById("dashboardContent");
 
 /* ===============================
+   Dashboard Mobile Menu Toggle
+================================ */
+const dashboardMenuToggle = document.getElementById("dashboardMenuToggle");
+const dashboardSidebar = document.getElementById("dashboardSidebar");
+const dashboardOverlay = document.getElementById("dashboardOverlay");
+
+if (dashboardMenuToggle && dashboardSidebar && dashboardOverlay) {
+  // Toggle menu
+  dashboardMenuToggle.addEventListener("click", () => {
+    dashboardMenuToggle.classList.toggle("active");
+    dashboardSidebar.classList.toggle("active");
+    dashboardOverlay.classList.toggle("active");
+    document.body.style.overflow = dashboardSidebar.classList.contains("active") ? "hidden" : "";
+  });
+
+  // Close menu when clicking overlay
+  dashboardOverlay.addEventListener("click", () => {
+    dashboardMenuToggle.classList.remove("active");
+    dashboardSidebar.classList.remove("active");
+    dashboardOverlay.classList.remove("active");
+    document.body.style.overflow = "";
+  });
+
+  // Close menu when clicking a sidebar link
+  sidebarLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        dashboardMenuToggle.classList.remove("active");
+        dashboardSidebar.classList.remove("active");
+        dashboardOverlay.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+    });
+  });
+}
+
+/* ===============================
    Sidebar Navigation
 ================================ */
 sidebarLinks.forEach((link) => {

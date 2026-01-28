@@ -1,18 +1,89 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // ===== Hamburger Menu =====
+  const hamburger = document.getElementById("hamburger");
+  const mobileMenu = document.getElementById("mobileMenu");
+  const closeMenu = document.getElementById("closeMenu");
+
+  if (hamburger && mobileMenu) {
+    // Open mobile menu
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      mobileMenu.classList.toggle("active");
+      document.body.style.overflow = mobileMenu.classList.contains("active") ? "hidden" : "";
+    });
+
+    // Close mobile menu
+    if (closeMenu) {
+      closeMenu.addEventListener("click", () => {
+        hamburger.classList.remove("active");
+        mobileMenu.classList.remove("active");
+        document.body.style.overflow = "";
+      });
+    }
+
+    // Close menu when clicking on a link
+    const mobileNavLinks = mobileMenu.querySelectorAll(".mobile-nav-links a");
+    mobileNavLinks.forEach((link) => {
+      link.addEventListener("click", () => {
+        hamburger.classList.remove("active");
+        mobileMenu.classList.remove("active");
+        document.body.style.overflow = "";
+      });
+    });
+
+    // Close menu when clicking outside
+    mobileMenu.addEventListener("click", (e) => {
+      if (e.target === mobileMenu) {
+        hamburger.classList.remove("active");
+        mobileMenu.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+    });
+  }
+
   // ===== Modal Elements =====
   const loginModal = document.getElementById("loginModal");
   const loginBtn = document.getElementById("loginBtn");
+  const mobileLoginBtn = document.getElementById("mobileLoginBtn");
   const loginClose = loginModal ? loginModal.querySelector(".booking-close") : null;
   const goSignup = document.getElementById("goSignup");
 
   const signupModal = document.getElementById("signupModal");
   const signupBtn = document.getElementById("signupBtn");
+  const mobileSignupBtn = document.getElementById("mobileSignupBtn");
   const signupClose = signupModal ? signupModal.querySelector(".booking-close") : null;
   const goLogin = document.getElementById("goLogin");
 
   // ===== Open Modal =====
-  if (loginBtn && loginModal) loginBtn.onclick = () => (loginModal.style.display = "flex");
-  if (signupBtn && signupModal) signupBtn.onclick = () => (signupModal.style.display = "flex");
+  if (loginBtn && loginModal) {
+    loginBtn.onclick = () => (loginModal.style.display = "flex");
+  }
+  if (mobileLoginBtn && loginModal) {
+    mobileLoginBtn.onclick = () => {
+      loginModal.style.display = "flex";
+      // Close mobile menu
+      if (hamburger && mobileMenu) {
+        hamburger.classList.remove("active");
+        mobileMenu.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+    };
+  }
+
+  if (signupBtn && signupModal) {
+    signupBtn.onclick = () => (signupModal.style.display = "flex");
+  }
+  if (mobileSignupBtn && signupModal) {
+    mobileSignupBtn.onclick = () => {
+      signupModal.style.display = "flex";
+      // Close mobile menu
+      if (hamburger && mobileMenu) {
+        hamburger.classList.remove("active");
+        mobileMenu.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+    };
+  }
 
   // ===== Close Modal =====
   if (loginClose && loginModal) loginClose.onclick = () => (loginModal.style.display = "none");
@@ -44,57 +115,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== Signup Form to Backend =====
   const signupForm = document.getElementById("signupForm");
-  if (!signupForm) {
-    console.error("❌ Signup form not found");
-    return;
-  }
+  if (signupForm) {
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-  signupForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+      const form = e.target;
 
-    const form = e.target;
+      const data = {
+        fullName: form.fullName.value,
+        email: form.email.value,
+        contact: form.contact.value,
+        password: form.password.value,
+        confirmPassword: form.confirmPassword.value,
+      };
 
-    const data = {
-      fullName: form.fullName.value,
-      email: form.email.value,
-      contact: form.contact.value,
-      password: form.password.value,
-      confirmPassword: form.confirmPassword.value,
-    };
-
-    if (data.password !== data.confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-
-    try {
-      const res = await fetch("http://localhost:3000/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      // Check if response is JSON before parsing
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        const result = await res.json();
-        if (result.success) {
-          alert("Account created successfully 🐾");
-          form.reset();
-        } else {
-          alert(result.message);
-        }
-      } else {
-        // If we get here, the server sent HTML (likely a 404 or 500 error page)
-        const text = await res.text();
-        console.error("Server returned non-JSON response:", text);
-        alert("Server error: Received HTML instead of JSON. Check the console.");
+      if (data.password !== data.confirmPassword) {
+        alert("Passwords do not match");
+        return;
       }
-    } catch (err) {
-      console.error("Signup failed:", err);
-      alert("Something went wrong. Please try again.");
-    }
-  });
+
+      try {
+        const res = await fetch("http://localhost:3000/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        // Check if response is JSON before parsing
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const result = await res.json();
+          if (result.success) {
+            alert("Account created successfully 🐾");
+            form.reset();
+          } else {
+            alert(result.message);
+          }
+        } else {
+          // If we get here, the server sent HTML (likely a 404 or 500 error page)
+          const text = await res.text();
+          console.error("Server returned non-JSON response:", text);
+          alert("Server error: Received HTML instead of JSON. Check the console.");
+        }
+      } catch (err) {
+        console.error("Signup failed:", err);
+        alert("Something went wrong. Please try again.");
+      }
+    });
+  }
 
   // ===== Login Form to Backend ===== //
   const loginForm = document.getElementById("loginForm");
@@ -130,23 +198,27 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-});
 
-// Contact Form
-const message = document.getElementById("message");
-const charCount = document.getElementById("charCount");
-const contactForm = document.getElementById("contactForm");
+  // ===== Contact Form =====
+  const message = document.getElementById("message");
+  const charCount = document.getElementById("charCount");
+  const contactForm = document.getElementById("contactForm");
 
-// Character counter
-message.addEventListener("input", () => {
-  charCount.textContent = `${message.value.length} / 300 characters`;
-});
+  if (message && charCount) {
+    // Character counter
+    message.addEventListener("input", () => {
+      charCount.textContent = `${message.value.length} / 300 characters`;
+    });
+  }
 
-// Submit handler
-contactForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const modal = new bootstrap.Modal(document.getElementById("thankYouModal"));
-  modal.show();
-  contactForm.reset();
-  charCount.textContent = "0 / 300 characters";
+  if (contactForm) {
+    // Submit handler
+    contactForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const modal = new bootstrap.Modal(document.getElementById("thankYouModal"));
+      modal.show();
+      contactForm.reset();
+      if (charCount) charCount.textContent = "0 / 300 characters";
+    });
+  }
 });

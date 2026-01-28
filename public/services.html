@@ -18,6 +18,32 @@
       <div class="container">
         <img src="images/logo.png" class="logo" alt="TheHungryPaws" />
 
+        <!-- Hamburger Menu -->
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu" id="mobileMenu">
+          <div class="mobile-menu-header">
+            <img src="images/logo.png" class="logo" alt="TheHungryPaws" />
+          </div>
+
+          <div class="mobile-nav-links">
+            <a href="index.html">Home</a>
+            <a href="services.html" class="active">Services</a>
+            <a href="contact.html">Contact</a>
+          </div>
+
+          <div class="mobile-auth">
+            <button id="mobileLoginBtn" class="login-btn">Login</button>
+            <button id="mobileSignupBtn" class="signup-btn">Sign Up</button>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation -->
         <div class="nav-links">
           <a href="index.html">Home</a>
           <a href="services.html" class="active">Services</a>
@@ -47,7 +73,7 @@
               <button type="submit">Login</button>
             </form>
             <p style="text-align: center">
-              Don’t have an account?
+              Don't have an account?
               <a href="#" id="goSignup">Sign up</a>
             </p>
           </div>
@@ -121,7 +147,7 @@
         <div class="services-text">
           <h3>Pet Hotel Services</h3>
           <p class="details">
-            From tiny paws to gentle giants, our pet hotel gives every guest a cozy space to rest, play, and feel loved. Because while you’re away, we’re here creating happy tails every day!
+            From tiny paws to gentle giants, our pet hotel gives every guest a cozy space to rest, play, and feel loved. Because while you're away, we're here creating happy tails every day!
           </p>
           <p class="details">
             <em>24 Hours Stay</em>
