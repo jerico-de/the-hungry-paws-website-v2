@@ -21,9 +21,9 @@
     <div class="dashboard">
       <!-- SIDEBAR -->
       <aside class="sidebar">
-        <a href="#" class="sidebar-link active">Profile</a>
-        <a href="#" class="sidebar-link">My Pets</a>
-        <a href="#" class="sidebar-link">My Bookings</a>
+        <button class="sidebar-link active" data-section="profile">Profile</button>
+        <button class="sidebar-link" data-section="pets">My Pets</button>
+        <button class="sidebar-link" data-section="bookings">My Bookings</button>
 
         <form action="/logout" method="POST" class="logout-form">
           <button type="submit" class="sidebar-link logout-btn">Logout</button>
@@ -31,7 +31,7 @@
       </aside>
 
       <!-- MAIN CONTENT -->
-      <main class="dashboard-content">
+      <main class="dashboard-content" id="dashboardContent" data-email="<%= user.email %>">
         <h2>Profile</h2>
         <p>
           <strong>Email:</strong>
@@ -40,5 +40,6 @@
         <p>More profile info will go here.</p>
       </main>
     </div>
+    <script src="/user.js"></script>
   </body>
 </html>

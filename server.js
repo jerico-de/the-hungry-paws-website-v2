@@ -5,6 +5,7 @@ const cors = require("cors");
 const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
 const { connectDB, getDB } = require("./db");
+const { ObjectId } = require("mongodb");
 
 const app = express();
 app.use(cors());
@@ -33,6 +34,105 @@ app.use(
 // =====================
 // API ROUTES
 // =====================
+
+// Get logged-in user's pets
+app.get("/api/pets", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: "Not logged in" });
+  }
+
+  const db = getDB();
+  const pets = db.collection("pets");
+
+  pets
+    .find({ userId: req.session.user.id })
+    .toArray()
+    .then((petsList) => {
+      res.json({ success: true, pets: petsList });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({ success: false, message: "Server error" });
+    });
+});
+
+// Add a new pet
+app.post("/api/pets", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: "Not logged in" });
+  }
+
+  try {
+    const { name, breed, age } = req.body;
+
+    if (!name || !breed || !age) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const db = getDB();
+    const pets = db.collection("pets");
+
+    await pets.insertOne({
+      userId: req.session.user.id, // link to logged-in user
+      name,
+      breed,
+      age,
+      createdAt: new Date(),
+    });
+
+    res.json({ success: true, message: "Pet added successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Edit a pet
+app.put("/api/pets/:id", async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ success: false, message: "Not logged in" });
+
+  const petId = req.params.id;
+  const { name, breed, age } = req.body;
+
+  if (!name || !breed || !age) return res.status(400).json({ success: false, message: "All fields are required" });
+
+  try {
+    const db = getDB();
+    const pets = db.collection("pets");
+
+    const result = await pets.updateOne({ _id: new ObjectId(petId), userId: req.session.user.id }, { $set: { name, breed, age } });
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Pet not found or no changes made" });
+    }
+
+    res.json({ success: true, message: "Pet updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Delete a pet
+app.delete("/api/pets/:id", async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ success: false, message: "Not logged in" });
+
+  const petId = req.params.id;
+
+  try {
+    const db = getDB();
+    const pets = db.collection("pets");
+
+    const result = await pets.deleteOne({ _id: new ObjectId(petId), userId: req.session.user.id });
+
+    if (result.deletedCount === 0) return res.status(404).json({ success: false, message: "Pet not found" });
+
+    res.json({ success: true, message: "Pet deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 // Sign up API
 app.post("/api/signup", async (req, res) => {
