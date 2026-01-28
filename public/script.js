@@ -135,27 +135,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const res = await fetch("http://localhost:3000/api/signup", {
+        const res = await fetch("/api/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
 
-        // Check if response is JSON before parsing
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          const result = await res.json();
-          if (result.success) {
-            alert("Account created successfully 🐾");
-            form.reset();
-          } else {
-            alert(result.message);
-          }
+        const result = await res.json();
+
+        if (result.success) {
+          alert("Account created successfully 🐾");
+          form.reset();
+          signupModal.style.display = "none";
+          loginModal.style.display = "flex";
         } else {
-          // If we get here, the server sent HTML (likely a 404 or 500 error page)
-          const text = await res.text();
-          console.error("Server returned non-JSON response:", text);
-          alert("Server error: Received HTML instead of JSON. Check the console.");
+          alert(result.message);
         }
       } catch (err) {
         console.error("Signup failed:", err);
