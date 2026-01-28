@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <!-- USER TOP BAR -->
+    <header class="user-topbar">
+      <div class="user-topbar-left">
+        <img src="/images/logo.png" alt="The Hungry Paws" class="user-logo" />
+        <span class="welcome-text">
+          Welcome,
+          <strong><%= user.fullName %></strong>
+        </span>
+      </div>
+    </header>
+
+    <!-- DASHBOARD LAYOUT -->
+    <div class="dashboard">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <a href="#" class="sidebar-link active">Profile</a>
+        <a href="#" class="sidebar-link">My Pets</a>
+        <a href="#" class="sidebar-link">My Bookings</a>
+
+        <form action="/logout" method="POST" class="logout-form">
+          <button type="submit" class="sidebar-link logout-btn">Logout</button>
+        </form>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="dashboard-content">
+        <h2>Profile</h2>
+        <p>
+          <strong>Email:</strong>
+          <%= user.email %>
+        </p>
+        <p>More profile info will go here.</p>
+      </main>
+    </div>
+  </body>
+</html>

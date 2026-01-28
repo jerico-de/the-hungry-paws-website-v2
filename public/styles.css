@@ -603,6 +603,89 @@ body {
   z-index: 10000;
 }
 
+/* ========== USER DASHBOARD LAYOUT ========== */
+
+/* Top bar */
+.user-topbar {
+  background-color: #f5d5d5;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+}
+
+.user-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-logo {
+  height: 35px;
+}
+
+.welcome-text {
+  font-size: 1.05rem;
+  color: #333;
+}
+
+/* Dashboard container */
+.dashboard {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background-color: #fff;
+  border-right: 2px solid #f1f1f1;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 30px;
+  font-weight: 600;
+  color: #333;
+  transition: 0.3s ease;
+  background-color: #f5d5d5;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  background-color: #d44d7c;
+  color: white;
+}
+
+/* Logout button override */
+.logout-form {
+  margin-top: auto;
+}
+
+.logout-btn {
+  width: 100%;
+}
+
+/* Main content */
+.dashboard-content {
+  flex: 1;
+  padding: 40px;
+  background-color: #f9f9f9;
+}
+
+.dashboard-content h2 {
+  margin-bottom: 15px;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
   /* Adjust hero text */

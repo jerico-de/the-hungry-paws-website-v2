@@ -118,9 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = await res.json();
 
         if (result.success) {
-          alert(`Welcome back, ${result.user.fullName}!`);
-          // Redirect to a dashboard or home page
-          window.location.href = "index.html";
+          alert("Login successful 🐾");
+          // Redirect to user page
+          window.location.href = "/user";
         } else {
           alert(result.message);
         }
