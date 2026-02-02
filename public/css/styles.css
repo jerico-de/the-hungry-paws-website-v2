@@ -217,7 +217,7 @@ body {
 
 /* ========== HERO SECTION ========== */
 #hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.473), rgba(0, 0, 0, 0.89)), url("images/welcome.JPEG");
+  background: linear-gradient(rgba(0, 0, 0, 0.473), rgba(0, 0, 0, 0.89)), url("/images/welcome.JPEG");
   background-size: cover;
   background-position: center;
   color: white;
@@ -824,12 +824,39 @@ body {
   border: none;
   cursor: pointer;
   text-align: left;
+  position: relative;
 }
 
 .sidebar-link:hover,
 .sidebar-link.active {
   background-color: #d44d7c;
   color: white;
+}
+
+/* Notification Badge */
+.notification-badge {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+/* Message Status */
+.status-unread {
+  border-left: 4px solid #ffc107;
+}
+
+.status-read {
+  opacity: 0.8;
 }
 
 /* Logout button override */
@@ -839,6 +866,20 @@ body {
 
 .logout-btn {
   width: 100%;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+  text-align: center;
+}
+
+.logout-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
 }
 
 /* Main content */
@@ -850,18 +891,23 @@ body {
 
 .dashboard-content h2 {
   margin-bottom: 15px;
+  color: #333;
 }
 
 /* ========== MY PETS SECTION ========== */
 .pets-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
   width: 100%;
+  max-width: 1000px;
   margin-top: 20px;
 }
 
 .pet-card {
+  width: 250px;
+  flex-shrink: 0;
   background-color: #f5d5d5;
   padding: 20px;
   border-radius: 12px;
@@ -883,6 +929,43 @@ body {
   margin-bottom: 10px;
 }
 
+/* Male pet card styling - Blue theme */
+.pet-card[style*="background-color: #1870c7"] h3 {
+  color: #a8d5ff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.pet-card[style*="background-color: #1870c7"] p {
+  color: #f0f0f0;
+}
+
+.pet-card[style*="background-color: #1870c7"] p strong {
+  color: #ffffff;
+}
+
+.pet-card[style*="background-color: #1870c7"] .editPetBtn {
+  background-color: #a8d5ff;
+  color: #1870c7;
+  border: 2px solid #a8d5ff;
+}
+
+.pet-card[style*="background-color: #1870c7"] .editPetBtn:hover {
+  background-color: #85c5ff;
+  border-color: #85c5ff;
+}
+
+.pet-card[style*="background-color: #1870c7"] .deletePetBtn {
+  background-color: #ff6b9d;
+  color: white;
+  border: 2px solid #ff6b9d;
+}
+
+.pet-card[style*="background-color: #1870c7"] .deletePetBtn:hover {
+  background-color: #ff4d82;
+  border-color: #ff4d82;
+}
+
+/* Female pet card styling - Pink theme (default) */
 .pet-card p {
   font-size: 1rem;
   color: #333;
@@ -893,16 +976,17 @@ body {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .pet-actions button {
-  padding: 6px 14px;
+  padding: 8px 18px;
   border: none;
   border-radius: 30px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s ease;
+  font-size: 0.9rem;
 }
 
 .editPetBtn {
@@ -925,67 +1009,188 @@ body {
   transform: translateY(-1px);
 }
 
+/* Add Pet Button */
+#addPetBtn {
+  padding: 10px 25px;
+  border-radius: 30px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #d44d7c;
+  color: white;
+  transition: 0.3s ease;
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+#addPetBtn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
 /* Add/Edit Pet Form */
 #addPetForm,
-#editPetForm {
-  max-width: 400px;
-  margin: 20px auto;
+#editPetForm,
+#editProfileForm,
+#changePasswordForm {
+  max-width: 500px;
+  margin: 20px 0;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   padding: 25px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 #addPetForm label,
-#editPetForm label {
+#editPetForm label,
+#editProfileForm label,
+#changePasswordForm label {
   font-weight: 600;
   color: #333;
+  margin-bottom: -10px;
 }
 
 #addPetForm input,
-#editPetForm input {
+#editPetForm input,
+#editProfileForm input,
+#changePasswordForm input,
+#addPetForm select,
+#editPetForm select,
+#editProfileForm select,
+#changePasswordForm select,
+#editProfileForm textarea {
   padding: 10px 12px;
   border: 2px solid #ccc;
   border-radius: 8px;
   font-size: 1rem;
   transition: 0.3s ease;
+  width: 100%;
+  background-color: white;
+  font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
 #addPetForm input:focus,
-#editPetForm input:focus {
+#editPetForm input:focus,
+#editProfileForm input:focus,
+#changePasswordForm input:focus,
+#addPetForm select:focus,
+#editPetForm select:focus,
+#editProfileForm select:focus,
+#changePasswordForm select:focus,
+#editProfileForm textarea:focus {
   outline: none;
   border-color: #d44d7c;
 }
 
+#addPetForm select,
+#editPetForm select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+  padding-right: 35px;
+  cursor: pointer;
+}
+
 #addPetForm button,
-#editPetForm button {
+#editPetForm button,
+#editProfileForm button,
+#changePasswordForm button {
   background-color: #d44d7c;
   border: none;
   color: white;
-  padding: 10px 15px;
+  padding: 10px 20px;
   border-radius: 30px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s ease;
+  width: auto;
+  align-self: flex-start;
+  margin-top: 5px;
 }
 
 #addPetForm button:hover,
-#editPetForm button:hover {
+#editPetForm button:hover,
+#editProfileForm button:hover,
+#changePasswordForm button:hover {
   opacity: 0.85;
   transform: translateY(-1px);
 }
 
 #cancelAddPet,
-#cancelEditPet {
-  background-color: #1870c7;
-  margin-top: 10px;
+#cancelEditPet,
+#cancelEditProfile,
+#cancelChangePassword,
+#cancelAdd {
+  background-color: #6c757d;
+  margin-left: 10px;
 }
 
 #cancelAddPet:hover,
-#cancelEditPet:hover {
+#cancelEditPet:hover,
+#cancelEditProfile:hover,
+#cancelChangePassword:hover,
+#cancelAdd:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+/* Form button container */
+#addPetForm .form-buttons,
+#editPetForm .form-buttons,
+#editProfileForm .form-buttons,
+#changePasswordForm .form-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Profile Section */
+.profile-section {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.profile-section h3 {
+  color: #d44d7c;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.profile-section p {
+  margin-bottom: 10px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.profile-section button {
+  margin-top: 10px;
+}
+
+/* User Link Button */
+.user-link {
+  background-color: #1870c7;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+  font-size: 0.95rem;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.user-link:hover {
   opacity: 0.85;
   transform: translateY(-1px);
 }
@@ -1020,6 +1225,7 @@ body {
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .status-tab-btn {
@@ -1040,16 +1246,19 @@ body {
 
 /* ========== BOOKINGS GRID ========== */
 .bookings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
   width: 100%;
-  max-width: 900px;
-  margin: auto;
+  max-width: 1000px;
+  margin: 20px auto 0;
 }
 
 /* Booking Card */
 .booking-card {
+  width: 280px;
+  flex-shrink: 0;
   background-color: #f5d5d5;
   padding: 20px;
   border-radius: 12px;
@@ -1059,6 +1268,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  border: 1px solid #e0e0e0;
 }
 
 .booking-card:hover {
@@ -1069,26 +1279,45 @@ body {
 .booking-card p {
   font-size: 1rem;
   color: #333;
+  margin: 4px 0;
+}
+
+.booking-card .booking-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .booking-card button {
-  margin-top: 8px;
-  padding: 8px 15px;
+  padding: 8px 16px;
   border-radius: 25px;
   border: none;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s ease;
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 100px;
 }
 
 .booking-card .editBookingBtn {
   background-color: #1870c7;
   color: white;
-  margin-right: 5px;
 }
 
 .booking-card .deleteBookingBtn {
   background-color: #d44d7c;
+  color: white;
+}
+
+.booking-card .approve-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.booking-card .reject-btn {
+  background-color: #dc3545;
   color: white;
 }
 
@@ -1099,17 +1328,20 @@ body {
 
 .booking-status.pending {
   color: orange;
+  font-weight: 600;
 }
 .booking-status.approved {
   color: green;
+  font-weight: 600;
 }
 .booking-status.rejected {
   color: red;
+  font-weight: 600;
 }
 
 /* ========== NEW BOOKING BUTTON ========== */
 #newBookingBtn {
-  padding: 10px 20px;
+  padding: 10px 25px;
   border-radius: 30px;
   border: none;
   font-weight: 600;
@@ -1117,8 +1349,9 @@ body {
   background-color: #d44d7c;
   color: white;
   transition: 0.3s ease;
-  display: block;
+  display: inline-block;
   margin-bottom: 20px;
+  font-size: 1rem;
 }
 
 #newBookingBtn:hover {
@@ -1128,55 +1361,250 @@ body {
 
 /* ========== BOOKING FORM ========== */
 #bookingForm {
-  background-color: #f5d5d5;
+  background-color: #ffffff;
   padding: 25px;
   border-radius: 12px;
-  max-width: 500px;
-  margin: auto;
+  max-width: 600px;
+  margin: 20px auto;
   display: flex;
   flex-direction: column;
   gap: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 #bookingForm label {
   font-weight: 600;
   font-size: 0.95rem;
+  margin-bottom: -10px;
+  color: #333;
 }
 
 #bookingForm input,
-#bookingForm select {
-  padding: 8px 12px;
+#bookingForm select,
+#bookingForm textarea {
+  padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 2px solid #ccc;
   font-size: 1rem;
+  width: 100%;
+  transition: 0.3s ease;
+  background-color: white;
+  font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
-#bookingForm button.user-link {
-  padding: 12px 25px;
+#bookingForm input:focus,
+#bookingForm select:focus,
+#bookingForm textarea:focus {
+  outline: none;
+  border-color: #d44d7c;
+}
+
+#bookingForm select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+  padding-right: 35px;
+  cursor: pointer;
+}
+
+/* Grooming Service Options */
+.service-section {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.service-section h4 {
+  margin-bottom: 10px;
+  color: #d44d7c;
+  font-size: 1.1rem;
+}
+
+.service-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.service-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background-color: white;
+  border-radius: 6px;
+  transition: 0.2s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.service-option:hover {
+  background-color: #fff5f8;
+  border-color: #d44d7c;
+}
+
+.service-option input[type="checkbox"],
+.service-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.service-option label {
+  margin: 0;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+#alacarteOptions {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 6px;
+  border: 2px solid #d44d7c;
+}
+
+#alacarteOptions p {
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #666;
+}
+
+#alacarteOptions .service-options {
+  gap: 8px;
+}
+
+#alacarteOptions .service-option {
+  background-color: #f9f9f9;
+  padding: 8px 10px;
+}
+
+/* Booking Confirmation Modal */
+.confirmation-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.confirmation-modal.active {
+  display: flex;
+}
+
+.confirmation-content {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.confirmation-content h3 {
+  color: #d44d7c;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.confirmation-content .important-notice {
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 5px;
+}
+
+.confirmation-content .important-notice ul {
+  margin: 10px 0 0 20px;
+  line-height: 1.8;
+}
+
+.confirmation-content .important-notice li {
+  margin-bottom: 8px;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.confirmation-buttons button {
+  flex: 1;
+  padding: 12px 20px;
   border: none;
   border-radius: 30px;
   font-weight: 600;
   cursor: pointer;
-  background-color: #1870c7;
-  color: white;
   transition: 0.3s ease;
+  font-size: 1rem;
 }
 
-#bookingForm button.user-link:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
-}
-
-#bookingForm button.logout-btn {
-  background-color: #d44d7c;
+.confirm-yes {
+  background-color: #28a745;
   color: white;
+}
+
+.confirm-no {
+  background-color: #dc3545;
+  color: white;
+}
+
+.confirmation-buttons button:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+#bookingForm .form-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#bookingForm button {
+  padding: 10px 25px;
   border: none;
   border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+  font-size: 1rem;
 }
 
-#bookingForm button.logout-btn:hover {
+#bookingForm button[type="submit"] {
+  background-color: #d44d7c;
+  color: white;
+}
+
+#bookingForm button[type="submit"]:hover {
   opacity: 0.9;
   transform: translateY(-2px);
+}
+
+#bookingForm button[type="button"] {
+  background-color: #6c757d;
+  color: white;
+}
+
+#bookingForm button[type="button"]:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* Cancel button specific styling */
+#cancelBooking,
+#cancelEditBooking {
+  background-color: #6c757d;
+  color: white;
 }
 
 /* ========== MULTI-PET CONTAINER ========== */
@@ -1186,63 +1614,29 @@ body {
   gap: 10px;
 }
 
-#petsBookingContainer select {
+#petsBookingContainer select,
+.booking-pet {
   width: 100%;
-}
-
-/* ADMIN */
-.booking-card {
-  border: 1px solid #ccc;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  background: #f9f9f9;
-}
-
-.booking-card button {
-  margin-right: 10px;
-  padding: 6px 14px;
-  border: none;
-  border-radius: 30px;
-  font-weight: 600;
-  cursor: pointer;
+  padding: 10px 12px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
   transition: 0.3s ease;
-}
-
-.approve-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.approve-btn:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
-}
-
-.reject-btn {
-  background-color: #d44d7c;
-  color: white;
-}
-
-.reject-btn:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
-}
-
-.user-link {
-  background-color: #1870c7;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 30px;
-  font-weight: 600;
+  background-color: white;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+  padding-right: 35px;
   cursor: pointer;
-  transition: 0.3s ease;
 }
 
-.user-link:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
+#petsBookingContainer select:focus,
+.booking-pet:focus {
+  outline: none;
+  border-color: #d44d7c;
 }
 
 /* ===== RESPONSIVE MEDIA QUERIES ===== */
@@ -1292,6 +1686,14 @@ body {
 
   .carousel-control-next {
     right: 20px;
+  }
+
+  .pets-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+
+  .bookings-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
 
@@ -1526,19 +1928,67 @@ body {
   }
 
   .pets-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 15px;
+  }
+
+  .pet-card {
+    width: 100%;
   }
 
   .bookings-grid {
     grid-template-columns: 1fr;
   }
 
+  .booking-card {
+    width: 100%;
+  }
+
   #addPetForm,
   #editPetForm,
+  #editProfileForm,
+  #changePasswordForm,
   #bookingForm {
     max-width: 100%;
     padding: 20px;
+  }
+
+  #addPetForm button,
+  #editPetForm button,
+  #editProfileForm button,
+  #changePasswordForm button {
+    width: 100%;
+  }
+
+  #addPetForm .form-buttons,
+  #editPetForm .form-buttons,
+  #editProfileForm .form-buttons,
+  #changePasswordForm .form-buttons {
+    flex-direction: column;
+  }
+
+  #cancelAddPet,
+  #cancelEditPet,
+  #cancelEditProfile,
+  #cancelChangePassword,
+  #cancelAdd {
+    margin-left: 0;
+  }
+
+  #bookingForm .form-buttons {
+    flex-direction: column;
+  }
+
+  #bookingForm button {
+    width: 100%;
+  }
+
+  .service-option {
+    padding: 12px;
+  }
+
+  .service-option label {
+    font-size: 0.9rem;
   }
 }
 
@@ -1635,6 +2085,14 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .pet-card {
+    width: 100%;
+  }
+
+  .booking-card {
+    width: 100%;
+  }
+
   .user-topbar-left {
     gap: 10px;
   }
@@ -1649,6 +2107,31 @@ body {
 
   .sidebar-link {
     width: 100%;
+  }
+
+  .pet-actions {
+    flex-direction: column;
+  }
+
+  .pet-actions button {
+    width: 100%;
+  }
+
+  .booking-card .booking-actions {
+    flex-direction: column;
+  }
+
+  .booking-card button {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .service-option {
+    padding: 10px;
+  }
+
+  .service-option label {
+    font-size: 0.85rem;
   }
 }
 

@@ -207,12 +207,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (contactForm) {
     // Submit handler
-    contactForm.addEventListener("submit", (e) => {
+    contactForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const modal = new bootstrap.Modal(document.getElementById("thankYouModal"));
-      modal.show();
-      contactForm.reset();
-      if (charCount) charCount.textContent = "0 / 300 characters";
+
+      const formData = {
+        name: contactForm.querySelector("#name").value,
+        email: contactForm.querySelector("#email").value,
+        message: contactForm.querySelector("#message").value,
+      };
+
+      try {
+        const res = await fetch("/api/contact/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          const modal = new bootstrap.Modal(document.getElementById("thankYouModal"));
+          modal.show();
+          contactForm.reset();
+          if (charCount) charCount.textContent = "0 / 300 characters";
+        } else {
+          alert(result.message || "Failed to send message");
+        }
+      } catch (err) {
+        console.error("Contact form error:", err);
+        alert("Something went wrong. Please try again.");
+      }
     });
   }
 });

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
     <!-- ADMIN TOP BAR -->
@@ -24,6 +24,7 @@
       <aside class="sidebar">
         <button class="sidebar-link active" data-section="profile">Profile</button>
         <button class="sidebar-link" data-section="bookings">Bookings</button>
+        <button class="sidebar-link" data-section="messages">Messages</button>
 
         <form action="/logout" method="POST" class="logout-form">
           <button type="submit" class="sidebar-link logout-btn">Logout</button>
@@ -41,6 +42,6 @@
       </main>
     </div>
 
-    <script src="/admin.js"></script>
+    <script src="/js/admin.js"></script>
   </body>
 </html>
