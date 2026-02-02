@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ===== Login Form to Backend ===== //
+  // ===== Login Form to Backend =====
   const loginForm = document.getElementById("loginForm");
 
   if (loginForm) {
@@ -181,8 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (result.success) {
           alert("Login successful 🐾");
-          // Redirect to user page
-          window.location.href = "/user";
+          console.log("Redirecting to:", result.redirect);
+          window.location.href = result.redirect;
         } else {
           alert(result.message);
         }
