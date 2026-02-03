@@ -894,55 +894,6 @@ body {
   color: #333;
 }
 
-/* ========== DASHBOARD HAMBURGER MENU (Mobile Only) ========== */
-.dashboard-menu-toggle {
-  display: none; /* Hidden on desktop */
-  flex-direction: column;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  margin-right: 10px;
-  z-index: 1001;
-}
-
-.dashboard-menu-toggle span {
-  width: 25px;
-  height: 3px;
-  background-color: #333;
-  margin: 3px 0;
-  transition: 0.3s;
-  border-radius: 3px;
-}
-
-.dashboard-menu-toggle.active span:nth-child(1) {
-  transform: rotate(-45deg) translate(-5px, 6px);
-}
-
-.dashboard-menu-toggle.active span:nth-child(2) {
-  opacity: 0;
-}
-
-.dashboard-menu-toggle.active span:nth-child(3) {
-  transform: rotate(45deg) translate(-5px, -6px);
-}
-
-/* Dashboard Overlay (Mobile Only) */
-.dashboard-overlay {
-  display: none;
-  position: fixed;
-  top: 60px;
-  left: 0;
-  width: 100%;
-  height: calc(100vh - 60px);
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
-
-.dashboard-overlay.active {
-  display: block;
-}
-
 /* ========== MY PETS SECTION ========== */
 .pets-grid {
   display: flex;
@@ -1480,7 +1431,7 @@ body {
 
 .service-option {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   padding: 10px 12px;
   background-color: white;
@@ -1501,7 +1452,6 @@ body {
   cursor: pointer;
   flex-shrink: 0;
   margin: 0;
-  margin-top: 2px;
 }
 
 .service-option label {
@@ -1687,6 +1637,93 @@ body {
 .booking-pet:focus {
   outline: none;
   border-color: #d44d7c;
+}
+
+/* Pet Rabies Info Box */
+.pet-rabies-info {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 8px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  border-left: 3px solid #1870c7;
+}
+
+/* Add Pet Checkbox */
+.add-pet-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+.add-pet-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.add-pet-checkbox label {
+  margin: 0;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Toggle Add-Ons Button */
+.addon-toggle-container {
+  margin: 20px 0;
+}
+
+.toggle-addons-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: #f5d5d5;
+  color: #333;
+  border: 2px solid #d44d7c;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.toggle-addons-btn:hover {
+  background-color: #d44d7c;
+  color: white;
+}
+
+.toggle-addons-btn.active {
+  background-color: #d44d7c;
+  color: white;
+}
+
+/* Add-On Services Section */
+.addon-services-section {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+}
+
+.addon-services-section h4 {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+/* Admin Profile Matching - Ensure consistent styling */
+.profile-section button {
+  margin-top: 10px;
 }
 
 /* ===== RESPONSIVE MEDIA QUERIES ===== */
@@ -1927,7 +1964,7 @@ body {
 
   /* Dashboard */
   .dashboard {
-    flex-direction: row;
+    flex-direction: column;
   }
 
   .sidebar {
@@ -1939,13 +1976,11 @@ body {
     background-color: #fff;
     border-right: 2px solid #f1f1f1;
     padding: 20px;
-    display: flex;
     flex-direction: column;
     gap: 10px;
     transition: left 0.3s ease;
     z-index: 1000;
     overflow-y: auto;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   }
 
   .sidebar.active {
@@ -2036,12 +2071,11 @@ body {
   }
 
   .service-option {
-    padding: 10px 12px;
+    padding: 12px;
   }
 
   .service-option label {
     font-size: 0.9rem;
-    line-height: 1.3;
   }
 }
 
@@ -2181,17 +2215,10 @@ body {
 
   .service-option {
     padding: 10px;
-    gap: 10px;
   }
 
   .service-option label {
     font-size: 0.85rem;
-  }
-
-  .service-option input[type="checkbox"],
-  .service-option input[type="radio"] {
-    width: 16px;
-    height: 16px;
   }
 }
 

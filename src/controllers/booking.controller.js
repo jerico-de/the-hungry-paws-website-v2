@@ -38,14 +38,10 @@ async function getBookings(req, res) {
  */
 async function createBooking(req, res) {
   try {
-    const { pets, type, services, antiRabiesDate, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime } = req.body;
+    const { pets, type, services, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime } = req.body;
 
     if (!pets || !pets.length || !type || !appointmentDate || !appointmentTime) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
-    }
-
-    if (type === "grooming" && !antiRabiesDate) {
-      return res.status(400).json({ success: false, message: "Anti-rabies date required for grooming" });
     }
 
     if (type === "grooming" && (!services || services.length === 0)) {
@@ -62,7 +58,6 @@ async function createBooking(req, res) {
       type,
       pets: pets.map((id) => new ObjectId(id)),
       services: services || null,
-      antiRabiesDate: antiRabiesDate ? new Date(antiRabiesDate) : null,
       appointmentDate: new Date(appointmentDate),
       appointmentTime,
       hotelCheckoutDate: hotelCheckoutDate ? new Date(hotelCheckoutDate) : null,

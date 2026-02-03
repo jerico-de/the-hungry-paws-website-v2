@@ -25,7 +25,7 @@ async function getPets(req, res) {
  */
 async function addPet(req, res) {
   try {
-    const { name, breed, age, gender } = req.body;
+    const { name, breed, age, gender, lastAntiRabiesShot } = req.body;
 
     if (!name || !breed || !age || !gender) {
       return res.status(400).json({ success: false, message: "All fields are required" });
@@ -46,6 +46,7 @@ async function addPet(req, res) {
       breed,
       age: parseInt(age),
       gender: gender.toLowerCase(),
+      lastAntiRabiesShot: lastAntiRabiesShot ? new Date(lastAntiRabiesShot) : null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -62,7 +63,7 @@ async function addPet(req, res) {
  */
 async function updatePet(req, res) {
   try {
-    const { name, breed, age, gender } = req.body;
+    const { name, breed, age, gender, lastAntiRabiesShot } = req.body;
 
     if (!name || !breed || !age || !gender) {
       return res.status(400).json({ success: false, message: "All fields are required" });
@@ -80,6 +81,7 @@ async function updatePet(req, res) {
           breed,
           age: parseInt(age),
           gender: gender.toLowerCase(),
+          lastAntiRabiesShot: lastAntiRabiesShot ? new Date(lastAntiRabiesShot) : null,
           updatedAt: new Date(),
         },
       },
@@ -118,9 +120,32 @@ async function deletePet(req, res) {
   }
 }
 
+/**
+ * Get pet by ID
+ */
+async function getPetById(req, res) {
+  try {
+    const db = getDB();
+    const pet = await db.collection("pets").findOne({
+      _id: new ObjectId(req.params.id),
+      userId: new ObjectId(req.session.user.id),
+    });
+
+    if (!pet) {
+      return res.status(404).json({ success: false, message: "Pet not found" });
+    }
+
+    res.json({ success: true, pet });
+  } catch (err) {
+    console.error("Get pet by ID error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
 module.exports = {
   getPets,
   addPet,
   updatePet,
   deletePet,
+  getPetById,
 };

@@ -7,5 +7,6 @@ router.get("/", isLoggedIn, petController.getPets);
 router.post("/", isLoggedIn, petController.addPet);
 router.put("/:id", isLoggedIn, petController.updatePet);
 router.delete("/:id", isLoggedIn, petController.deletePet);
+router.get("/:id", isLoggedIn, petController.getPetById);
 
 module.exports = router;

@@ -59,10 +59,9 @@ sidebarLinks.forEach((link) => {
   });
 });
 
-// Load bookings on page load and start polling for unread messages
+// Load profile on page load and start polling for unread messages
 document.addEventListener("DOMContentLoaded", () => {
   loadProfile();
-  loadBookingsSection();
   pollUnreadMessages();
   setInterval(pollUnreadMessages, 30000); // Check every 30 seconds
 });
@@ -72,9 +71,13 @@ document.addEventListener("DOMContentLoaded", () => {
 ================================ */
 function loadProfile() {
   content.innerHTML = `
-    <h2>Profile</h2>
-    <p><strong>Email:</strong> ${content.dataset.email}</p>
-    <p>More profile info will go here.</p>
+    <h2>Admin Profile</h2>
+    
+    <div class="profile-section">
+      <h3>Account Information</h3>
+      <p><strong>Email:</strong> ${content.dataset.email}</p>
+      <p><strong>Role:</strong> Administrator</p>
+    </div>
   `;
 }
 

@@ -9,7 +9,6 @@ const dashboardSidebar = document.getElementById("dashboardSidebar");
 const dashboardOverlay = document.getElementById("dashboardOverlay");
 
 if (dashboardMenuToggle && dashboardSidebar && dashboardOverlay) {
-  // Toggle menu
   dashboardMenuToggle.addEventListener("click", () => {
     dashboardMenuToggle.classList.toggle("active");
     dashboardSidebar.classList.toggle("active");
@@ -17,7 +16,6 @@ if (dashboardMenuToggle && dashboardSidebar && dashboardOverlay) {
     document.body.style.overflow = dashboardSidebar.classList.contains("active") ? "hidden" : "";
   });
 
-  // Close menu when clicking overlay
   dashboardOverlay.addEventListener("click", () => {
     dashboardMenuToggle.classList.remove("active");
     dashboardSidebar.classList.remove("active");
@@ -25,7 +23,6 @@ if (dashboardMenuToggle && dashboardSidebar && dashboardOverlay) {
     document.body.style.overflow = "";
   });
 
-  // Close menu when clicking a sidebar link
   sidebarLinks.forEach((link) => {
     link.addEventListener("click", () => {
       if (window.innerWidth <= 768) {
@@ -62,7 +59,6 @@ sidebarLinks.forEach((link) => {
   });
 });
 
-// Load profile on page load
 document.addEventListener("DOMContentLoaded", () => {
   loadProfile();
 });
@@ -113,25 +109,21 @@ async function loadProfile() {
    PROFILE ACTIONS (DELEGATED)
 ================================ */
 content.onclick = async (e) => {
-  // ---------- EDIT PROFILE ----------
   if (e.target.id === "editProfileBtn") {
     showEditProfileForm();
     return;
   }
 
-  // ---------- CHANGE PASSWORD ----------
   if (e.target.id === "changePasswordBtn") {
     showChangePasswordForm();
     return;
   }
 
-  // ---------- ADD PET ----------
   if (e.target.id === "addPetBtn") {
     showAddPetForm();
     return;
   }
 
-  // ---------- DELETE PET ----------
   if (e.target.classList.contains("deletePetBtn")) {
     const card = e.target.closest(".pet-card");
     const petId = card.dataset.id;
@@ -155,62 +147,71 @@ content.onclick = async (e) => {
     return;
   }
 
-  // ---------- EDIT PET ----------
   if (e.target.classList.contains("editPetBtn")) {
     const card = e.target.closest(".pet-card");
     const petId = card.dataset.id;
 
-    const name = card.querySelector("h3").innerText;
-    const breed = card.querySelector("p:nth-of-type(1)").innerText.replace("Breed: ", "");
-    const age = card.querySelector("p:nth-of-type(2)").innerText.replace("Age: ", "");
-    const genderText = card.querySelector("p:nth-of-type(3)").innerText.replace("Gender: ", "");
-    const gender = genderText.toLowerCase();
+    fetch(`/api/pets/${petId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success) {
+          alert("Error loading pet data");
+          return;
+        }
 
-    content.innerHTML = `
-      <h2>Edit Pet</h2>
-      <form id="editPetForm" data-id="${petId}">
-        <label>Name</label>
-        <input name="name" value="${name}" required />
+        const pet = data.pet;
+        const rabiesDate = pet.lastAntiRabiesShot ? new Date(pet.lastAntiRabiesShot).toISOString().split("T")[0] : "";
 
-        <label>Breed</label>
-        <input name="breed" value="${breed}" required />
+        content.innerHTML = `
+        <h2>Edit Pet</h2>
+        <form id="editPetForm" data-id="${petId}">
+          <label>Name</label>
+          <input name="name" value="${pet.name}" required />
 
-        <label>Age</label>
-        <input name="age" type="number" value="${age}" min="0" required />
+          <label>Breed</label>
+          <input name="breed" value="${pet.breed}" required />
 
-        <label>Gender</label>
-        <select name="gender" required>
-          <option value="">Select gender</option>
-          <option value="male" ${gender === "male" ? "selected" : ""}>Male</option>
-          <option value="female" ${gender === "female" ? "selected" : ""}>Female</option>
-        </select>
+          <label>Age</label>
+          <input name="age" type="number" value="${pet.age}" min="0" required />
 
-        <button type="submit" class="user-link">Save</button>
-        <button type="button" id="cancelEditPet" class="logout-btn">Cancel</button>
-      </form>
-    `;
-    return;
+          <label>Gender</label>
+          <select name="gender" required>
+            <option value="">Select gender</option>
+            <option value="male" ${pet.gender === "male" ? "selected" : ""}>Male</option>
+            <option value="female" ${pet.gender === "female" ? "selected" : ""}>Female</option>
+          </select>
+
+          <label>Last Anti-Rabies Shot (Optional)</label>
+          <input name="lastAntiRabiesShot" type="date" value="${rabiesDate}">
+
+          <div class="form-buttons">
+            <button type="submit" class="user-link">Save</button>
+            <button type="button" id="cancelEditPet" class="logout-btn">Cancel</button>
+          </div>
+        </form>
+      `;
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Error loading pet data");
+      });
   }
 
-  // ---------- CANCEL EDIT PET ----------
   if (e.target.id === "cancelEditPet") {
     loadPets();
     return;
   }
 
-  // ---------- CANCEL EDIT PROFILE ----------
   if (e.target.id === "cancelEditProfile") {
     loadProfile();
     return;
   }
 
-  // ---------- CANCEL CHANGE PASSWORD ----------
   if (e.target.id === "cancelChangePassword") {
     loadProfile();
     return;
   }
 
-  // ---------- SUBMIT EDIT PET ----------
   if (e.target.closest("#editPetForm")) {
     const form = e.target.closest("#editPetForm");
 
@@ -223,6 +224,7 @@ content.onclick = async (e) => {
         breed: form.breed.value,
         age: form.age.value,
         gender: form.gender.value,
+        lastAntiRabiesShot: form.lastAntiRabiesShot.value,
       };
 
       try {
@@ -247,7 +249,6 @@ content.onclick = async (e) => {
     };
   }
 
-  // ---------- SUBMIT EDIT PROFILE ----------
   if (e.target.closest("#editProfileForm")) {
     const form = e.target.closest("#editProfileForm");
 
@@ -282,7 +283,6 @@ content.onclick = async (e) => {
     };
   }
 
-  // ---------- SUBMIT CHANGE PASSWORD ----------
   if (e.target.closest("#changePasswordForm")) {
     const form = e.target.closest("#changePasswordForm");
 
@@ -351,8 +351,10 @@ async function showEditProfileForm() {
         <label>Address (Optional)</label>
         <textarea name="address" rows="3">${user.address || ""}</textarea>
         
-        <button type="submit" class="user-link">Save Changes</button>
-        <button type="button" id="cancelEditProfile" class="logout-btn">Cancel</button>
+        <div class="form-buttons">
+          <button type="submit" class="user-link">Save Changes</button>
+          <button type="button" id="cancelEditProfile" class="logout-btn">Cancel</button>
+        </div>
       </form>
     `;
   } catch (err) {
@@ -387,8 +389,10 @@ function showChangePasswordForm() {
         </ul>
       </div>
       
-      <button type="submit" class="user-link">Change Password</button>
-      <button type="button" id="cancelChangePassword" class="logout-btn">Cancel</button>
+      <div class="form-buttons">
+        <button type="submit" class="user-link">Change Password</button>
+        <button type="button" id="cancelChangePassword" class="logout-btn">Cancel</button>
+      </div>
     </form>
   `;
 }
@@ -449,10 +453,8 @@ function loadBookingsSection() {
 
       bookingsContent.innerHTML = html;
 
-      // Bind new booking button
       document.getElementById("newBookingBtn").onclick = () => showBookingForm(type);
 
-      // Bind delete buttons
       document.querySelectorAll(".deleteBookingBtn").forEach((btn) => {
         btn.onclick = async () => {
           if (!confirm("Delete this booking?")) return;
@@ -479,7 +481,6 @@ function loadBookingsSection() {
     }
   };
 
-  // Tab switching
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.onclick = () => {
       document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
@@ -488,12 +489,11 @@ function loadBookingsSection() {
     };
   });
 
-  // Load initial bookings
   loadBookings("grooming");
 }
 
 /* ===============================
-   BOOKING FORM
+   BOOKING FORM - WITH COLLAPSIBLE ADD-ONS
 ================================ */
 async function showBookingForm(type) {
   try {
@@ -511,67 +511,79 @@ async function showBookingForm(type) {
       return;
     }
 
+    window.petsData = petsData.pets;
+
     let petOptions = `<option value="">Select pet</option>`;
     petsData.pets.forEach((p) => {
-      petOptions += `<option value="${p._id}">${p.name} (${p.breed})</option>`;
+      const rabiesDate = p.lastAntiRabiesShot ? new Date(p.lastAntiRabiesShot).toLocaleDateString() : "Not set";
+      petOptions += `<option value="${p._id}" data-rabies="${p.lastAntiRabiesShot || ""}">${p.name} (${p.breed})</option>`;
     });
 
     let groomingServicesHTML = "";
     if (type === "grooming") {
       groomingServicesHTML = `
         <div class="service-section">
-          <h4>Select Grooming Services</h4>
+          <h4>Select Main Grooming Service</h4>
           
-          <div class="service-options">
+          <div class="main-service-options">
             <div class="service-option">
-              <input type="radio" id="fullGroom" name="serviceType" value="Full Groom" required>
+              <input type="radio" id="fullGroom" name="mainService" value="Full Groom" required>
               <label for="fullGroom">Full Groom</label>
             </div>
             
             <div class="service-option">
-              <input type="radio" id="bathBlowdry" name="serviceType" value="Bath and Blowdry">
+              <input type="radio" id="bathBlowdry" name="mainService" value="Bath and Blowdry">
               <label for="bathBlowdry">Bath and Blowdry</label>
             </div>
-            
-            <div class="service-option">
-              <input type="radio" id="alacarte" name="serviceType" value="alacarte">
-              <label for="alacarte">A La Carte Services</label>
-            </div>
           </div>
+        </div>
 
-          <div id="alacarteOptions" style="display: none; margin-top: 15px; padding-left: 20px;">
-            <p style="margin-bottom: 10px; font-weight: 600; color: #666;">Select A La Carte Services:</p>
-            <div class="service-options">
+        <div class="addon-toggle-container">
+          <button type="button" id="toggleAddonsBtn" class="toggle-addons-btn">
+            + Add Optional Services
+          </button>
+          
+          <div id="addonServicesSection" class="addon-services-section" style="display: none;">
+            <h4>Select Additional Services:</h4>
+            
+            <div class="addon-services-grid">
               <div class="service-option">
-                <input type="checkbox" id="nailTrim" name="alacarteServices" value="Nail Trim">
+                <input type="checkbox" id="nailTrim" name="addonServices" value="Nail Trim">
                 <label for="nailTrim">Nail Cut/Nail Trim</label>
               </div>
+              
               <div class="service-option">
-                <input type="checkbox" id="earCleaning" name="alacarteServices" value="Ear Cleaning">
+                <input type="checkbox" id="earCleaning" name="addonServices" value="Ear Cleaning">
                 <label for="earCleaning">Ear Cleaning and Hair Removal</label>
               </div>
+              
               <div class="service-option">
-                <input type="checkbox" id="hairTrim" name="alacarteServices" value="Hair Trim">
+                <input type="checkbox" id="hairTrim" name="addonServices" value="Hair Trim">
                 <label for="hairTrim">Hair Trim</label>
               </div>
+              
               <div class="service-option">
-                <input type="checkbox" id="poodleFeet" name="alacarteServices" value="Poodle Feet">
+                <input type="checkbox" id="poodleFeet" name="addonServices" value="Poodle Feet">
                 <label for="poodleFeet">Poodle Feet</label>
               </div>
+              
               <div class="service-option">
-                <input type="checkbox" id="tearStain" name="alacarteServices" value="Tear Stain Removal">
+                <input type="checkbox" id="tearStain" name="addonServices" value="Tear Stain Removal">
                 <label for="tearStain">Tear Stain Removal</label>
               </div>
+              
               <div class="service-option">
-                <input type="checkbox" id="teethCleaning" name="alacarteServices" value="Teeth Cleaning">
+                <input type="checkbox" id="teethCleaning" name="addonServices" value="Teeth Cleaning">
                 <label for="teethCleaning">Teeth Cleaning</label>
               </div>
+              
               <div class="service-option">
-                <input type="checkbox" id="dematting" name="alacarteServices" value="Dematting">
+                <input type="checkbox" id="dematting" name="addonServices" value="Dematting">
                 <label for="dematting">Dematting</label>
               </div>
+              
               <div class="service-option">
-                <input type="checkbox" id="analSac" name="alacarteServices" value="Anal Sac Draining">
+                <input type="checkbox" id="analSac" name="addonServices" value="Anal Sac Draining">
                 <label for="analSac">Anal Sac Draining</label>
               </div>
             </div>
@@ -584,8 +596,11 @@ async function showBookingForm(type) {
       <h3>New ${type === "grooming" ? "Grooming" : "Pet Hotel"} Booking</h3>
       <form id="bookingForm">
         <div id="petsBookingContainer">
-          <label>Pet:</label>
+          <label>Select Pet:</label>
           <select class="booking-pet" required>${petOptions}</select>
+          <div class="pet-rabies-info" style="display: none;">
+            <strong>Last Anti-Rabies Shot:</strong> <span class="rabies-date"></span>
+          </div>
         </div>
 
         ${groomingServicesHTML}
@@ -593,13 +608,10 @@ async function showBookingForm(type) {
         ${
           type === "grooming"
             ? `
-          <label>Last Anti-Rabies Shot:</label>
-          <input type="date" name="antiRabiesDate" required />
-
           <label>Appointment Date:</label>
           <input type="date" name="appointmentDate" required />
 
-          <label>Time:</label>
+          <label>Appointment Time:</label>
           <select name="appointmentTime" required>
             <option value="">Select time</option>
             <option>9:00 AM</option>
@@ -629,46 +641,88 @@ async function showBookingForm(type) {
         `
         }
 
-        <label><input type="checkbox" id="addAnotherPet"> Add another pet</label>
+        <div class="add-pet-checkbox">
+          <input type="checkbox" id="addAnotherPet">
+          <label for="addAnotherPet">Add another pet</label>
+        </div>
 
         <div class="form-buttons">
-          <button class="user-link" type="submit">Book</button>
+          <button class="user-link" type="submit">Book Appointment</button>
           <button type="button" id="cancelBooking" class="logout-btn">Cancel</button>
         </div>
       </form>
     `;
 
-    // Show/hide alacarte options
-    if (type === "grooming") {
-      const serviceTypeRadios = document.querySelectorAll('input[name="serviceType"]');
-      const alacarteOptions = document.getElementById("alacarteOptions");
-
-      serviceTypeRadios.forEach((radio) => {
-        radio.addEventListener("change", (e) => {
-          if (e.target.value === "alacarte") {
-            alacarteOptions.style.display = "block";
-          } else {
-            alacarteOptions.style.display = "none";
-            // Uncheck all alacarte checkboxes
-            document.querySelectorAll('input[name="alacarteServices"]').forEach((cb) => (cb.checked = false));
-          }
-        });
-      });
+    // Toggle add-ons button
+    const toggleBtn = document.getElementById("toggleAddonsBtn");
+    if (toggleBtn) {
+      toggleBtn.onclick = () => {
+        const addonsSection = document.getElementById("addonServicesSection");
+        if (addonsSection.style.display === "none") {
+          addonsSection.style.display = "block";
+          toggleBtn.textContent = "− Hide Optional Services";
+          toggleBtn.classList.add("active");
+        } else {
+          addonsSection.style.display = "none";
+          toggleBtn.textContent = "+ Add Optional Services";
+          toggleBtn.classList.remove("active");
+        }
+      };
     }
+
+    // Anti-rabies info display
+    const updateRabiesInfo = (selectElement) => {
+      const container = selectElement.closest("#petsBookingContainer") || selectElement.parentElement;
+      const infoDiv = container.querySelector(".pet-rabies-info");
+      const rabiesSpan = container.querySelector(".rabies-date");
+
+      if (selectElement.value) {
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const rabiesDate = selectedOption.dataset.rabies;
+
+        if (rabiesDate) {
+          rabiesSpan.textContent = new Date(rabiesDate).toLocaleDateString();
+        } else {
+          rabiesSpan.textContent = "Not set";
+        }
+        infoDiv.style.display = "block";
+      } else {
+        infoDiv.style.display = "none";
+      }
+    };
+
+    document.querySelector(".booking-pet").addEventListener("change", function () {
+      updateRabiesInfo(this);
+    });
 
     document.getElementById("cancelBooking").onclick = () => loadBookingsSection();
 
     document.getElementById("addAnotherPet").onchange = (e) => {
       if (e.target.checked) {
+        const container = document.getElementById("petsBookingContainer");
         const newSelect = document.createElement("select");
         newSelect.className = "booking-pet";
         newSelect.required = true;
         newSelect.innerHTML = petOptions;
-        document.getElementById("petsBookingContainer").appendChild(newSelect);
+        newSelect.style.marginTop = "10px";
+
+        const newInfoDiv = document.createElement("div");
+        newInfoDiv.className = "pet-rabies-info";
+        newInfoDiv.style.display = "none";
+        newInfoDiv.innerHTML = '<strong>Last Anti-Rabies Shot:</strong> <span class="rabies-date"></span>';
+
+        container.appendChild(newSelect);
+        container.appendChild(newInfoDiv);
+
+        newSelect.addEventListener("change", function () {
+          updateRabiesInfo(this);
+        });
       } else {
         const selects = document.querySelectorAll(".booking-pet");
+        const infoDivs = document.querySelectorAll(".pet-rabies-info");
         if (selects.length > 1) {
           selects[selects.length - 1].remove();
+          infoDivs[infoDivs.length - 1].remove();
         }
       }
     };
@@ -683,29 +737,24 @@ async function showBookingForm(type) {
         return;
       }
 
-      // Get selected services for grooming
       let services = null;
       if (type === "grooming") {
-        const serviceType = document.querySelector('input[name="serviceType"]:checked')?.value;
+        const mainService = document.querySelector('input[name="mainService"]:checked')?.value;
 
-        if (!serviceType) {
-          alert("Please select a grooming service");
+        if (!mainService) {
+          alert("Please select a main grooming service (Full Groom or Bath and Blowdry)");
           return;
         }
 
-        if (serviceType === "alacarte") {
-          const selectedAlacarte = [...document.querySelectorAll('input[name="alacarteServices"]:checked')].map((cb) => cb.value);
-          if (selectedAlacarte.length === 0) {
-            alert("Please select at least one a la carte service");
-            return;
-          }
-          services = selectedAlacarte;
-        } else {
-          services = [serviceType];
+        services = [mainService];
+
+        const selectedAddons = [...document.querySelectorAll('input[name="addonServices"]:checked')].map((cb) => cb.value);
+
+        if (selectedAddons.length > 0) {
+          services = [...services, ...selectedAddons];
         }
       }
 
-      // Show confirmation dialog before booking
       showBookingConfirmation(type, pets, services, e.target);
     };
   } catch (err) {
@@ -718,7 +767,6 @@ async function showBookingForm(type) {
    BOOKING CONFIRMATION DIALOG
 ================================ */
 function showBookingConfirmation(type, pets, services, form) {
-  // Create modal
   const modal = document.createElement("div");
   modal.className = "confirmation-modal active";
   modal.innerHTML = `
@@ -755,7 +803,6 @@ function showBookingConfirmation(type, pets, services, form) {
 
   document.body.appendChild(modal);
 
-  // Handle confirmation
   modal.querySelector(".confirm-yes").onclick = async () => {
     modal.remove();
     await submitBooking(type, pets, services, form);
@@ -774,7 +821,6 @@ async function submitBooking(type, pets, services, form) {
     type,
     pets,
     services,
-    antiRabiesDate: form.antiRabiesDate?.value,
     appointmentDate: form.appointmentDate?.value,
     appointmentTime: form.appointmentTime?.value,
     hotelCheckoutDate: form.hotelCheckoutDate?.value,
@@ -825,12 +871,14 @@ function loadPets() {
         html += `<div class="pets-grid">`;
         data.pets.forEach((p) => {
           const bgColor = p.gender === "female" ? 'style="background-color: #ffc0cb;"' : p.gender === "male" ? 'style="background-color: #1870c7; color: white;"' : "";
+          const rabiesDate = p.lastAntiRabiesShot ? new Date(p.lastAntiRabiesShot).toLocaleDateString() : "Not set";
           html += `
             <div class="pet-card" data-id="${p._id}" ${bgColor}>
               <h3>${p.name}</h3>
               <p><strong>Breed:</strong> ${p.breed}</p>
               <p><strong>Age:</strong> ${p.age}</p>
               <p><strong>Gender:</strong> ${p.gender ? p.gender.charAt(0).toUpperCase() + p.gender.slice(1) : "N/A"}</p>
+              <p><strong>Last Anti-Rabies:</strong> ${rabiesDate}</p>
               <div class="pet-actions">
                 <button class="editPetBtn">Edit</button>
                 <button class="deletePetBtn">Delete</button>
@@ -873,6 +921,9 @@ function showAddPetForm() {
         <option value="male">Male</option>
         <option value="female">Female</option>
       </select>
+
+      <label>Last Anti-Rabies Shot</label>
+      <input name="lastAntiRabiesShot" type="date" required>
       
       <div class="form-buttons">
         <button class="user-link" type="submit">Add Pet</button>
@@ -891,6 +942,7 @@ function showAddPetForm() {
       breed: e.target.breed.value,
       age: e.target.age.value,
       gender: e.target.gender.value,
+      lastAntiRabiesShot: e.target.lastAntiRabiesShot.value,
     };
 
     try {
