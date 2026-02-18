@@ -57,22 +57,47 @@
         </div>
 
         <!-- Login Modal -->
-        <div id="loginModal" class="booking-modal">
-          <div class="booking-content">
-            <span class="booking-close">&times;</span>
+        <div id="loginModal" class="auth-modal">
+          <div class="auth-modal-backdrop"></div>
+          <div class="auth-modal-content">
+            <button class="auth-modal-close" id="loginClose" aria-label="Close">&times;</button>
 
-            <h2>Welcome Back 🐶</h2>
+            <div class="auth-modal-header">
+              <div class="auth-modal-icon">🐶</div>
+              <h2>Welcome Back</h2>
+              <p>Sign in to your account</p>
+            </div>
 
-            <form id="loginForm">
-              <label>Email</label>
-              <input type="email" name="email" required />
+            <form id="loginForm" class="auth-form">
+              <div class="auth-field">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" name="email" placeholder="you@example.com" required />
+              </div>
 
-              <label>Password</label>
-              <input type="password" name="password" required />
+              <div class="auth-field">
+                <label for="loginPassword">Password</label>
+                <div class="auth-password-wrap">
+                  <input type="password" id="loginPassword" name="password" placeholder="••••••••" required />
+                  <button type="button" class="toggle-pw" aria-label="Toggle password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
 
-              <button type="submit">Login</button>
+              <div class="auth-forgot">
+                <a href="/forgot-password.html">Forgot password?</a>
+              </div>
+
+              <button type="submit" class="auth-submit-btn">
+                <span>Login</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              </button>
             </form>
-            <p style="text-align: center">
+
+            <p class="auth-switch">
               Don't have an account?
               <a href="#" id="goSignup">Sign up</a>
             </p>
@@ -80,31 +105,66 @@
         </div>
 
         <!-- Signup Modal -->
-        <div id="signupModal" class="booking-modal">
-          <div class="booking-content">
-            <span class="booking-close">&times;</span>
+        <div id="signupModal" class="auth-modal">
+          <div class="auth-modal-backdrop"></div>
+          <div class="auth-modal-content">
+            <button class="auth-modal-close" id="signupClose" aria-label="Close">&times;</button>
 
-            <h2>Create an Account 🐾</h2>
+            <div class="auth-modal-header">
+              <div class="auth-modal-icon">🐾</div>
+              <h2>Create Account</h2>
+              <p>Join TheHungryPaws family</p>
+            </div>
 
-            <form id="signupForm">
-              <label>Full Name</label>
-              <input type="text" name="fullName" required />
+            <form id="signupForm" class="auth-form">
+              <div class="auth-field">
+                <label for="signupName">Full Name</label>
+                <input type="text" id="signupName" name="fullName" placeholder="Juan dela Cruz" required />
+              </div>
 
-              <label>Email</label>
-              <input type="email" name="email" required />
+              <div class="auth-field">
+                <label for="signupEmail">Email</label>
+                <input type="email" id="signupEmail" name="email" placeholder="you@example.com" required />
+              </div>
 
-              <label>Contact Number</label>
-              <input type="tel" name="contact" required />
+              <div class="auth-field">
+                <label for="signupContact">Contact Number</label>
+                <input type="tel" id="signupContact" name="contact" placeholder="+63 912 345 6789" required />
+              </div>
 
-              <label>Password</label>
-              <input type="password" name="password" required />
+              <div class="auth-field">
+                <label for="signupPassword">Password</label>
+                <div class="auth-password-wrap">
+                  <input type="password" id="signupPassword" name="password" placeholder="••••••••" required />
+                  <button type="button" class="toggle-pw" aria-label="Toggle password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
 
-              <label>Confirm Password</label>
-              <input type="password" name="confirmPassword" required />
+              <div class="auth-field">
+                <label for="signupConfirmPassword">Confirm Password</label>
+                <div class="auth-password-wrap">
+                  <input type="password" id="signupConfirmPassword" name="confirmPassword" placeholder="••••••••" required />
+                  <button type="button" class="toggle-pw" aria-label="Toggle password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
 
-              <button type="submit">Sign Up</button>
+              <button type="submit" class="auth-submit-btn">
+                <span>Create Account</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              </button>
             </form>
-            <p style="text-align: center">
+
+            <p class="auth-switch">
               Already have an account?
               <a href="#" id="goLogin">Login</a>
             </p>

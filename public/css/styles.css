@@ -469,35 +469,40 @@ body {
   right: 40px;
 }
 
+/* ===== LIGHTBOX ===== */
 .lightbox {
-  display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
   align-items: center;
-  z-index: 1000;
-}
-
-.lightbox img {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  z-index: 1055;
 }
 
 .lightbox:target {
   display: flex;
 }
 
+.lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
 .lightbox .close {
   position: absolute;
   top: 20px;
   right: 30px;
-  font-size: 2rem;
+  font-size: 40px;
   color: #fff;
   text-decoration: none;
-  font-weight: bold;
+  font-weight: 300;
+}
+
+.lightbox .close:hover {
+  color: #ccc;
 }
 
 /* ===== SERVICES PAGE ===== */
@@ -568,7 +573,6 @@ body {
 }
 
 /* ===== CONTACT PAGE ===== */
-
 .contact-section .container {
   display: flex;
   flex-direction: column;
@@ -600,7 +604,7 @@ body {
   padding: 15px 0;
 }
 
-/* ===== BUTTONS ===== */
+/* ===== GENERAL BUTTONS ===== */
 .btn {
   display: inline-block;
   padding: 0.7rem 1.5rem;
@@ -620,46 +624,304 @@ body {
   transform: scale(1.05);
 }
 
-/* ===== LIGHTBOX ===== */
+/* ========== AUTH MODALS (Login & Signup) ========== */
 
-.lightbox {
+/* Modal Overlay */
+.auth-modal {
+  display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  display: none;
+  z-index: 9999;
   align-items: center;
   justify-content: center;
-  z-index: 1055;
+  padding: 20px;
 }
 
-/* Show when targeted */
-.lightbox:target {
-  display: flex;
+.auth-modal[style*="flex"] {
+  display: flex !important;
 }
 
-.lightbox img {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-}
-
-/* Close button */
-.lightbox .close {
+.auth-modal-backdrop {
   position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 40px;
+  inset: 0;
+  background: rgba(30, 10, 20, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+/* Modal Card */
+.auth-modal-content {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 36px 32px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow:
+    0 20px 60px rgba(212, 77, 124, 0.18),
+    0 4px 20px rgba(0, 0, 0, 0.12);
+  animation: authModalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes authModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Top accent bar */
+.auth-modal-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, #d44d7c, #f5a7c4);
+  border-radius: 0 0 4px 4px;
+}
+
+/* Close Button */
+.auth-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  background: #f5d5d5;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #d44d7c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.auth-modal-close:hover {
+  background: #d44d7c;
   color: #fff;
+  transform: rotate(90deg);
+}
+
+/* Header */
+.auth-modal-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-modal-icon {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+  line-height: 1;
+  display: block;
+}
+
+.auth-modal-header h2 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 4px;
+}
+
+.auth-modal-header p {
+  font-size: 0.9rem;
+  color: #888;
+  margin: 0;
+}
+
+/* Form Fields */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+  letter-spacing: 0.01em;
+}
+
+.auth-field input {
+  padding: 11px 14px;
+  border: 2px solid #eee;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #333;
+  background: #fafafa;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  width: 100%;
+  font-family: inherit;
+}
+
+.auth-field input::placeholder {
+  color: #bbb;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-color: #d44d7c;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(212, 77, 124, 0.1);
+}
+
+/* Password wrapper */
+.auth-password-wrap {
+  position: relative;
+}
+
+.auth-password-wrap input {
+  padding-right: 44px;
+}
+
+.toggle-pw {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.toggle-pw:hover {
+  color: #d44d7c;
+}
+
+.toggle-pw svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Forgot password link */
+.auth-forgot {
+  text-align: right;
+  margin-top: -6px;
+}
+
+.auth-forgot a {
+  font-size: 0.82rem;
+  color: #d44d7c;
   text-decoration: none;
-  font-weight: 300;
+  font-weight: 500;
+  transition: opacity 0.2s;
 }
 
-.lightbox .close:hover {
-  color: #ccc;
+.auth-forgot a:hover {
+  opacity: 0.75;
+  text-decoration: underline;
 }
 
-/* ===== BOOKING MODAL ===== */
+/* Submit Button */
+.auth-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #d44d7c, #e8739b);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+  font-family: inherit;
+}
+
+.auth-submit-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 77, 124, 0.35);
+  filter: brightness(1.05);
+}
+
+.auth-submit-btn:hover:not(:disabled) svg {
+  transform: translateX(3px);
+}
+
+.auth-submit-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Switch link */
+.auth-switch {
+  text-align: center;
+  font-size: 0.88rem;
+  color: #888;
+  margin: 20px 0 0;
+}
+
+.auth-switch a {
+  color: #d44d7c;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.auth-switch a:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+/* Inline error message */
+.auth-error-msg {
+  color: #d44d7c;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  margin: 8px 0 0;
+  animation: authModalIn 0.2s ease both;
+}
+
+/* ========== BOOKING MODAL (non-auth, e.g. service booking) ========== */
 .booking-modal {
   display: none;
   position: fixed;
@@ -864,7 +1126,7 @@ body {
   opacity: 0.8;
 }
 
-/* Logout button override - Fixed at bottom */
+/* Logout button — fixed at bottom */
 .logout-form {
   margin-top: auto;
   padding-top: 20px;
@@ -936,7 +1198,6 @@ body {
   margin-bottom: 10px;
 }
 
-/* Male pet card styling - Blue theme */
 .pet-card[style*="background-color: #1870c7"] h3 {
   color: #a8d5ff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
@@ -972,7 +1233,6 @@ body {
   border-color: #ff4d82;
 }
 
-/* Female pet card styling - Pink theme (default) */
 .pet-card p {
   font-size: 1rem;
   color: #333;
@@ -1036,7 +1296,7 @@ body {
   transform: translateY(-2px);
 }
 
-/* Add/Edit Pet Form */
+/* Add/Edit Pet & Profile Forms */
 #addPetForm,
 #editPetForm,
 #editProfileForm,
@@ -1147,7 +1407,6 @@ body {
   transform: translateY(-1px);
 }
 
-/* Form button container */
 #addPetForm .form-buttons,
 #editPetForm .form-buttons,
 #editProfileForm .form-buttons,
@@ -1262,7 +1521,6 @@ body {
   margin: 20px auto 0;
 }
 
-/* Booking Card - Redesigned for better organization */
 .booking-card {
   width: 340px;
   flex-shrink: 0;
@@ -1284,7 +1542,6 @@ body {
   border-color: #d44d7c;
 }
 
-/* Booking Card Header Section */
 .booking-card-header {
   background-color: #f5d5d5;
   padding: 15px;
@@ -1297,14 +1554,12 @@ body {
   margin: 5px 0;
 }
 
-/* Booking Card Divider */
 .booking-card-divider {
   height: 2px;
   background: linear-gradient(to right, transparent, #d44d7c, transparent);
   margin: 0;
 }
 
-/* Booking Card Pets Section */
 .booking-card-pets {
   padding: 15px;
   background-color: #fff9f9;
@@ -1327,7 +1582,6 @@ body {
   border-radius: 4px;
 }
 
-/* Booking Card Services Section */
 .booking-card-services {
   padding: 12px 15px;
   background-color: #f9f9f9;
@@ -1339,7 +1593,6 @@ body {
   margin: 0;
 }
 
-/* Booking Card Date/Time Section */
 .booking-card-datetime {
   padding: 12px 15px;
 }
@@ -1350,7 +1603,6 @@ body {
   margin: 4px 0;
 }
 
-/* General booking card paragraph styling */
 .booking-card p {
   font-size: 0.95rem;
   color: #333;
@@ -1383,27 +1635,22 @@ body {
   background-color: #1870c7;
   color: white;
 }
-
 .booking-card .deleteBookingBtn {
   background-color: #d44d7c;
   color: white;
 }
-
 .booking-card .approve-btn {
   background-color: #28a745;
   color: white;
 }
-
 .booking-card .reject-btn {
   background-color: #dc3545;
   color: white;
 }
-
 .booking-card .markReadBtn {
   background-color: #1870c7;
   color: white;
 }
-
 .booking-card .deleteMessageBtn {
   background-color: #d44d7c;
   color: white;
@@ -1649,7 +1896,6 @@ body {
   margin-bottom: 8px;
 }
 
-/* Don't Show Again Checkbox */
 .dont-show-again {
   display: flex;
   align-items: center;
@@ -1699,7 +1945,6 @@ body {
   background-color: #28a745;
   color: white;
 }
-
 .confirm-no {
   background-color: #dc3545;
   color: white;
@@ -1746,7 +1991,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* Cancel button specific styling */
 #cancelBooking,
 #cancelEditBooking {
   background-color: #6c757d;
@@ -1785,7 +2029,6 @@ body {
   border-color: #d44d7c;
 }
 
-/* Pet Rabies Info Box */
 .pet-rabies-info {
   font-size: 0.85rem;
   color: #666;
@@ -1796,7 +2039,6 @@ body {
   border-left: 3px solid #1870c7;
 }
 
-/* Add Pet Checkbox */
 .add-pet-checkbox {
   display: flex;
   align-items: center;
@@ -1822,7 +2064,6 @@ body {
   color: #333;
 }
 
-/* Toggle Add-Ons Button */
 .addon-toggle-container {
   margin: 20px 0;
 }
@@ -1841,17 +2082,12 @@ body {
   text-align: center;
 }
 
-.toggle-addons-btn:hover {
-  background-color: #d44d7c;
-  color: white;
-}
-
+.toggle-addons-btn:hover,
 .toggle-addons-btn.active {
   background-color: #d44d7c;
   color: white;
 }
 
-/* Add-On Services Section */
 .addon-services-section {
   margin-top: 15px;
   padding: 15px;
@@ -1867,11 +2103,6 @@ body {
   font-weight: 600;
 }
 
-/* Admin Profile Matching - Ensure consistent styling */
-.profile-section button {
-  margin-top: 10px;
-}
-
 /* ===== RESPONSIVE MEDIA QUERIES ===== */
 
 /* Tablet - 1024px and below */
@@ -1879,7 +2110,6 @@ body {
   .hero-header h1 {
     font-size: 2.5rem;
   }
-
   .hero-content p {
     font-size: 1rem;
     max-width: 90%;
@@ -1908,31 +2138,19 @@ body {
     width: 95%;
     padding: 30px 15px;
   }
-
   .carousel-inner img {
     height: 350px;
   }
-
   .carousel-control-prev {
     left: 20px;
   }
-
   .carousel-control-next {
     right: 20px;
-  }
-
-  .pets-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  }
-
-  .bookings-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
 
 /* Tablet Portrait - 768px and below */
 @media (max-width: 768px) {
-  /* Show hamburger menu, hide desktop nav */
   .hamburger {
     display: flex;
   }
@@ -1951,7 +2169,6 @@ body {
     justify-content: space-between;
   }
 
-  /* Hero section */
   #hero > .container {
     height: auto;
     min-height: 100vh;
@@ -1961,7 +2178,6 @@ body {
   .hero-header h1 {
     font-size: 2rem;
   }
-
   .hero-content p {
     font-size: 0.95rem;
     max-width: 95%;
@@ -1978,18 +2194,15 @@ body {
     padding: 14px 20px;
   }
 
-  /* About section */
   #about > .container {
     text-align: center;
     gap: 15px;
     padding: 30px 20px;
   }
-
   .about-header h2 {
     font-size: 1.8rem;
   }
 
-  /* Our Shop */
   .shop-header h2 {
     font-size: 1.8rem;
   }
@@ -1998,114 +2211,92 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-
   .span-2,
   .span-3 {
     grid-column: span 2;
   }
 
-  /* Promotions */
   .promotions-header h2 {
     font-size: 1.8rem;
   }
-
   .promotions-parent {
     grid-template-columns: 1fr;
     gap: 15px;
   }
-
   .promotions-card {
     padding: 20px 15px;
   }
-
   .promotions-card h3 {
     font-size: 1.3rem;
   }
-
   .promotions-card img {
     max-height: 250px;
   }
 
-  /* Testimonials */
   .testimonials-header h2 {
     font-size: 1.8rem;
   }
-
   .carousel {
     width: 100%;
     padding: 20px 10px;
   }
-
   .carousel-inner img {
     height: auto;
     max-height: 300px;
   }
-
-  .carousel-control-prev,
-  .carousel-control-next {
-    width: 35px;
-    height: 35px;
-  }
-
   .carousel-control-prev {
     left: 10px;
   }
-
   .carousel-control-next {
     right: 10px;
   }
 
-  /* Services */
   #services {
     margin-top: 80px;
   }
-
   .services-header {
     font-size: 1.8rem;
   }
-
   .services-parent {
     grid-template-columns: 1fr;
     gap: 20px;
     padding: 15px;
   }
-
   .services-text {
     max-width: 100%;
     padding: 15px;
   }
-
   .services-text h3 {
     font-size: 1.5rem;
   }
-
   .services-text p {
     font-size: 1rem;
     margin-bottom: 1.5rem;
   }
-
   .services-image img {
     width: 100%;
     max-width: 100%;
   }
 
-  /* Contact */
   .contact-section .container {
     padding: 2rem 1.5rem;
     border-radius: 20px;
   }
 
-  /* Booking modal content */
   .booking-content {
     width: 95%;
     padding: 20px;
   }
-
   .booking-content input,
   .booking-content select,
   .booking-content button,
   .booking-content label {
     width: 90%;
+  }
+
+  /* Auth modal - tighten on mobile */
+  .auth-modal-content {
+    padding: 36px 22px 28px;
   }
 
   /* Dashboard */
@@ -2132,12 +2323,10 @@ body {
   .sidebar.active {
     left: 0;
   }
-
   .sidebar-link {
     width: 100%;
     text-align: left;
   }
-
   .logout-form {
     margin-top: auto;
     width: 100%;
@@ -2146,33 +2335,23 @@ body {
   .dashboard-menu-toggle {
     display: flex;
   }
-
   .dashboard-content {
     padding: 20px;
     width: 100%;
   }
-
   .user-topbar {
     padding: 0 15px;
   }
-
   .welcome-text {
     font-size: 0.9rem;
-  }
-
-  .pets-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
   }
 
   .pet-card {
     width: 100%;
   }
-
   .bookings-grid {
     grid-template-columns: 1fr;
   }
-
   .booking-card {
     width: 100%;
   }
@@ -2196,7 +2375,8 @@ body {
   #addPetForm .form-buttons,
   #editPetForm .form-buttons,
   #editProfileForm .form-buttons,
-  #changePasswordForm .form-buttons {
+  #changePasswordForm .form-buttons,
+  #bookingForm .form-buttons {
     flex-direction: column;
   }
 
@@ -2208,18 +2388,12 @@ body {
     margin-left: 0;
   }
 
-  #bookingForm .form-buttons {
-    flex-direction: column;
-  }
-
   #bookingForm button {
     width: 100%;
   }
-
   .service-option {
     padding: 12px;
   }
-
   .service-option label {
     font-size: 0.9rem;
   }
@@ -2230,7 +2404,6 @@ body {
   .hero-header h1 {
     font-size: 1.6rem;
   }
-
   .hero-content p {
     font-size: 0.9rem;
   }
@@ -2257,23 +2430,19 @@ body {
   .promotions-card h3 {
     font-size: 1.2rem;
   }
-
+  .promotions-card {
+    padding: 20px 15px;
+  }
   .services-text h3 {
     font-size: 1.3rem;
   }
-
   .services-image img {
     max-width: 100%;
-  }
-
-  .promotions-card {
-    padding: 20px 15px;
   }
 
   .contact-section .container {
     padding: 2rem 1rem;
   }
-
   .footer-container {
     font-size: 0.85rem;
     padding: 12px 0;
@@ -2282,11 +2451,9 @@ body {
   .pet-card h3 {
     font-size: 1.2rem;
   }
-
   .pet-card p {
     font-size: 0.9rem;
   }
-
   .booking-card p {
     font-size: 0.9rem;
   }
@@ -2295,7 +2462,6 @@ body {
     padding: 8px 15px;
     font-size: 0.9rem;
   }
-
   .status-tab-btn {
     padding: 6px 15px;
     font-size: 0.85rem;
@@ -2304,12 +2470,10 @@ body {
   .mobile-menu {
     width: 100%;
   }
-
   .hero-btn button {
     padding: 12px 20px;
     font-size: 0.95rem;
   }
-
   .carousel-inner img {
     max-height: 250px;
   }
@@ -2317,11 +2481,9 @@ body {
   .pets-grid {
     grid-template-columns: 1fr;
   }
-
   .pet-card {
     width: 100%;
   }
-
   .booking-card {
     width: 100%;
   }
@@ -2329,15 +2491,12 @@ body {
   .user-topbar-left {
     gap: 10px;
   }
-
   .welcome-text {
     font-size: 0.85rem;
   }
-
   .sidebar {
     flex-direction: column;
   }
-
   .sidebar-link {
     width: 100%;
   }
@@ -2345,7 +2504,6 @@ body {
   .pet-actions {
     flex-direction: column;
   }
-
   .pet-actions button {
     width: 100%;
   }
@@ -2353,7 +2511,6 @@ body {
   .booking-card .booking-actions {
     flex-direction: column;
   }
-
   .booking-card button {
     width: 100%;
     min-width: auto;
@@ -2362,9 +2519,18 @@ body {
   .service-option {
     padding: 10px;
   }
-
   .service-option label {
     font-size: 0.85rem;
+  }
+
+  .auth-modal-content {
+    padding: 32px 18px 24px;
+    border-radius: 16px;
+    max-height: 95vh;
+  }
+
+  .auth-modal-header h2 {
+    font-size: 1.4rem;
   }
 }
 
@@ -2373,7 +2539,6 @@ body {
   .hero-header h1 {
     font-size: 1.4rem;
   }
-
   .hero-content p {
     font-size: 0.85rem;
   }
@@ -2394,11 +2559,9 @@ body {
   .mobile-menu-header .logo {
     height: 25px;
   }
-
   .booking-content h2 {
     font-size: 1.3rem;
   }
-
   .carousel-inner img {
     max-height: 200px;
   }
