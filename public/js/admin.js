@@ -90,7 +90,6 @@ async function pollUnreadMessages() {
     const data = await res.json();
 
     if (data.success && data.count > 0) {
-      // Update notification badge
       const messagesLink = document.querySelector('[data-section="messages"]');
       if (messagesLink) {
         let badge = messagesLink.querySelector(".notification-badge");
@@ -103,7 +102,6 @@ async function pollUnreadMessages() {
         badge.style.display = "inline-block";
       }
     } else {
-      // Remove badge if no unread messages
       const badge = document.querySelector(".notification-badge");
       if (badge) {
         badge.style.display = "none";
@@ -150,15 +148,24 @@ function loadMessagesSection() {
           const statusClass = c.status === "unread" ? "status-unread" : "status-read";
           html += `
             <div class="booking-card ${statusClass}">
-              <p><strong>Name:</strong> ${c.name}</p>
-              <p><strong>Email:</strong> ${c.email}</p>
-              <p><strong>Message:</strong></p>
-              <p style="font-style: italic; background-color: #f9f9f9; padding: 10px; border-radius: 5px;">${c.message}</p>
-              <p><strong>Received:</strong> ${new Date(c.createdAt).toLocaleString()}</p>
-              <p><strong>Status:</strong> <span class="booking-status ${c.status}">${c.status.toUpperCase()}</span></p>
+              <div class="booking-card-header">
+                <p><strong>Name:</strong> ${c.name}</p>
+                <p><strong>Email:</strong> ${c.email}</p>
+              </div>
+              
+              <div class="booking-card-divider"></div>
+              
+              <div style="padding: 15px;">
+                <p><strong>Message:</strong></p>
+                <p style="font-style: italic; background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin: 8px 0;">${c.message}</p>
+                <p style="font-size: 0.85rem; color: #666;"><strong>Received:</strong> ${new Date(c.createdAt).toLocaleString()}</p>
+              </div>
+              
+              <p style="text-align: center;"><strong>Status:</strong> <span class="booking-status ${c.status}">${c.status.toUpperCase()}</span></p>
+              
               <div class="booking-actions">
-                ${c.status === "unread" ? `<button class="markReadBtn user-link" data-id="${c._id}">Mark as Read</button>` : ""}
-                <button class="deleteMessageBtn deletePetBtn" data-id="${c._id}">Delete</button>
+                ${c.status === "unread" ? `<button class="markReadBtn" data-id="${c._id}">Mark as Read</button>` : ""}
+                <button class="deleteMessageBtn" data-id="${c._id}">Delete</button>
               </div>
             </div>
           `;
@@ -170,7 +177,6 @@ function loadMessagesSection() {
 
       messagesContent.innerHTML = html;
 
-      // Bind mark as read buttons
       document.querySelectorAll(".markReadBtn").forEach((btn) => {
         btn.onclick = async () => {
           try {
@@ -179,7 +185,7 @@ function loadMessagesSection() {
 
             if (result.success) {
               loadMessages(status);
-              pollUnreadMessages(); // Update badge
+              pollUnreadMessages();
             } else {
               alert(result.message);
             }
@@ -190,7 +196,6 @@ function loadMessagesSection() {
         };
       });
 
-      // Bind delete buttons
       document.querySelectorAll(".deleteMessageBtn").forEach((btn) => {
         btn.onclick = async () => {
           if (!confirm("Delete this message?")) return;
@@ -202,7 +207,7 @@ function loadMessagesSection() {
             if (result.success) {
               alert(result.message);
               loadMessages(status);
-              pollUnreadMessages(); // Update badge
+              pollUnreadMessages();
             } else {
               alert(result.message);
             }
@@ -218,7 +223,6 @@ function loadMessagesSection() {
     }
   };
 
-  // Tab switching
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.onclick = () => {
       document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
@@ -227,7 +231,6 @@ function loadMessagesSection() {
     };
   });
 
-  // Load initial messages
   loadMessages("all");
 }
 
@@ -272,7 +275,6 @@ function loadBookingsSection() {
 
       bookingsContent.innerHTML = html;
 
-      // Status tab switching
       document.querySelectorAll(".status-tab-btn").forEach((btn) => {
         btn.onclick = () => {
           document.querySelectorAll(".status-tab-btn").forEach((b) => b.classList.remove("active"));
@@ -281,7 +283,6 @@ function loadBookingsSection() {
         };
       });
 
-      // Load initial status
       loadBookingsByStatus(type, "pending");
     } catch (err) {
       console.error(err);
@@ -307,17 +308,47 @@ function loadBookingsSection() {
       if (data.bookings && data.bookings.length > 0) {
         html += `<div class="bookings-grid">`;
         data.bookings.forEach((b) => {
+          // Build pets info with anti-rabies dates
+          let petsInfo = b.pets
+            .map((p) => {
+              const rabiesDate = p.lastAntiRabiesShot ? new Date(p.lastAntiRabiesShot).toLocaleDateString() : "Not set";
+              return `<div style="margin: 6px 0;">${p.name} <span style="color: #666; font-size: 0.85rem;">(Anti-Rabies: ${rabiesDate})</span></div>`;
+            })
+            .join("");
+
           html += `
             <div class="booking-card">
-              <p><strong>Customer:</strong> ${b.userName}</p>
-              <p><strong>Email:</strong> ${b.userEmail}</p>
-              <p><strong>Contact:</strong> ${b.userContact}</p>
-              <p><strong>Pets:</strong> ${b.pets.map((p) => p.name).join(", ")}</p>
-              ${type === "grooming" && b.services ? `<p><strong>Services:</strong> ${Array.isArray(b.services) ? b.services.join(", ") : b.services}</p>` : ""}
-              <p><strong>Date:</strong> ${new Date(b.appointmentDate).toLocaleDateString()}</p>
-              <p><strong>Time:</strong> ${b.appointmentTime || "N/A"}</p>
-              ${type === "hotel" ? `<p><strong>Checkout:</strong> ${b.hotelCheckoutDate ? new Date(b.hotelCheckoutDate).toLocaleDateString() : "N/A"} ${b.hotelCheckoutTime || ""}</p>` : ""}
-              <p><strong>Status:</strong> <span class="booking-status ${b.status}">${b.status.toUpperCase()}</span></p>
+              <div class="booking-card-header">
+                <p><strong>Customer:</strong> ${b.userName}</p>
+                <p><strong>Email:</strong> ${b.userEmail}</p>
+                <p><strong>Contact:</strong> ${b.userContact}</p>
+              </div>
+              
+              <div class="booking-card-divider"></div>
+              
+              <div class="booking-card-pets">
+                <p><strong>Pets:</strong></p>
+                <div class="pets-list">${petsInfo}</div>
+              </div>
+              
+              ${
+                type === "grooming" && b.services
+                  ? `
+                <div class="booking-card-services">
+                  <p><strong>Services:</strong> ${Array.isArray(b.services) ? b.services.join(", ") : b.services}</p>
+                </div>
+              `
+                  : ""
+              }
+              
+              <div class="booking-card-datetime">
+                <p><strong>Date:</strong> ${new Date(b.appointmentDate).toLocaleDateString()}</p>
+                <p><strong>Time:</strong> ${b.appointmentTime || "N/A"}</p>
+                ${type === "hotel" ? `<p><strong>Checkout:</strong> ${b.hotelCheckoutDate ? new Date(b.hotelCheckoutDate).toLocaleDateString() : "N/A"} ${b.hotelCheckoutTime || ""}</p>` : ""}
+              </div>
+              
+              <p style="text-align: center; margin: 12px 0;"><strong>Status:</strong> <span class="booking-status ${b.status}">${b.status.toUpperCase()}</span></p>
+              
               <div class="booking-actions">
                 ${status === "pending" ? `<button class="approve-btn" data-id="${b._id}">Approve</button>` : ""}
                 ${status === "pending" ? `<button class="reject-btn" data-id="${b._id}">Reject</button>` : ""}
@@ -332,7 +363,6 @@ function loadBookingsSection() {
 
       statusContent.innerHTML = html;
 
-      // Bind approve buttons
       document.querySelectorAll(".approve-btn").forEach((btn) => {
         btn.onclick = async () => {
           if (!confirm("Approve this booking?")) return;
@@ -354,11 +384,10 @@ function loadBookingsSection() {
         };
       });
 
-      // Bind reject buttons
       document.querySelectorAll(".reject-btn").forEach((btn) => {
         btn.onclick = async () => {
           const reason = prompt("Rejection reason (optional):");
-          if (reason === null) return; // Cancelled
+          if (reason === null) return;
 
           try {
             const res = await fetch(`/api/admin/bookings/${btn.dataset.id}/reject`, {
@@ -387,7 +416,6 @@ function loadBookingsSection() {
     }
   };
 
-  // Tab switching
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.onclick = () => {
       document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
@@ -396,6 +424,5 @@ function loadBookingsSection() {
     };
   });
 
-  // Load initial bookings
   loadBookings("grooming");
 }
