@@ -312,7 +312,15 @@ function loadBookingsSection() {
           let petsInfo = b.pets
             .map((p) => {
               const rabiesDate = p.lastAntiRabiesShot ? new Date(p.lastAntiRabiesShot).toLocaleDateString() : "Not set";
-              return `<div style="margin: 6px 0;">${p.name} <span style="color: #666; font-size: 0.85rem;">(Anti-Rabies: ${rabiesDate})</span></div>`;
+              return `
+                <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+                  <img class="pet-photo" 
+                    src="/images/default-pet.png"
+                    data-s3key="${p.photo || ""}"
+                    alt="${p.name}"
+                    style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #d44d7c;" />
+                  <span>${p.name} <span style="color:#666; font-size:0.85rem;">(Anti-Rabies: ${rabiesDate})</span></span>
+                </div>`;
             })
             .join("");
 
@@ -362,6 +370,18 @@ function loadBookingsSection() {
       }
 
       statusContent.innerHTML = html;
+
+      document.querySelectorAll(".pet-photo[data-s3key]").forEach(async (img) => {
+        const key = img.dataset.s3key;
+        if (!key) return;
+        try {
+          const res = await fetch(`/api/file?name=${encodeURIComponent(key)}`);
+          const data = await res.json();
+          if (data.success) img.src = data.url;
+        } catch (err) {
+          /* keep default */
+        }
+      });
 
       document.querySelectorAll(".approve-btn").forEach((btn) => {
         btn.onclick = async () => {

@@ -11,6 +11,7 @@ const petRoutes = require("./routes/pet.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const adminRoutes = require("./routes/admin.routes");
 const contactRoutes = require("./routes/contact.routes");
+const uploadRouter = require("./routes/upload.routes");
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/api/pets", petRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api", uploadRouter);
 
 // Legacy routes for backward compatibility
 app.post("/api/signup", require("./controllers/auth.controller").signup);

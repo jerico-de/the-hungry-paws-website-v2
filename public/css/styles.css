@@ -210,7 +210,6 @@ body {
   color: white;
 }
 
-/* Add spacing so navbar doesn't overlap hero */
 #hero {
   margin-top: 60px;
 }
@@ -1459,6 +1458,22 @@ body {
 .user-link:hover {
   opacity: 0.85;
   transform: translateY(-1px);
+}
+
+/* ========== PET PHOTO ========== */
+.pet-photo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.pet-photo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #d44d7c;
+  background-color: #f5d5d5;
 }
 
 /* ========== BOOKING TABS ========== */

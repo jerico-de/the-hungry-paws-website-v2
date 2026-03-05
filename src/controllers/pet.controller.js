@@ -47,6 +47,7 @@ async function addPet(req, res) {
       age: parseInt(age),
       gender: gender.toLowerCase(),
       lastAntiRabiesShot: lastAntiRabiesShot ? new Date(lastAntiRabiesShot) : null,
+      photo: req.body.photo || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -82,6 +83,7 @@ async function updatePet(req, res) {
           age: parseInt(age),
           gender: gender.toLowerCase(),
           lastAntiRabiesShot: lastAntiRabiesShot ? new Date(lastAntiRabiesShot) : null,
+          photo: req.body.photo !== undefined ? req.body.photo : undefined,
           updatedAt: new Date(),
         },
       },

@@ -874,6 +874,13 @@ function loadPets() {
           const rabiesDate = p.lastAntiRabiesShot ? new Date(p.lastAntiRabiesShot).toLocaleDateString() : "Not set";
           html += `
             <div class="pet-card" data-id="${p._id}" ${bgColor}>
+              <div class="pet-photo-wrap">
+                <img class="pet-photo" 
+                  src="${p.photo ? "" : "/images/default-pet.png"}" 
+                  alt="${p.name}"
+                  data-s3key="${p.photo || ""}"
+                  onerror="this.src='/images/default-pet.png'" />
+              </div>
               <h3>${p.name}</h3>
               <p><strong>Breed:</strong> ${p.breed}</p>
               <p><strong>Age:</strong> ${p.age}</p>
@@ -892,6 +899,18 @@ function loadPets() {
       }
 
       content.innerHTML = html;
+
+      // Load signed URLs for pet photos
+      document.querySelectorAll(".pet-photo[data-s3key]").forEach(async (img) => {
+        const key = img.dataset.s3key;
+        if (!key) return;
+        try {
+          const url = await getSignedUrl(key);
+          img.src = url;
+        } catch (err) {
+          img.src = "/images/default-pet.png";
+        }
+      });
     })
     .catch((err) => {
       console.error(err);
@@ -908,13 +927,13 @@ function showAddPetForm() {
     <form id="addPetForm">
       <label>Name</label>
       <input name="name" placeholder="Enter pet name" required>
-      
+
       <label>Breed</label>
       <input name="breed" placeholder="Enter breed" required>
-      
+
       <label>Age</label>
       <input name="age" type="number" placeholder="Enter age" min="0" required>
-      
+
       <label>Gender</label>
       <select name="gender" required>
         <option value="">Select gender</option>
@@ -924,7 +943,15 @@ function showAddPetForm() {
 
       <label>Last Anti-Rabies Shot</label>
       <input name="lastAntiRabiesShot" type="date" required>
-      
+
+      <label>Pet Photo (Optional)</label>
+      <input type="file" id="petPhotoInput" accept="image/jpeg,image/png,image/webp" />
+      <div id="petPhotoPreviewWrap" style="display:none; margin-top:8px;">
+        <img id="petPhotoPreview" src="" alt="Preview"
+          style="width:100px; height:100px; object-fit:cover; border-radius:50%; border:3px solid #d44d7c;" />
+      </div>
+      <p id="petPhotoError" style="color:#d44d7c; font-size:0.85rem; display:none;"></p>
+
       <div class="form-buttons">
         <button class="user-link" type="submit">Add Pet</button>
         <button type="button" id="cancelAdd" class="logout-btn">Cancel</button>
@@ -934,8 +961,40 @@ function showAddPetForm() {
 
   document.getElementById("cancelAdd").onclick = loadPets;
 
+  // Photo preview
+  document.getElementById("petPhotoInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const errorEl = document.getElementById("petPhotoError");
+    const previewWrap = document.getElementById("petPhotoPreviewWrap");
+    errorEl.style.display = "none";
+
+    if (!file) return;
+    const err = validateFile(file, "image");
+    if (err) {
+      errorEl.textContent = err;
+      errorEl.style.display = "block";
+      e.target.value = "";
+      return;
+    }
+    document.getElementById("petPhotoPreview").src = URL.createObjectURL(file);
+    previewWrap.style.display = "block";
+  });
+
   document.getElementById("addPetForm").onsubmit = async (e) => {
     e.preventDefault();
+
+    let photoFileName = null;
+    const photoFile = document.getElementById("petPhotoInput").files[0];
+
+    // Upload photo first if selected
+    if (photoFile) {
+      try {
+        photoFileName = await uploadToS3(photoFile, "/api/upload/pet-photo");
+      } catch (err) {
+        alert("Photo upload failed: " + err.message);
+        return;
+      }
+    }
 
     const data = {
       name: e.target.name.value,
@@ -943,6 +1002,7 @@ function showAddPetForm() {
       age: e.target.age.value,
       gender: e.target.gender.value,
       lastAntiRabiesShot: e.target.lastAntiRabiesShot.value,
+      photo: photoFileName,
     };
 
     try {
@@ -951,9 +1011,7 @@ function showAddPetForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
       const result = await res.json();
-
       if (result.success) {
         alert(result.message);
         loadPets();
