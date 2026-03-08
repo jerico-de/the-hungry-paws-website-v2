@@ -1,10 +1,11 @@
 const { ObjectId } = require("mongodb");
 const { getDB } = require("../config/database");
+const { NotFoundError } = require("../utils/errors");
 
 /**
  * Get all bookings (admin)
  */
-async function getBookings(req, res) {
+async function getBookings(req, res, next) {
   try {
     const type = req.query.type || "grooming";
     const status = req.query.status || "pending";
@@ -32,23 +33,24 @@ async function getBookings(req, res) {
 
     res.json({ success: true, bookings: bookingsWithDetails });
   } catch (err) {
-    console.error("Admin get bookings error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Approve booking
  */
-async function approveBooking(req, res) {
+async function approveBooking(req, res, next) {
   try {
+    const adminId = req.user?.id || req.session.user.id;
     const db = getDB();
+
     const result = await db.collection("bookings").updateOne(
       { _id: new ObjectId(req.params.id) },
       {
         $set: {
           status: "approved",
-          approvedBy: req.session.user.id,
+          approvedBy: adminId,
           approvedAt: new Date(),
           updatedAt: new Date(),
         },
@@ -56,30 +58,30 @@ async function approveBooking(req, res) {
     );
 
     if (result.modifiedCount === 0) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      throw new NotFoundError("Booking not found");
     }
 
     res.json({ success: true, message: "Booking approved!" });
   } catch (err) {
-    console.error("Approve booking error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Reject booking
  */
-async function rejectBooking(req, res) {
+async function rejectBooking(req, res, next) {
   try {
     const { reason } = req.body;
-
+    const adminId = req.user?.id || req.session.user.id;
     const db = getDB();
+
     const result = await db.collection("bookings").updateOne(
       { _id: new ObjectId(req.params.id) },
       {
         $set: {
           status: "rejected",
-          rejectedBy: req.session.user.id,
+          rejectedBy: adminId,
           rejectReason: reason || "No reason provided",
           rejectedAt: new Date(),
           updatedAt: new Date(),
@@ -88,18 +90,13 @@ async function rejectBooking(req, res) {
     );
 
     if (result.modifiedCount === 0) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      throw new NotFoundError("Booking not found");
     }
 
     res.json({ success: true, message: "Booking rejected!" });
   } catch (err) {
-    console.error("Reject booking error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
-module.exports = {
-  getBookings,
-  approveBooking,
-  rejectBooking,
-};
+module.exports = { getBookings, approveBooking, rejectBooking };

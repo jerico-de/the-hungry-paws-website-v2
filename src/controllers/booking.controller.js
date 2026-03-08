@@ -1,20 +1,19 @@
 const { ObjectId } = require("mongodb");
 const { getDB } = require("../config/database");
+const { ValidationError, NotFoundError } = require("../utils/errors");
 
 /**
  * Get user bookings
  */
-async function getBookings(req, res) {
+async function getBookings(req, res, next) {
   try {
     const type = req.query.type || "grooming";
+    const userId = req.user?.id || req.session.user.id;
     const db = getDB();
 
     const bookings = await db
       .collection("bookings")
-      .find({
-        userId: new ObjectId(req.session.user.id),
-        type,
-      })
+      .find({ userId: new ObjectId(userId), type })
       .sort({ createdAt: -1 })
       .toArray();
 
@@ -28,33 +27,33 @@ async function getBookings(req, res) {
 
     res.json({ success: true, bookings: bookingsWithPets });
   } catch (err) {
-    console.error("Get bookings error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Create booking
  */
-async function createBooking(req, res) {
+async function createBooking(req, res, next) {
   try {
     const { pets, type, services, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime } = req.body;
+    const userId = req.user?.id || req.session.user.id;
 
     if (!pets || !pets.length || !type || !appointmentDate || !appointmentTime) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+      throw new ValidationError("Missing required fields");
     }
 
     if (type === "grooming" && (!services || services.length === 0)) {
-      return res.status(400).json({ success: false, message: "Please select at least one grooming service" });
+      throw new ValidationError("Please select at least one grooming service");
     }
 
     if (type === "hotel" && (!hotelCheckoutDate || !hotelCheckoutTime)) {
-      return res.status(400).json({ success: false, message: "Checkout date and time required for hotel" });
+      throw new ValidationError("Checkout date and time required for hotel booking");
     }
 
     const db = getDB();
     await db.collection("bookings").insertOne({
-      userId: new ObjectId(req.session.user.id),
+      userId: new ObjectId(userId),
       type,
       pets: pets.map((id) => new ObjectId(id)),
       services: services || null,
@@ -69,23 +68,23 @@ async function createBooking(req, res) {
 
     res.json({ success: true, message: "Booking created successfully!" });
   } catch (err) {
-    console.error("Create booking error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Cancel booking
  */
-async function cancelBooking(req, res) {
+async function cancelBooking(req, res, next) {
   try {
     const { reason } = req.body;
-
+    const userId = req.user?.id || req.session.user.id;
     const db = getDB();
+
     const result = await db.collection("bookings").updateOne(
       {
         _id: new ObjectId(req.params.id),
-        userId: new ObjectId(req.session.user.id),
+        userId: new ObjectId(userId),
         status: { $in: ["pending", "approved"] },
       },
       {
@@ -99,41 +98,36 @@ async function cancelBooking(req, res) {
     );
 
     if (result.modifiedCount === 0) {
-      return res.status(404).json({ success: false, message: "Booking not found or cannot be cancelled" });
+      throw new NotFoundError("Booking not found or cannot be cancelled");
     }
 
     res.json({ success: true, message: "Booking cancelled successfully" });
   } catch (err) {
-    console.error("Cancel booking error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Delete booking
  */
-async function deleteBooking(req, res) {
+async function deleteBooking(req, res, next) {
   try {
+    const userId = req.user?.id || req.session.user.id;
     const db = getDB();
+
     const result = await db.collection("bookings").deleteOne({
       _id: new ObjectId(req.params.id),
-      userId: new ObjectId(req.session.user.id),
+      userId: new ObjectId(userId),
     });
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      throw new NotFoundError("Booking not found");
     }
 
     res.json({ success: true, message: "Booking deleted successfully" });
   } catch (err) {
-    console.error("Delete booking error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
-module.exports = {
-  getBookings,
-  createBooking,
-  cancelBooking,
-  deleteBooking,
-};
+module.exports = { getBookings, createBooking, cancelBooking, deleteBooking };

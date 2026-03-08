@@ -1,47 +1,50 @@
 const { ObjectId } = require("mongodb");
 const { getDB } = require("../config/database");
+const { ValidationError, NotFoundError } = require("../utils/errors");
 
 /**
  * Get all pets for logged-in user
  */
-async function getPets(req, res) {
+async function getPets(req, res, next) {
   try {
     const db = getDB();
+    const userId = req.user?.id || req.session.user.id;
+
     const pets = await db
       .collection("pets")
-      .find({ userId: new ObjectId(req.session.user.id) })
+      .find({ userId: new ObjectId(userId) })
       .sort({ createdAt: -1 })
       .toArray();
 
     res.json({ success: true, pets });
   } catch (err) {
-    console.error("Get pets error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Add new pet
  */
-async function addPet(req, res) {
+async function addPet(req, res, next) {
   try {
     const { name, breed, age, gender, lastAntiRabiesShot } = req.body;
+    const userId = req.user?.id || req.session.user.id;
 
     if (!name || !breed || !age || !gender) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      throw new ValidationError("All fields are required");
     }
 
     if (age < 0 || age > 30) {
-      return res.status(400).json({ success: false, message: "Invalid age" });
+      throw new ValidationError("Invalid age — must be between 0 and 30");
     }
 
     if (!["male", "female"].includes(gender.toLowerCase())) {
-      return res.status(400).json({ success: false, message: "Gender must be male or female" });
+      throw new ValidationError("Gender must be male or female");
     }
 
     const db = getDB();
     await db.collection("pets").insertOne({
-      userId: new ObjectId(req.session.user.id),
+      userId: new ObjectId(userId),
       name,
       breed,
       age: parseInt(age),
@@ -54,100 +57,98 @@ async function addPet(req, res) {
 
     res.json({ success: true, message: "Pet added successfully!" });
   } catch (err) {
-    console.error("Add pet error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Update pet
  */
-async function updatePet(req, res) {
+async function updatePet(req, res, next) {
   try {
     const { name, breed, age, gender, lastAntiRabiesShot } = req.body;
+    const userId = req.user?.id || req.session.user.id;
 
     if (!name || !breed || !age || !gender) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      throw new ValidationError("All fields are required");
+    }
+
+    const updateData = {
+      name,
+      breed,
+      age: parseInt(age),
+      gender: gender.toLowerCase(),
+      lastAntiRabiesShot: lastAntiRabiesShot ? new Date(lastAntiRabiesShot) : null,
+      updatedAt: new Date(),
+    };
+
+    if (req.body.photo !== undefined) {
+      updateData.photo = req.body.photo;
     }
 
     const db = getDB();
     const result = await db.collection("pets").updateOne(
       {
         _id: new ObjectId(req.params.id),
-        userId: new ObjectId(req.session.user.id),
+        userId: new ObjectId(userId),
       },
-      {
-        $set: {
-          name,
-          breed,
-          age: parseInt(age),
-          gender: gender.toLowerCase(),
-          lastAntiRabiesShot: lastAntiRabiesShot ? new Date(lastAntiRabiesShot) : null,
-          photo: req.body.photo !== undefined ? req.body.photo : undefined,
-          updatedAt: new Date(),
-        },
-      },
+      { $set: updateData },
     );
 
     if (result.modifiedCount === 0) {
-      return res.status(404).json({ success: false, message: "Pet not found" });
+      throw new NotFoundError("Pet not found");
     }
 
     res.json({ success: true, message: "Pet updated successfully" });
   } catch (err) {
-    console.error("Update pet error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Delete pet
  */
-async function deletePet(req, res) {
+async function deletePet(req, res, next) {
   try {
+    const userId = req.user?.id || req.session.user.id;
     const db = getDB();
+
     const result = await db.collection("pets").deleteOne({
       _id: new ObjectId(req.params.id),
-      userId: new ObjectId(req.session.user.id),
+      userId: new ObjectId(userId),
     });
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({ success: false, message: "Pet not found" });
+      throw new NotFoundError("Pet not found");
     }
 
     res.json({ success: true, message: "Pet deleted successfully" });
   } catch (err) {
-    console.error("Delete pet error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Get pet by ID
  */
-async function getPetById(req, res) {
+async function getPetById(req, res, next) {
   try {
+    const userId = req.user?.id || req.session.user.id;
     const db = getDB();
+
     const pet = await db.collection("pets").findOne({
       _id: new ObjectId(req.params.id),
-      userId: new ObjectId(req.session.user.id),
+      userId: new ObjectId(userId),
     });
 
     if (!pet) {
-      return res.status(404).json({ success: false, message: "Pet not found" });
+      throw new NotFoundError("Pet not found");
     }
 
     res.json({ success: true, pet });
   } catch (err) {
-    console.error("Get pet by ID error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
-module.exports = {
-  getPets,
-  addPet,
-  updatePet,
-  deletePet,
-  getPetById,
-};
+module.exports = { getPets, addPet, updatePet, deletePet, getPetById };

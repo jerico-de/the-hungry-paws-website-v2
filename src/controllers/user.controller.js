@@ -1,48 +1,49 @@
 const bcrypt = require("bcrypt");
 const { ObjectId } = require("mongodb");
 const { getDB } = require("../config/database");
-const { isStrongPassword, isValidEmail, isValidPhone } = require("../utils/validation");
+const { isStrongPassword, isValidPhone } = require("../utils/validation");
 const { sendPasswordChangedEmail } = require("../utils/email");
+const { ValidationError, AuthError, NotFoundError } = require("../utils/errors");
 
 /**
  * Get user profile
  */
-async function getProfile(req, res) {
+async function getProfile(req, res, next) {
   try {
+    const userId = req.user?.id || req.session.user.id;
     const db = getDB();
-    const user = await db.collection("users").findOne({ _id: new ObjectId(req.session.user.id) }, { projection: { password: 0, resetToken: 0, resetExpires: 0, verificationToken: 0 } });
+
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) }, { projection: { password: 0, resetToken: 0, resetExpires: 0, verificationToken: 0 } });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      throw new NotFoundError("User not found");
     }
 
     res.json({ success: true, user });
   } catch (err) {
-    console.error("Get profile error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Update user profile
  */
-async function updateProfile(req, res) {
+async function updateProfile(req, res, next) {
   try {
     const { fullName, contact, address } = req.body;
+    const userId = req.user?.id || req.session.user.id;
 
     if (!fullName || !contact) {
-      return res.status(400).json({ success: false, message: "Full name and contact are required" });
+      throw new ValidationError("Full name and contact are required");
     }
 
     if (!isValidPhone(contact)) {
-      return res.status(400).json({ success: false, message: "Invalid phone number format" });
+      throw new ValidationError("Invalid phone number format");
     }
 
     const db = getDB();
-    const users = db.collection("users");
-
-    const result = await users.updateOne(
-      { _id: new ObjectId(req.session.user.id) },
+    const result = await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
       {
         $set: {
           fullName,
@@ -54,105 +55,92 @@ async function updateProfile(req, res) {
     );
 
     if (result.modifiedCount === 0) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      throw new NotFoundError("User not found");
     }
 
-    // Update session
     req.session.user.fullName = fullName;
     req.session.user.contact = contact;
 
     res.json({ success: true, message: "Profile updated successfully" });
   } catch (err) {
-    console.error("Update profile error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Change password
  */
-async function changePassword(req, res) {
+async function changePassword(req, res, next) {
   try {
     const { currentPassword, newPassword, confirmNewPassword } = req.body;
+    const userId = req.user?.id || req.session.user.id;
 
     if (!currentPassword || !newPassword || !confirmNewPassword) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      throw new ValidationError("All fields are required");
     }
 
     if (newPassword !== confirmNewPassword) {
-      return res.status(400).json({ success: false, message: "New passwords do not match" });
+      throw new ValidationError("New passwords do not match");
     }
 
     const passwordCheck = isStrongPassword(newPassword);
     if (!passwordCheck.valid) {
-      return res.status(400).json({ success: false, message: passwordCheck.message });
+      throw new ValidationError(passwordCheck.message);
     }
 
     const db = getDB();
-    const users = db.collection("users");
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
 
-    const user = await users.findOne({ _id: new ObjectId(req.session.user.id) });
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      throw new NotFoundError("User not found");
     }
 
-    // Verify current password
+    if (!user.password) {
+      throw new ValidationError("This account uses Google sign-in. Please set a password first.");
+    }
+
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Current password is incorrect" });
+      throw new AuthError("Current password is incorrect");
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password
-    await users.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          password: hashedPassword,
-          updatedAt: new Date(),
-        },
-      },
-    );
+    await db.collection("users").updateOne({ _id: user._id }, { $set: { password: hashedPassword, updatedAt: new Date() } });
 
-    // Send confirmation email
     await sendPasswordChangedEmail(user.email, user.fullName);
 
     res.json({ success: true, message: "Password changed successfully" });
   } catch (err) {
-    console.error("Change password error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Delete account (soft delete)
  */
-async function deleteAccount(req, res) {
+async function deleteAccount(req, res, next) {
   try {
     const { password } = req.body;
+    const userId = req.user?.id || req.session.user.id;
 
     if (!password) {
-      return res.status(400).json({ success: false, message: "Password is required to delete account" });
+      throw new ValidationError("Password is required to delete account");
     }
 
     const db = getDB();
-    const users = db.collection("users");
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
 
-    const user = await users.findOne({ _id: new ObjectId(req.session.user.id) });
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      throw new NotFoundError("User not found");
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Incorrect password" });
+      throw new AuthError("Incorrect password");
     }
 
-    // Soft delete (mark as deleted)
-    await users.updateOne(
+    await db.collection("users").updateOne(
       { _id: user._id },
       {
         $set: {
@@ -163,19 +151,11 @@ async function deleteAccount(req, res) {
       },
     );
 
-    // Destroy session
     req.session.destroy();
-
     res.json({ success: true, message: "Account deleted successfully" });
   } catch (err) {
-    console.error("Delete account error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
-module.exports = {
-  getProfile,
-  updateProfile,
-  changePassword,
-  deleteAccount,
-};
+module.exports = { getProfile, updateProfile, changePassword, deleteAccount };

@@ -258,7 +258,12 @@ document.addEventListener("DOMContentLoaded", () => {
     err.style.cssText = "color:#d44d7c;font-size:0.85rem;font-weight:600;text-align:center;margin:8px 0 0;animation:authModalIn .2s ease both;";
 
     const form = modal.querySelector(".auth-form");
-    form?.appendChild(err);
+    const submitBtn = form?.querySelector(".auth-submit-btn");
+    if (submitBtn) {
+      submitBtn.insertAdjacentElement("afterend", err);
+    } else {
+      form?.appendChild(err);
+    }
 
     setTimeout(() => err.remove(), 4000);
   }

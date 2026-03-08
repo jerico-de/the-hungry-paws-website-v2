@@ -4,49 +4,44 @@ const { getDB } = require("../config/database");
 const { sendVerificationEmail, sendPasswordResetEmail, sendPasswordChangedEmail } = require("../utils/email");
 const { isValidEmail, isStrongPassword } = require("../utils/validation");
 const { generateToken } = require("../utils/jwt");
+const { ValidationError, AuthError, NotFoundError } = require("../utils/errors");
 
 /**
  * User signup with email verification
  */
-async function signup(req, res) {
+async function signup(req, res, next) {
   try {
     const { fullName, email, contact, password, confirmPassword } = req.body;
 
-    // Validation
     if (!fullName || !email || !contact || !password || !confirmPassword) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      throw new ValidationError("All fields are required");
     }
 
     if (!isValidEmail(email)) {
-      return res.status(400).json({ success: false, message: "Invalid email format" });
+      throw new ValidationError("Invalid email format");
     }
 
     const passwordCheck = isStrongPassword(password);
     if (!passwordCheck.valid) {
-      return res.status(400).json({ success: false, message: passwordCheck.message });
+      throw new ValidationError(passwordCheck.message);
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({ success: false, message: "Passwords do not match" });
+      throw new ValidationError("Passwords do not match");
     }
 
     const db = getDB();
     const users = db.collection("users");
 
-    // Check if user exists
     const existingUser = await users.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ success: false, message: "Email already registered" });
+      throw new ValidationError("Email already registered");
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // Create user
     await users.insertOne({
       fullName,
       email,
@@ -60,7 +55,6 @@ async function signup(req, res) {
       updatedAt: new Date(),
     });
 
-    // Send verification email
     await sendVerificationEmail(email, verificationToken, fullName);
 
     res.json({
@@ -68,18 +62,16 @@ async function signup(req, res) {
       message: "Account created! Please check your email to verify your account.",
     });
   } catch (err) {
-    console.error("Signup error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
  * Verify email
  */
-async function verifyEmail(req, res) {
+async function verifyEmail(req, res, next) {
   try {
     const { token } = req.params;
-
     const db = getDB();
     const users = db.collection("users");
 
@@ -101,7 +93,6 @@ async function verifyEmail(req, res) {
       `);
     }
 
-    // Update user
     await users.updateOne(
       { _id: user._id },
       {
@@ -127,44 +118,37 @@ async function verifyEmail(req, res) {
       </html>
     `);
   } catch (err) {
-    console.error("Verify email error:", err);
-    res.status(500).send("Server error");
+    next(err);
   }
 }
 
 /**
  * Login
  */
-async function login(req, res) {
+async function login(req, res, next) {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Email and password required" });
+      throw new ValidationError("Email and password required");
     }
 
     const db = getDB();
     const user = await db.collection("users").findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      throw new AuthError("Invalid credentials");
     }
 
-    // Check if email is verified
     if (!user.isVerified) {
-      return res.status(401).json({
-        success: false,
-        message: "Please verify your email before logging in. Check your inbox for the verification link.",
-      });
+      throw new AuthError("Please verify your email before logging in. Check your inbox for the verification link.");
     }
 
-    // Password checker
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      throw new AuthError("Invalid credentials");
     }
 
-    // JWT token generation
     const token = generateToken(user);
 
     req.session.user = {
@@ -178,8 +162,7 @@ async function login(req, res) {
     const redirect = user.isAdmin ? "/admin" : "/user";
     res.json({ success: true, redirect, token });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
@@ -191,20 +174,20 @@ function logout(req, res) {
 }
 
 /**
- * Forgot password - send reset link
+ * Forgot password
  */
-async function forgotPassword(req, res) {
+async function forgotPassword(req, res, next) {
   try {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ success: false, message: "Email is required" });
+      throw new ValidationError("Email is required");
     }
 
     const db = getDB();
     const users = db.collection("users");
-
     const user = await users.findOne({ email });
+
     if (!user) {
       // Don't reveal if email exists
       return res.json({
@@ -213,22 +196,11 @@ async function forgotPassword(req, res) {
       });
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000);
 
-    await users.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          resetToken,
-          resetExpires,
-          updatedAt: new Date(),
-        },
-      },
-    );
+    await users.updateOne({ _id: user._id }, { $set: { resetToken, resetExpires, updatedAt: new Date() } });
 
-    // Send reset email
     await sendPasswordResetEmail(email, resetToken, user.fullName);
 
     res.json({
@@ -236,30 +208,29 @@ async function forgotPassword(req, res) {
       message: "If that email exists, a reset link has been sent.",
     });
   } catch (err) {
-    console.error("Forgot password error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
 /**
- * Reset password using token
+ * Reset password
  */
-async function resetPassword(req, res) {
+async function resetPassword(req, res, next) {
   try {
     const { token } = req.params;
     const { password, confirmPassword } = req.body;
 
     if (!password || !confirmPassword) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      throw new ValidationError("All fields are required");
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({ success: false, message: "Passwords do not match" });
+      throw new ValidationError("Passwords do not match");
     }
 
     const passwordCheck = isStrongPassword(password);
     if (!passwordCheck.valid) {
-      return res.status(400).json({ success: false, message: passwordCheck.message });
+      throw new ValidationError(passwordCheck.message);
     }
 
     const db = getDB();
@@ -271,13 +242,11 @@ async function resetPassword(req, res) {
     });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
+      throw new ValidationError("Invalid or expired reset token");
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Update password
     await users.updateOne(
       { _id: user._id },
       {
@@ -290,21 +259,12 @@ async function resetPassword(req, res) {
       },
     );
 
-    // Send confirmation email
     await sendPasswordChangedEmail(user.email, user.fullName);
 
     res.json({ success: true, message: "Password reset successful! You can now log in." });
   } catch (err) {
-    console.error("Reset password error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    next(err);
   }
 }
 
-module.exports = {
-  signup,
-  verifyEmail,
-  login,
-  logout,
-  forgotPassword,
-  resetPassword,
-};
+module.exports = { signup, verifyEmail, login, logout, forgotPassword, resetPassword };
