@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const contactController = require("../controllers/contact.controller");
-const { isAdmin } = require("../middleware/auth");
+const { requireAdmin } = require("../middleware/auth");
 
 // Public route
 router.post("/submit", contactController.submitContact);
 
 // Admin routes
-router.get("/", isAdmin, contactController.getContacts);
-router.get("/unread-count", isAdmin, contactController.getUnreadCount);
-router.put("/:id/read", isAdmin, contactController.markAsRead);
-router.delete("/:id", isAdmin, contactController.deleteContact);
+router.get("/", requireAdmin, contactController.getContacts);
+router.get("/unread-count", requireAdmin, contactController.getUnreadCount);
+router.put("/:id/read", requireAdmin, contactController.markAsRead);
+router.delete("/:id", requireAdmin, contactController.deleteContact);
 
 module.exports = router;

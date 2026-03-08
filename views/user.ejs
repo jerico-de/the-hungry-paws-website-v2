@@ -50,6 +50,15 @@
         <p>More profile info will go here.</p>
       </main>
     </div>
+    <!-- Capture JWT from Google OAuth redirect -->
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+      if (token) {
+        sessionStorage.setItem("jwtToken", token);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    </script>
     <script src="/js/upload.helper.js"></script>
     <script src="/js/user.js"></script>
   </body>

@@ -4,6 +4,7 @@ const cors = require("cors");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const path = require("path");
+const passport = require("./config/passport");
 
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
@@ -42,6 +43,8 @@ app.use(
     proxy: true,
   }),
 );
+app.use(passport.initialize());
+app.use(passport.session());
 
 // =====================
 // API Routes

@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const { getDB } = require("../config/database");
 const { sendVerificationEmail, sendPasswordResetEmail, sendPasswordChangedEmail } = require("../utils/email");
 const { isValidEmail, isStrongPassword } = require("../utils/validation");
+const { generateToken } = require("../utils/jwt");
 
 /**
  * User signup with email verification
@@ -157,10 +158,14 @@ async function login(req, res) {
       });
     }
 
+    // Password checker
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
+
+    // JWT token generation
+    const token = generateToken(user);
 
     req.session.user = {
       id: user._id,
@@ -170,8 +175,8 @@ async function login(req, res) {
       isAdmin: user.isAdmin || false,
     };
 
-    const redirect = req.session.user.isAdmin ? "/admin" : "/user";
-    res.json({ success: true, redirect });
+    const redirect = user.isAdmin ? "/admin" : "/user";
+    res.json({ success: true, redirect, token });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ success: false, message: "Server error" });

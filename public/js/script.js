@@ -97,7 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!input) return;
       const isHidden = input.type === "password";
       input.type = isHidden ? "text" : "password";
-      // Swap icon
       btn.innerHTML = isHidden
         ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
@@ -173,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setLoading(submitBtn, true, "Logging in...");
 
       try {
-        const res = await fetch("/api/login", {
+        const res = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
@@ -181,6 +180,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = await res.json();
 
         if (result.success) {
+          // Store JWT token
+          if (result.token) {
+            sessionStorage.setItem("jwtToken", result.token);
+          }
           window.location.href = result.redirect;
         } else {
           showAuthError(loginModal, result.message);
@@ -247,7 +250,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Utility: inline auth error =====
   function showAuthError(modal, message) {
     if (!modal) return;
-    // Remove any existing error
     modal.querySelectorAll(".auth-error-msg").forEach((el) => el.remove());
 
     const err = document.createElement("p");
@@ -258,7 +260,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = modal.querySelector(".auth-form");
     form?.appendChild(err);
 
-    // Auto-remove after 4s
     setTimeout(() => err.remove(), 4000);
   }
 
@@ -295,4 +296,16 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => toast.remove(), 300);
     }, 5000);
   }
+
+  // ===== Utility: authenticated fetch with JWT =====
+  window.authFetch = function (url, options = {}) {
+    const token = sessionStorage.getItem("jwtToken");
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+  };
 });
