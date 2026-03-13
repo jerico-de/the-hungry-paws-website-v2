@@ -99,4 +99,22 @@ async function rejectBooking(req, res, next) {
   }
 }
 
-module.exports = { getBookings, approveBooking, rejectBooking };
+/** 
+ * Back to Pending
+ */
+async function revertToPending(req, res, next) {
+  try {
+    const db = getDB();
+    const result = await db.collection("bookings").updateOne(
+      { _id: new ObjectId(req.params.id) },
+      {
+        $set: { status: "pending", updatedAt: new Date() },
+        $unset: { approvedBy: "", approvedAt: "", rejectedBy: "", rejectReason: "", rejectedAt: "" },
+      }
+    );
+    if (result.modifiedCount === 0) throw new NotFoundError("Booking not found");
+    res.json({ success: true, message: "Booking reverted to pending." });
+  } catch (err) { next(err); }
+}
+
+module.exports = { getBookings, approveBooking, rejectBooking, revertToPending };

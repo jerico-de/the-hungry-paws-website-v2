@@ -1,5 +1,4 @@
 require("dotenv").config();
-console.log("Google callback URL:", process.env.GOOGLE_CALLBACK_URL);
 
 const express = require("express");
 const cors = require("cors");

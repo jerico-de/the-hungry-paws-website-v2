@@ -45,17 +45,9 @@ sidebarLinks.forEach((link) => {
 
     const section = link.dataset.section;
 
-    if (section === "profile") {
-      loadProfile();
-    }
-
-    if (section === "pets") {
-      loadPets();
-    }
-
-    if (section === "bookings") {
-      loadBookingsSection();
-    }
+    if (section === "profile") loadProfile();
+    if (section === "pets") loadPets();
+    if (section === "bookings") loadBookingsSection();
   });
 });
 
@@ -197,20 +189,9 @@ content.onclick = async (e) => {
       });
   }
 
-  if (e.target.id === "cancelEditPet") {
-    loadPets();
-    return;
-  }
-
-  if (e.target.id === "cancelEditProfile") {
-    loadProfile();
-    return;
-  }
-
-  if (e.target.id === "cancelChangePassword") {
-    loadProfile();
-    return;
-  }
+  if (e.target.id === "cancelEditPet") { loadPets(); return; }
+  if (e.target.id === "cancelEditProfile") { loadProfile(); return; }
+  if (e.target.id === "cancelChangePassword") { loadProfile(); return; }
 
   if (e.target.closest("#editPetForm")) {
     const form = e.target.closest("#editPetForm");
@@ -434,6 +415,10 @@ function loadBookingsSection() {
       if (data.bookings && data.bookings.length > 0) {
         html += `<div class="bookings-grid">`;
         data.bookings.forEach((b) => {
+          const rejectReasonHtml = b.status === "rejected" && b.rejectReason
+            ? `<p class="booking-reject-reason"><strong>Reason:</strong> ${b.rejectReason}</p>`
+            : "";
+
           html += `
             <div class="booking-card">
               <p><strong>Pets:</strong> ${b.pets.map((p) => p.name).join(", ")}</p>
@@ -442,6 +427,7 @@ function loadBookingsSection() {
               <p><strong>Time:</strong> ${b.appointmentTime || "N/A"}</p>
               ${type === "hotel" ? `<p><strong>Checkout:</strong> ${b.hotelCheckoutDate ? new Date(b.hotelCheckoutDate).toLocaleDateString() : "N/A"} ${b.hotelCheckoutTime || ""}</p>` : ""}
               <p><strong>Status:</strong> <span class="booking-status ${b.status}">${b.status.toUpperCase()}</span></p>
+              ${rejectReasonHtml}
               <button class="deleteBookingBtn" data-id="${b._id}">Delete</button>
             </div>
           `;
@@ -493,7 +479,43 @@ function loadBookingsSection() {
 }
 
 /* ===============================
-   BOOKING FORM - WITH COLLAPSIBLE ADD-ONS
+   AVAILABLE SLOTS HELPER
+================================ */
+async function fetchAvailableSlots(date, type) {
+  try {
+    const res = await fetch(`/api/bookings/available-slots?date=${date}&type=${type}`);
+    const data = await res.json();
+    // API now returns [{time, available}]
+    if (data.success) return data.slots;
+    return [];
+  } catch (err) {
+    console.error("Error fetching slots:", err);
+    return [];
+  }
+}
+
+function buildTimeSelect(slots, name, required = true) {
+  const reqAttr = required ? "required" : "";
+  if (!slots.length) {
+    return `<select name="${name}" ${reqAttr} disabled>
+              <option value="">No slots available for this date</option>
+            </select>`;
+  }
+  const options = slots.map((s) => {
+    if (s.available) {
+      return `<option value="${s.time}">${s.time}</option>`;
+    }
+    return `<option value="" disabled>${s.time} — fully booked</option>`;
+  }).join("");
+  const hasAvailable = slots.some((s) => s.available);
+  return `<select name="${name}" ${reqAttr} ${!hasAvailable ? "disabled" : ""}>
+            <option value="">Select time</option>
+            ${options}
+          </select>`;
+}
+
+/* ===============================
+   BOOKING FORM
 ================================ */
 async function showBookingForm(type) {
   try {
@@ -515,22 +537,22 @@ async function showBookingForm(type) {
 
     let petOptions = `<option value="">Select pet</option>`;
     petsData.pets.forEach((p) => {
-      const rabiesDate = p.lastAntiRabiesShot ? new Date(p.lastAntiRabiesShot).toLocaleDateString() : "Not set";
       petOptions += `<option value="${p._id}" data-rabies="${p.lastAntiRabiesShot || ""}">${p.name} (${p.breed})</option>`;
     });
+
+    // Set min date to today
+    const todayStr = new Date().toISOString().split("T")[0];
 
     let groomingServicesHTML = "";
     if (type === "grooming") {
       groomingServicesHTML = `
         <div class="service-section">
           <h4>Select Main Grooming Service</h4>
-          
           <div class="main-service-options">
             <div class="service-option">
               <input type="radio" id="fullGroom" name="mainService" value="Full Groom" required>
               <label for="fullGroom">Full Groom</label>
             </div>
-            
             <div class="service-option">
               <input type="radio" id="bathBlowdry" name="mainService" value="Bath and Blowdry">
               <label for="bathBlowdry">Bath and Blowdry</label>
@@ -542,46 +564,37 @@ async function showBookingForm(type) {
           <button type="button" id="toggleAddonsBtn" class="toggle-addons-btn">
             + Add Optional Services
           </button>
-          
           <div id="addonServicesSection" class="addon-services-section" style="display: none;">
             <h4>Select Additional Services:</h4>
-            
             <div class="addon-services-grid">
               <div class="service-option">
                 <input type="checkbox" id="nailTrim" name="addonServices" value="Nail Trim">
                 <label for="nailTrim">Nail Cut/Nail Trim</label>
               </div>
-              
               <div class="service-option">
                 <input type="checkbox" id="earCleaning" name="addonServices" value="Ear Cleaning">
                 <label for="earCleaning">Ear Cleaning and Hair Removal</label>
               </div>
-              
               <div class="service-option">
                 <input type="checkbox" id="hairTrim" name="addonServices" value="Hair Trim">
                 <label for="hairTrim">Hair Trim</label>
               </div>
-              
               <div class="service-option">
                 <input type="checkbox" id="poodleFeet" name="addonServices" value="Poodle Feet">
                 <label for="poodleFeet">Poodle Feet</label>
               </div>
-              
               <div class="service-option">
                 <input type="checkbox" id="tearStain" name="addonServices" value="Tear Stain Removal">
                 <label for="tearStain">Tear Stain Removal</label>
               </div>
-              
               <div class="service-option">
                 <input type="checkbox" id="teethCleaning" name="addonServices" value="Teeth Cleaning">
                 <label for="teethCleaning">Teeth Cleaning</label>
               </div>
-              
               <div class="service-option">
                 <input type="checkbox" id="dematting" name="addonServices" value="Dematting">
                 <label for="dematting">Dematting</label>
               </div>
-              
               <div class="service-option">
                 <input type="checkbox" id="analSac" name="addonServices" value="Anal Sac Draining">
                 <label for="analSac">Anal Sac Draining</label>
@@ -591,6 +604,33 @@ async function showBookingForm(type) {
         </div>
       `;
     }
+
+    const dateTimeHTML = type === "grooming"
+      ? `
+        <label>Appointment Date:</label>
+        <input type="date" name="appointmentDate" id="appointmentDate" min="${todayStr}" required />
+
+        <label>Appointment Time:</label>
+        <div id="timeSlotWrap">
+          <select name="appointmentTime" disabled>
+            <option value="">Select a date first</option>
+          </select>
+        </div>
+        <p id="timeSlotNote" class="slot-note" style="display:none;"></p>
+      `
+      : `
+        <label>Check-in Date:</label>
+        <input type="date" name="appointmentDate" id="appointmentDate" min="${todayStr}" required />
+
+        <label>Check-in Time:</label>
+        <input type="time" name="appointmentTime" required />
+
+        <label>Checkout Date:</label>
+        <input type="date" name="hotelCheckoutDate" min="${todayStr}" required />
+
+        <label>Checkout Time:</label>
+        <input type="time" name="hotelCheckoutTime" required />
+      `;
 
     document.getElementById("bookingsContent").innerHTML = `
       <h3>New ${type === "grooming" ? "Grooming" : "Pet Hotel"} Booking</h3>
@@ -605,41 +645,7 @@ async function showBookingForm(type) {
 
         ${groomingServicesHTML}
 
-        ${
-          type === "grooming"
-            ? `
-          <label>Appointment Date:</label>
-          <input type="date" name="appointmentDate" required />
-
-          <label>Appointment Time:</label>
-          <select name="appointmentTime" required>
-            <option value="">Select time</option>
-            <option>9:00 AM</option>
-            <option>10:00 AM</option>
-            <option>11:00 AM</option>
-            <option>12:00 PM</option>
-            <option>1:00 PM</option>
-            <option>2:00 PM</option>
-            <option>3:00 PM</option>
-            <option>4:00 PM</option>
-            <option>5:00 PM</option>
-            <option>6:00 PM</option>
-          </select>
-        `
-            : `
-          <label>Check-in Date:</label>
-          <input type="date" name="appointmentDate" required />
-          
-          <label>Check-in Time:</label>
-          <input type="time" name="appointmentTime" required />
-
-          <label>Checkout Date:</label>
-          <input type="date" name="hotelCheckoutDate" required />
-          
-          <label>Checkout Time:</label>
-          <input type="time" name="hotelCheckoutTime" required />
-        `
-        }
+        ${dateTimeHTML}
 
         <div class="add-pet-checkbox">
           <input type="checkbox" id="addAnotherPet">
@@ -653,24 +659,49 @@ async function showBookingForm(type) {
       </form>
     `;
 
-    // Toggle add-ons button
+    /* ---- Date change → fetch available slots (grooming only) ---- */
+    if (type === "grooming") {
+      const dateInput = document.getElementById("appointmentDate");
+      const timeWrap = document.getElementById("timeSlotWrap");
+      const noteEl = document.getElementById("timeSlotNote");
+
+      dateInput.addEventListener("change", async () => {
+        const selectedDate = dateInput.value;
+        if (!selectedDate) return;
+
+        timeWrap.innerHTML = `<select name="appointmentTime" disabled><option>Loading...</option></select>`;
+        noteEl.style.display = "none";
+
+        const slots = await fetchAvailableSlots(selectedDate, type);
+
+        timeWrap.innerHTML = buildTimeSelect(slots, "appointmentTime", true);
+
+        const hasAvailable = slots.some((s) => s.available);
+        if (!hasAvailable) {
+          const allTaken = slots.length > 0 && slots.every((s) => !s.available);
+          noteEl.textContent = allTaken
+            ? "All time slots for this date are fully booked."
+            : "No available time slots for this date. Slots require at least 3 hours advance notice.";
+          noteEl.style.display = "block";
+        } else {
+          noteEl.style.display = "none";
+        }
+      });
+    }
+
+    /* ---- Toggle add-ons ---- */
     const toggleBtn = document.getElementById("toggleAddonsBtn");
     if (toggleBtn) {
       toggleBtn.onclick = () => {
         const addonsSection = document.getElementById("addonServicesSection");
-        if (addonsSection.style.display === "none") {
-          addonsSection.style.display = "block";
-          toggleBtn.textContent = "− Hide Optional Services";
-          toggleBtn.classList.add("active");
-        } else {
-          addonsSection.style.display = "none";
-          toggleBtn.textContent = "+ Add Optional Services";
-          toggleBtn.classList.remove("active");
-        }
+        const isHidden = addonsSection.style.display === "none";
+        addonsSection.style.display = isHidden ? "block" : "none";
+        toggleBtn.textContent = isHidden ? "− Hide Optional Services" : "+ Add Optional Services";
+        toggleBtn.classList.toggle("active", isHidden);
       };
     }
 
-    // Anti-rabies info display
+    /* ---- Anti-rabies info display ---- */
     const updateRabiesInfo = (selectElement) => {
       const container = selectElement.closest("#petsBookingContainer") || selectElement.parentElement;
       const infoDiv = container.querySelector(".pet-rabies-info");
@@ -679,12 +710,7 @@ async function showBookingForm(type) {
       if (selectElement.value) {
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const rabiesDate = selectedOption.dataset.rabies;
-
-        if (rabiesDate) {
-          rabiesSpan.textContent = new Date(rabiesDate).toLocaleDateString();
-        } else {
-          rabiesSpan.textContent = "Not set";
-        }
+        rabiesSpan.textContent = rabiesDate ? new Date(rabiesDate).toLocaleDateString() : "Not set";
         infoDiv.style.display = "block";
       } else {
         infoDiv.style.display = "none";
@@ -697,6 +723,7 @@ async function showBookingForm(type) {
 
     document.getElementById("cancelBooking").onclick = () => loadBookingsSection();
 
+    /* ---- Add another pet ---- */
     document.getElementById("addAnotherPet").onchange = (e) => {
       if (e.target.checked) {
         const container = document.getElementById("petsBookingContainer");
@@ -727,6 +754,7 @@ async function showBookingForm(type) {
       }
     };
 
+    /* ---- Submit ---- */
     document.getElementById("bookingForm").onsubmit = async (e) => {
       e.preventDefault();
 
@@ -747,9 +775,7 @@ async function showBookingForm(type) {
         }
 
         services = [mainService];
-
         const selectedAddons = [...document.querySelectorAll('input[name="addonServices"]:checked')].map((cb) => cb.value);
-
         if (selectedAddons.length > 0) {
           services = [...services, ...selectedAddons];
         }
@@ -900,7 +926,6 @@ function loadPets() {
 
       content.innerHTML = html;
 
-      // Load signed URLs for pet photos
       document.querySelectorAll(".pet-photo[data-s3key]").forEach(async (img) => {
         const key = img.dataset.s3key;
         if (!key) return;
@@ -961,7 +986,6 @@ function showAddPetForm() {
 
   document.getElementById("cancelAdd").onclick = loadPets;
 
-  // Photo preview
   document.getElementById("petPhotoInput").addEventListener("change", (e) => {
     const file = e.target.files[0];
     const errorEl = document.getElementById("petPhotoError");
@@ -986,7 +1010,6 @@ function showAddPetForm() {
     let photoFileName = null;
     const photoFile = document.getElementById("petPhotoInput").files[0];
 
-    // Upload photo first if selected
     if (photoFile) {
       try {
         photoFileName = await uploadToS3(photoFile, "/api/upload/pet-photo");

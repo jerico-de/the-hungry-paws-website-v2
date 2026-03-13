@@ -2,7 +2,6 @@ const nodemailer = require("nodemailer");
 
 /**
  * Create email transporter
- * Initialized lazily to handle missing credentials gracefully
  */
 let transporter = null;
 

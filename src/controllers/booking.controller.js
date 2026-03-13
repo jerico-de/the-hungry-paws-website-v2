@@ -2,6 +2,84 @@ const { ObjectId } = require("mongodb");
 const { getDB } = require("../config/database");
 const { ValidationError, NotFoundError } = require("../utils/errors");
 
+const ALL_SLOTS = [
+  "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
+  "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM",
+  "5:00 PM", "6:00 PM",
+];
+
+/**
+ * Parse a time slot string into today's Date for comparison.
+ * e.g. "2:00 PM" on date "2025-06-10" → Date object
+ */
+function slotToDate(dateStr, timeStr) {
+  const [time, meridiem] = timeStr.split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+  if (meridiem === "PM" && hours !== 12) hours += 12;
+  if (meridiem === "AM" && hours === 12) hours = 0;
+  const d = new Date(dateStr);
+  d.setHours(hours, minutes, 0, 0);
+  return d;
+}
+
+/**
+ * GET /api/bookings/available-slots?date=YYYY-MM-DD&type=grooming
+ * Returns time slots that are:
+ *   1. At least 3 hours from now (if the date is today)
+ *   2. Not already taken by an approved booking on that date
+ */
+async function getAvailableSlots(req, res, next) {
+  try {
+    const { date, type } = req.query;
+    if (!date || !type) {
+      return res.json({ success: true, slots: ALL_SLOTS });
+    }
+
+    const db = getDB();
+    const now = new Date();
+    const threeHoursFromNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+
+    // Find all approved bookings on this date for this type
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const approvedBookings = await db.collection("bookings").find({
+      type,
+      status: "approved",
+      appointmentDate: { $gte: startOfDay, $lte: endOfDay },
+    }).toArray();
+
+    const takenSlots = new Set(approvedBookings.map((b) => b.appointmentTime));
+
+    const selectedDate = new Date(date);
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+    const isToday = selectedDate.getTime() === todayMidnight.getTime();
+
+    const slots = ALL_SLOTS.map((slot) => {
+      // Taken by an approved booking
+      if (takenSlots.has(slot)) {
+        return { time: slot, available: false, reason: "booked" };
+      }
+      // Too soon (today only)
+      if (isToday) {
+        const slotDate = slotToDate(date, slot);
+        if (slotDate < threeHoursFromNow) {
+          return { time: slot, available: false, reason: "too_soon" };
+        }
+      }
+      return { time: slot, available: true };
+    });
+
+    res.json({ success: true, slots });
+  } catch (err) {
+    next(err);
+  }
+}
+
 /**
  * Get user bookings
  */
@@ -32,7 +110,7 @@ async function getBookings(req, res, next) {
 }
 
 /**
- * Create booking
+ * Create booking — with server-side slot validation
  */
 async function createBooking(req, res, next) {
   try {
@@ -52,6 +130,38 @@ async function createBooking(req, res, next) {
     }
 
     const db = getDB();
+
+    // Server-side: enforce 3-hour advance booking for today
+    const now = new Date();
+    const threeHoursFromNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    const slotDateTime = slotToDate(appointmentDate, appointmentTime);
+
+    const selectedDate = new Date(appointmentDate);
+    selectedDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate.getTime() === today.getTime() && slotDateTime < threeHoursFromNow) {
+      throw new ValidationError("Bookings must be made at least 3 hours in advance.");
+    }
+
+    // Server-side: check if slot is already approved
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const conflict = await db.collection("bookings").findOne({
+      type,
+      status: "approved",
+      appointmentDate: { $gte: startOfDay, $lte: endOfDay },
+      appointmentTime,
+    });
+
+    if (conflict) {
+      throw new ValidationError("This time slot is already booked. Please choose another time.");
+    }
+
     await db.collection("bookings").insertOne({
       userId: new ObjectId(userId),
       type,
@@ -130,4 +240,4 @@ async function deleteBooking(req, res, next) {
   }
 }
 
-module.exports = { getBookings, createBooking, cancelBooking, deleteBooking };
+module.exports = { getBookings, getAvailableSlots, createBooking, cancelBooking, deleteBooking };
