@@ -10,27 +10,25 @@
     <!-- ADMIN TOP BAR -->
     <header class="user-topbar">
       <div class="user-topbar-left">
-        <!-- HAMBURGER MENU TOGGLE (Mobile Only) -->
         <button class="dashboard-menu-toggle" id="dashboardMenuToggle">
-          <span></span>
-          <span></span>
-          <span></span>
+          <span></span><span></span><span></span>
         </button>
         <img src="/images/logo.png" alt="The Hungry Paws" class="user-logo" />
         <span class="welcome-text">
-          Welcome,
-          <strong><%= user.fullName %></strong>
-          (Admin)
+          Welcome, <strong><%= user.fullName %></strong> (Admin)
         </span>
       </div>
     </header>
 
     <!-- DASHBOARD LAYOUT -->
     <div class="dashboard">
-      <!-- SIDEBAR -->
       <aside class="sidebar" id="dashboardSidebar">
-        <button class="sidebar-link active" data-section="profile">Profile</button>
+        <button class="sidebar-link active" data-section="dashboard">Dashboard</button>
+        <button class="sidebar-link" data-section="profile">Profile</button>
         <button class="sidebar-link" data-section="bookings">Bookings</button>
+        <button class="sidebar-link" data-section="employees">Employees</button>
+        <button class="sidebar-link" data-section="duty">On Duty</button>
+        <button class="sidebar-link" data-section="leave">Leave Requests</button>
         <button class="sidebar-link" data-section="messages">Messages</button>
 
         <form action="/logout" method="POST" class="logout-form">
@@ -38,21 +36,17 @@
         </form>
       </aside>
 
-      <!-- OVERLAY (Mobile Only) -->
       <div class="dashboard-overlay" id="dashboardOverlay"></div>
 
-      <!-- MAIN CONTENT -->
-      <main class="dashboard-content" id="dashboardContent" data-email="<%= user.email %>">
-        <h2>Profile</h2>
-        <p>
-          <strong>Email:</strong>
-          <%= user.email %>
-        </p>
-        <p>More profile info will go here.</p>
+      <main class="dashboard-content" id="dashboardContent"
+            data-email="<%= user.email %>"
+            data-name="<%= user.fullName %>"
+            data-contact="<%= user.contact || '' %>"
+            data-address="<%= user.address || '' %>"
+            data-joined="<%= user.createdAt ? user.createdAt.toISOString() : '' %>">
       </main>
     </div>
 
-    <!-- Capture JWT from Google OAuth redirect -->
     <script>
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get("token");

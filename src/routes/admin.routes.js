@@ -3,9 +3,11 @@ const router = express.Router();
 const { requireAdmin } = require("../middleware/auth");
 const adminController = require("../controllers/admin.controller");
 
-router.get("/bookings", requireAdmin, adminController.getBookings);
-router.put("/bookings/:id/approve", requireAdmin, adminController.approveBooking);
-router.put("/bookings/:id/reject", requireAdmin, adminController.rejectBooking);
-router.put("/bookings/:id/pending", requireAdmin, adminController.revertToPending);
+router.get("/dashboard-stats",          requireAdmin, adminController.getDashboardStats);
+router.get("/dashboard-stats/detail",   requireAdmin, adminController.getStatDetail);
+router.get("/bookings",                 requireAdmin, adminController.getBookings);
+router.put("/bookings/:id/approve",     requireAdmin, adminController.approveBooking);
+router.put("/bookings/:id/reject",      requireAdmin, adminController.rejectBooking);
+router.put("/bookings/:id/pending",     requireAdmin, adminController.revertToPending);
 
 module.exports = router;

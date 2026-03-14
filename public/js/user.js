@@ -505,7 +505,7 @@ function buildTimeSelect(slots, name, required = true) {
     if (s.available) {
       return `<option value="${s.time}">${s.time}</option>`;
     }
-    return `<option value="" disabled>${s.time} — fully booked</option>`;
+    return `<option value="" disabled>${s.time} — already booked</option>`;
   }).join("");
   const hasAvailable = slots.some((s) => s.available);
   return `<select name="${name}" ${reqAttr} ${!hasAvailable ? "disabled" : ""}>
