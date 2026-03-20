@@ -371,7 +371,6 @@ async function loadEmployees() {
             <option value="Groomer">Groomer</option>
             <option value="Receptionist">Receptionist</option>
             <option value="Pet Hotel Staff">Pet Hotel Staff</option>
-            <option value="Veterinary Assistant">Veterinary Assistant</option>
             <option value="Manager">Manager</option>
             <option value="Other">Other</option>
           </select>

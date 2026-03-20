@@ -262,7 +262,7 @@ body {
 
 /* ========== ABOUT ========== */
 #about {
-  background-color: #f1f1f1;
+  background-color: #f9f9f9;
   padding: 40px 0;
 }
 
@@ -317,7 +317,11 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.277);
 }
 
-@media (max-width: 576px) {
+/* Mobile photo grid:
+   landscape (full width)
+   portrait  |  portrait
+   landscape (full width)               */
+@media (max-width: 768px) {
   .photo-grid {
     grid-template-columns: 1fr 1fr;
     grid-auto-rows: auto;
@@ -350,12 +354,12 @@ body {
   justify-content: center;
   padding: 30px 20px;
   text-align: center;
+  background-color: #f1f1f1;
 }
 
 .promotions-header h2 {
   text-align: center;
   font-size: 2.2rem;
-  margin: 30px;
 }
 
 .promotions-parent {
@@ -402,7 +406,7 @@ body {
 
 /* ========== TESTIMONIALS ========== */
 #testimonials {
-  background-color: #f1f1f1;
+  background-color: #fff;
   padding: 40px 0;
 }
 
@@ -492,7 +496,6 @@ body {
 
 /* ========== SERVICES ========== */
 #services {
-  background-color: #f1f1f1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -504,7 +507,7 @@ body {
 .services-header {
   text-align: center;
   font-size: 2.2rem;
-  margin: 30px;
+  margin-bottom: 30px;
 }
 
 .services-parent {
@@ -913,6 +916,18 @@ body {
   justify-content: space-between;
   padding: 0 25px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+/* Offset the dashboard below the fixed topbar */
+.dashboard {
+  display: flex;
+  min-height: calc(100vh - 60px);
+  margin-top: 60px;
 }
 
 .user-topbar-left {
@@ -1148,18 +1163,28 @@ body {
 }
 
 .pet-photo-wrap {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-.pet-photo {
+  position: relative;
+  margin: 0 auto 12px;
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  object-fit: cover;
+  overflow: hidden;
   border: 3px solid #d44d7c;
   background-color: #f5d5d5;
+  flex-shrink: 0;
+}
+
+.pet-photo {
+  /* positioned absolutely so margin offsets work for panning */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  background: none;
+  object-fit: cover;
 }
 
 /* ========== FORMS (Pet / Profile / Password) ========== */
@@ -3027,4 +3052,36 @@ select option:disabled {
   .mobile-menu-header .logo { height: 25px; }
   .booking-content h2 { font-size: 1.3rem; }
   .carousel-inner img { max-height: 200px; }
+}
+
+/* ========== PHOTO POSITION + ZOOM SLIDERS ========== */
+.photo-pos-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.photo-pos-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.photo-pos-row span {
+  font-size: 0.78rem;
+  color: #888;
+  white-space: nowrap;
+  min-width: 110px;
+}
+
+.photo-pos-row input[type="range"] {
+  flex: 1;
+  accent-color: #d44d7c;
+  cursor: pointer;
+}
+
+/* Pet photo position & zoom transitions */
+.pet-photo {
+  transition: width 0.15s ease, height 0.15s ease, top 0.15s ease, left 0.15s ease;
 }
