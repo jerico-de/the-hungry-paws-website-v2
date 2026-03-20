@@ -43,6 +43,7 @@ sidebarLinks.forEach((link) => {
     if (s === "duty")       loadDutySection();
     if (s === "leave")      loadLeaveSection();
     if (s === "messages")   loadMessagesSection();
+    if (s === "payroll")    loadPayrollSection();
   });
 });
 
@@ -1628,12 +1629,12 @@ async function loadBookingHistory() {
       `;
 
       /* Outcome buttons */
-      const setOutcome = async (id, outcome, note = "") => {
+      const setOutcome = async (id, outcome, groomerId = null, note = "") => {
         try {
           const res    = await fetch(`/api/admin/bookings/${id}/outcome`, {
             method:  "PUT",
             headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({ outcome, outcomeNote: note }),
+            body:    JSON.stringify({ outcome, outcomeNote: note, actualGroomerId: groomerId }),
           });
           const result = await res.json();
           if (result.success) {
@@ -1645,7 +1646,10 @@ async function loadBookingHistory() {
       };
 
       list.querySelectorAll(".hist-complete").forEach((btn) => {
-        btn.onclick = () => setOutcome(btn.dataset.id, "completed");
+        btn.onclick = async () => {
+          const booking = bookings.find(b => b._id === btn.dataset.id);
+          openGroomerPickerModal(btn.dataset.id, booking, setOutcome);
+        };
       });
       list.querySelectorAll(".hist-noshow").forEach((btn) => {
         btn.onclick = async () => {
@@ -1691,4 +1695,648 @@ async function loadBookingHistory() {
     console.error(err);
     document.getElementById("historyList").innerHTML = "<p>Error loading history.</p>";
   }
+}
+
+/* ═══════════════════════════════════════
+   PAYROLL SECTION
+   - Semi-monthly (1–15 and 16–end of month)
+   - Admin manually inputs OT hours + commission per employee
+   - Advance salary tracked and deducted from next period
+   - Deductions: SSS, PhilHealth, Pag-IBIG, withholding tax
+═══════════════════════════════════════ */
+async function loadPayrollSection() {
+  content.innerHTML = `<h2>Payroll</h2><p>Loading...</p>`;
+
+  function getPeriods(year, month) {
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const pad = (n) => String(n).padStart(2, "0");
+    return [
+      { label: `${year}-${pad(month+1)}-01 to ${year}-${pad(month+1)}-15`, from: `${year}-${pad(month+1)}-01`, to: `${year}-${pad(month+1)}-15` },
+      { label: `${year}-${pad(month+1)}-16 to ${year}-${pad(month+1)}-${lastDay}`, from: `${year}-${pad(month+1)}-16`, to: `${year}-${pad(month+1)}-${lastDay}` },
+    ];
+  }
+
+  const now      = new Date();
+  const curPeriod = now.getDate() <= 15
+    ? getPeriods(now.getFullYear(), now.getMonth())[0]
+    : getPeriods(now.getFullYear(), now.getMonth())[1];
+
+  let periodOptions = "";
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    getPeriods(d.getFullYear(), d.getMonth()).reverse().forEach(p => {
+      const sel = p.from === curPeriod.from ? " selected" : "";
+      periodOptions += `<option value="${p.from}|${p.to}"${sel}>${p.label}</option>`;
+    });
+  }
+
+  content.innerHTML = `
+    <h2>Payroll</h2>
+
+    <div class="ops-tabs" style="margin-bottom:20px;">
+      <button class="ops-tab-btn active" data-ptab="payslips">📋 Payslips</button>
+      <button class="ops-tab-btn" data-ptab="attendance">🕐 Attendance</button>
+      <button class="ops-tab-btn" data-ptab="advances">💵 Advances</button>
+      <button class="ops-tab-btn" data-ptab="history">📂 Release History</button>
+    </div>
+
+    <!-- PAYSLIPS TAB -->
+    <div id="ptabPayslips">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+        <label class="admin-form-label" style="margin:0;flex-direction:row;align-items:center;gap:8px;">
+          Period:
+          <select id="periodSelect" class="admin-form-input" style="width:auto;min-width:240px;">${periodOptions}</select>
+        </label>
+        <button class="btn" id="loadPayslipsBtn">Load</button>
+        <button class="btn" id="releasePayrollBtn" style="background:#065f46;">✅ Mark as Released</button>
+      </div>
+      <p style="font-size:0.82rem;color:#888;margin:-12px 0 16px;">
+        OT hours and commission can be entered per employee before releasing payroll.
+        Advance salary already given this period will be automatically deducted.
+      </p>
+      <div id="payslipList"><p style="color:#aaa;">Select a period and click Load.</p></div>
+    </div>
+
+    <!-- ATTENDANCE TAB -->
+    <div id="ptabAttendance" style="display:none;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+        <label class="admin-form-label" style="margin:0;flex-direction:row;align-items:center;gap:8px;">
+          From: <input type="date" id="attFrom" class="admin-form-input" style="width:auto;" value="${curPeriod.from}" />
+        </label>
+        <label class="admin-form-label" style="margin:0;flex-direction:row;align-items:center;gap:8px;">
+          To: <input type="date" id="attTo" class="admin-form-input" style="width:auto;" value="${curPeriod.to}" />
+        </label>
+        <button class="btn" id="loadAttendanceBtn">Load</button>
+      </div>
+      <div id="attendanceList"><p style="color:#aaa;">Select a date range and click Load.</p></div>
+    </div>
+
+    <!-- ADVANCES TAB -->
+    <div id="ptabAdvances" style="display:none;">
+      <div style="margin-bottom:20px;">
+        <div class="ops-section-card" style="max-width:480px;margin-bottom:20px;">
+          <h3 class="ops-card-title">Give Advance Salary</h3>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+            <label class="admin-form-label">Employee
+              <select id="advEmployee" class="admin-form-input">
+                <option value="">Loading employees...</option>
+              </select>
+            </label>
+            <label class="admin-form-label">Amount ₱
+              <input type="number" id="advAmount" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
+            </label>
+            <label class="admin-form-label">Period to Deduct From
+              <select id="advPeriod" class="admin-form-input" style="width:auto;min-width:240px;">${periodOptions}</select>
+            </label>
+            <label class="admin-form-label">Note (optional)
+              <input type="text" id="advNote" class="admin-form-input" placeholder="e.g. Emergency advance" />
+            </label>
+            <button class="btn" id="giveAdvanceBtn">Record Advance</button>
+            <p id="advMsg" class="admin-form-msg"></p>
+          </div>
+        </div>
+
+        <div class="ops-section-card">
+          <h3 class="ops-card-title" style="margin-bottom:12px;">Advance History</h3>
+          <div id="advanceList"><p>Loading...</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="ptabHistory" style="display:none;">
+      <div id="payrollHistoryList"><p>Loading...</p></div>
+    </div>
+  `;
+
+  /* ── Tab switching ── */
+  document.querySelectorAll(".ops-tab-btn[data-ptab]").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".ops-tab-btn[data-ptab]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      ["Payslips","Attendance","Advances","History"].forEach(t => {
+        const el = document.getElementById(`ptab${t}`);
+        if (el) el.style.display = btn.dataset.ptab === t.toLowerCase() ? "block" : "none";
+      });
+      if (btn.dataset.ptab === "history")   loadReleaseHistory();
+      if (btn.dataset.ptab === "advances")  initAdvancesTab();
+    };
+  });
+
+  /* ── Load payslips ── */
+  document.getElementById("loadPayslipsBtn").onclick = loadPayslips;
+  loadPayslips();
+
+  /* ── Release payroll ── */
+  document.getElementById("releasePayrollBtn").onclick = async () => {
+    const [from, to] = document.getElementById("periodSelect").value.split("|");
+    if (!confirm(`Mark payroll for ${from} to ${to} as released? This will be recorded in history.`)) return;
+    try {
+      const res    = await fetch("/api/admin/payroll/release", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ from, to }) });
+      const result = await res.json();
+      if (result.success) alert("Payroll released and recorded!");
+      else alert(result.message);
+    } catch { alert("Error releasing payroll."); }
+  };
+
+  /* ── Attendance tab ── */
+  document.getElementById("loadAttendanceBtn").onclick = loadAttendanceView;
+
+  /* ─────────────────────────────
+     PAYSLIPS LOADER
+  ───────────────────────────── */
+  async function loadPayslips() {
+    const wrap = document.getElementById("payslipList");
+    const [from, to] = document.getElementById("periodSelect").value.split("|");
+    wrap.innerHTML = "<p>Loading...</p>";
+
+    try {
+      const res  = await fetch(`/api/admin/payroll?from=${from}&to=${to}`);
+      const data = await res.json();
+      if (!data.success) { wrap.innerHTML = `<p>Error: ${data.message}</p>`; return; }
+      if (!data.payroll.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No active employees found.</p>`; return; }
+
+      const fmt = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
+
+      /* Store mutable OT/commission per row */
+      const rowData = data.payroll.map(p => ({
+        ...p,
+        manualOT:         0,
+        manualCommission: 0,
+      }));
+
+      function calcNet(row) {
+        const p          = row.payroll || {};
+        const semiBasic  = parseFloat(p.basicPay || 0) / 2;
+        const otPay      = row.manualOT * parseFloat(p.overtimeRate || 0);
+        const commission = row.manualCommission;
+        const gross      = semiBasic + otPay + commission;
+        const deductions = (parseFloat(p.sssAmt||0) + parseFloat(p.philHealthAmt||0) + parseFloat(p.pagIbigAmt||0) + parseFloat(p.tax||0)) / 2;
+        const advance    = parseFloat(row.advance || 0);
+        const net        = gross - deductions - advance;
+        return { semiBasic, otPay, commission, gross, deductions, advance, net };
+      }
+
+      function renderTable() {
+        const totalNet = rowData.reduce((s, row) => s + calcNet(row).net, 0);
+
+        wrap.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <p style="font-size:0.85rem;color:#888;">Period: <strong>${from} to ${to}</strong> &bull; ${rowData.length} employees</p>
+            <p style="font-weight:700;color:#d44d7c;">Total Net Payroll: ${fmt(totalNet)}</p>
+          </div>
+          <div class="leave-table-wrap">
+            <table class="leave-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Days Present</th>
+                  <th>Semi-Basic</th>
+                  <th>OT Hours <span style="font-size:0.7rem;font-weight:400;">(edit)</span></th>
+                  <th>OT Pay</th>
+                  <th>Commission ₱ <span style="font-size:0.7rem;font-weight:400;">(edit)</span></th>
+                  <th>Gross</th>
+                  <th>Deductions</th>
+                  <th>Advance</th>
+                  <th>Net Pay</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowData.map((row, i) => {
+                  const c = calcNet(row);
+                  return `
+                    <tr>
+                      <td>
+                        <strong>${row.employee.name}</strong>
+                        <p style="font-size:0.75rem;color:#888;margin:0;">${row.employee.role}</p>
+                      </td>
+                      <td style="text-align:center;">${row.attendance.daysPresent}</td>
+                      <td>${fmt(c.semiBasic)}</td>
+                      <td>
+                        <input type="number" class="admin-form-input ot-input" data-idx="${i}"
+                          value="${row.manualOT}" min="0" step="0.5"
+                          style="width:70px;padding:4px 6px;font-size:0.85rem;" />
+                      </td>
+                      <td>${fmt(c.otPay)}</td>
+                      <td>
+                        <input type="number" class="admin-form-input comm-input" data-idx="${i}"
+                          value="${row.manualCommission}" min="0" step="0.01"
+                          style="width:90px;padding:4px 6px;font-size:0.85rem;" />
+                      </td>
+                      <td style="font-weight:600;">${fmt(c.gross)}</td>
+                      <td style="color:#721c24;">${fmt(c.deductions)}</td>
+                      <td style="color:#856404;">${c.advance > 0 ? fmt(c.advance) : "—"}</td>
+                      <td style="font-weight:700;color:${c.net >= 0 ? "#065f46" : "#991b1b"};">${fmt(c.net)}</td>
+                      <td>
+                        <button class="hist-btn hist-complete payslip-btn" data-idx="${i}">Slip</button>
+                      </td>
+                    </tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>`;
+
+        /* OT input listeners */
+        wrap.querySelectorAll(".ot-input").forEach(inp => {
+          inp.onchange = () => {
+            rowData[inp.dataset.idx].manualOT = parseFloat(inp.value) || 0;
+            renderTable();
+          };
+        });
+
+        /* Commission input listeners */
+        wrap.querySelectorAll(".comm-input").forEach(inp => {
+          inp.onchange = () => {
+            rowData[inp.dataset.idx].manualCommission = parseFloat(inp.value) || 0;
+            renderTable();
+          };
+        });
+
+        /* Payslip detail buttons */
+        wrap.querySelectorAll(".payslip-btn").forEach(btn => {
+          btn.onclick = () => {
+            const row = rowData[btn.dataset.idx];
+            const c   = calcNet(row);
+            openPayslipModal(row, c, from, to);
+          };
+        });
+      }
+
+      renderTable();
+
+    } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading payslips.</p>"; }
+  }
+
+  /* ─────────────────────────────
+     ATTENDANCE VIEW
+  ───────────────────────────── */
+  async function loadAttendanceView() {
+    const wrap = document.getElementById("attendanceList");
+    const from = document.getElementById("attFrom").value;
+    const to   = document.getElementById("attTo").value;
+    if (!from || !to) { alert("Please select both dates."); return; }
+    wrap.innerHTML = "<p>Loading...</p>";
+
+    try {
+      const res  = await fetch(`/api/admin/attendance?from=${from}&to=${to}`);
+      const data = await res.json();
+      if (!data.success) { wrap.innerHTML = `<p>Error: ${data.message}</p>`; return; }
+      if (!data.records.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No records found.</p>`; return; }
+
+      wrap.innerHTML = `
+        <div class="leave-table-wrap">
+          <table class="leave-table">
+            <thead>
+              <tr><th>Employee</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Hours</th><th>OT</th><th>Note</th><th></th></tr>
+            </thead>
+            <tbody>
+              ${data.records.map(r => {
+                const date    = new Date(r.date).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
+                const tIn     = r.timeIn  ? new Date(r.timeIn).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "—";
+                const tOut    = r.timeOut ? new Date(r.timeOut).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "—";
+                return `
+                  <tr>
+                    <td><strong>${r.employeeName||"—"}</strong></td>
+                    <td>${date}</td>
+                    <td>${tIn}</td>
+                    <td style="${!r.timeOut?"color:#d44d7c;font-weight:600;":""}">${tOut}${!r.timeOut?" (active)":""}</td>
+                    <td style="text-align:center;">${r.hoursWorked!=null?r.hoursWorked+"h":"—"}</td>
+                    <td style="text-align:center;">${r.overtimeHours>0?r.overtimeHours+"h":"—"}</td>
+                    <td style="font-size:0.78rem;color:#888;">${r.adminNote||""}</td>
+                    <td style="white-space:nowrap;">
+                      <button class="hist-btn hist-resched att-adj" data-id="${r._id}" data-ti="${r.timeIn||""}" data-to="${r.timeOut||""}">Adjust</button>
+                      <button class="hist-btn hist-cancel att-del" data-id="${r._id}">Delete</button>
+                    </td>
+                  </tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>`;
+
+      wrap.querySelectorAll(".att-adj").forEach(btn => {
+        btn.onclick = () => openAdjustModal(btn.dataset.id, btn.dataset.ti, btn.dataset.to, from, to, loadAttendanceView);
+      });
+      wrap.querySelectorAll(".att-del").forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm("Delete this attendance record?")) return;
+          const res = await fetch(`/api/admin/attendance/${btn.dataset.id}`, { method:"DELETE" });
+          const r   = await res.json();
+          if (r.success) loadAttendanceView(); else alert(r.message);
+        };
+      });
+    } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading attendance.</p>"; }
+  }
+
+  /* ─────────────────────────────
+     ADVANCES TAB
+  ───────────────────────────── */
+  async function initAdvancesTab() {
+    /* Populate employee dropdown */
+    try {
+      const res  = await fetch("/api/admin/employees");
+      const data = await res.json();
+      const sel  = document.getElementById("advEmployee");
+      if (sel) {
+        sel.innerHTML = `<option value="">Select employee</option>` +
+          (data.employees||[]).map(e => `<option value="${e._id}">${e.name} — ${e.role}</option>`).join("");
+      }
+    } catch (_) {}
+
+    loadAdvanceList();
+
+    document.getElementById("giveAdvanceBtn").onclick = async () => {
+      const msg    = document.getElementById("advMsg");
+      const empId  = document.getElementById("advEmployee").value;
+      const amount = parseFloat(document.getElementById("advAmount").value);
+      const period = document.getElementById("advPeriod").value;
+      const note   = document.getElementById("advNote").value.trim();
+
+      if (!empId || !amount || !period) {
+        msg.textContent = "Employee, amount, and period are required.";
+        msg.style.display = "block"; return;
+      }
+
+      const [from, to] = period.split("|");
+      try {
+        const res    = await fetch("/api/admin/payroll/advance", {
+          method:  "POST",
+          headers: {"Content-Type":"application/json"},
+          body:    JSON.stringify({ employeeId: empId, amount, periodFrom: from, periodTo: to, note }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          document.getElementById("advAmount").value = "";
+          document.getElementById("advNote").value   = "";
+          msg.style.display = "none";
+          alert("Advance salary recorded.");
+          loadAdvanceList();
+        } else { msg.textContent = result.message; msg.style.display = "block"; }
+      } catch { msg.textContent = "Error recording advance."; msg.style.display = "block"; }
+    };
+  }
+
+  async function loadAdvanceList() {
+    const wrap = document.getElementById("advanceList");
+    if (!wrap) return;
+    try {
+      const res  = await fetch("/api/admin/payroll/advances");
+      const data = await res.json();
+      if (!data.advances.length) { wrap.innerHTML = `<p style="color:#aaa;">No advances recorded yet.</p>`; return; }
+      const fmt  = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
+      wrap.innerHTML = `
+        <div class="leave-table-wrap">
+          <table class="leave-table">
+            <thead><tr><th>Employee</th><th>Amount</th><th>Deduct from Period</th><th>Note</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              ${data.advances.map(a => `
+                <tr>
+                  <td><strong>${a.employeeName||"—"}</strong></td>
+                  <td style="font-weight:600;color:#856404;">${fmt(a.amount)}</td>
+                  <td>${a.periodFrom ? a.periodFrom.slice(0,10) : "—"} to ${a.periodTo ? a.periodTo.slice(0,10) : "—"}</td>
+                  <td style="font-size:0.8rem;color:#888;">${a.note||"—"}</td>
+                  <td>
+                    <span class="leave-status-badge" style="background:${a.deducted?"#d4edda":"#fff3cd"};color:${a.deducted?"#155724":"#856404"};">
+                      ${a.deducted?"Deducted":"Pending"}
+                    </span>
+                  </td>
+                  <td>
+                    ${!a.deducted ? `<button class="hist-btn hist-cancel adv-del-btn" data-id="${a._id}">Remove</button>` : ""}
+                  </td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>`;
+
+      wrap.querySelectorAll(".adv-del-btn").forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm("Remove this advance record?")) return;
+          const res = await fetch(`/api/admin/payroll/advance/${btn.dataset.id}`, { method:"DELETE" });
+          const r   = await res.json();
+          if (r.success) loadAdvanceList(); else alert(r.message);
+        };
+      });
+    } catch { wrap.innerHTML = "<p>Error loading advances.</p>"; }
+  }
+
+  /* ─────────────────────────────
+     RELEASE HISTORY
+  ───────────────────────────── */
+  async function loadReleaseHistory() {
+    const wrap = document.getElementById("payrollHistoryList");
+    if (!wrap) return;
+    wrap.innerHTML = "<p>Loading...</p>";
+    try {
+      const res  = await fetch("/api/admin/payroll/history");
+      const data = await res.json();
+      if (!data.history.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No payroll releases recorded yet.</p>`; return; }
+      wrap.innerHTML = `
+        <div class="leave-table-wrap">
+          <table class="leave-table">
+            <thead><tr><th>Period</th><th>Released At</th><th>Notes</th></tr></thead>
+            <tbody>
+              ${data.history.map(h => `
+                <tr>
+                  <td><strong>${h.period.label}</strong></td>
+                  <td>${new Date(h.releasedAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"})}</td>
+                  <td style="color:#888;">${h.notes||"—"}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>`;
+    } catch { wrap.innerHTML = "<p>Error loading history.</p>"; }
+  }
+}
+
+/* ── Payslip Detail Modal ── */
+/* ── Groomer Picker Modal (shown when marking booking as Done) ── */
+async function openGroomerPickerModal(bookingId, booking, setOutcomeFn) {
+  document.getElementById("groomerPickerModal")?.remove();
+
+  // Fetch active groomers
+  let groomers = [];
+  try {
+    const res  = await fetch("/api/admin/employees");
+    const data = await res.json();
+    groomers   = (data.employees || []).filter(e => e.role === "Groomer" && e.status === "active");
+  } catch (_) {}
+
+  const requestedId   = booking?.requestedGroomerId   || null;
+  const requestedName = booking?.requestedGroomerName || null;
+
+  // Build groomer options — put requested first if present
+  let options = `<option value="">— No specific groomer —</option>`;
+  if (requestedName) {
+    options += `<option value="${requestedId}" selected>✂️ ${requestedName} (requested)</option>`;
+  }
+  groomers.forEach(g => {
+    if (g._id === requestedId) return; // already added
+    options += `<option value="${g._id}">${g.name} — ${g.role}</option>`;
+  });
+
+  const modal = document.createElement("div");
+  modal.id    = "groomerPickerModal";
+  modal.className = "stat-modal-overlay";
+  modal.innerHTML = `
+    <div class="stat-modal" style="max-width:420px;width:95%;">
+      <div class="stat-modal-header" style="border-bottom-color:#6ee7b7;">
+        <h3 class="stat-modal-title" style="color:#065f46;">✅ Mark as Completed</h3>
+        <button class="stat-modal-close" id="groomerPickerClose">&#x2715;</button>
+      </div>
+      <div class="stat-modal-body" style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+
+        ${requestedName ? `
+          <div style="background:#fce7f0;border:1px solid #f9c0d2;border-radius:8px;padding:10px 14px;font-size:0.88rem;">
+            <strong>Requested groomer:</strong> ${requestedName}
+          </div>` : ""}
+
+        <label class="admin-form-label">Who actually groomed the pet(s)?
+          <select id="actualGroomerSelect" class="admin-form-input">
+            ${options}
+          </select>
+        </label>
+
+        <label class="admin-form-label">Note (optional)
+          <input type="text" id="completionNote" class="admin-form-input" placeholder="e.g. Completed on time" />
+        </label>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn" id="confirmDoneBtn" style="background:linear-gradient(135deg,#059669,#10b981);flex:1;">Confirm Done</button>
+          <button class="btn" id="cancelDoneBtn" style="background:#6c757d;">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = "hidden";
+
+  const close = () => { modal.remove(); document.body.style.overflow = ""; };
+  document.getElementById("groomerPickerClose").onclick = close;
+  document.getElementById("cancelDoneBtn").onclick      = close;
+  modal.addEventListener("click", e => { if (e.target === modal) close(); });
+
+  document.getElementById("confirmDoneBtn").onclick = async () => {
+    const groomerId = document.getElementById("actualGroomerSelect").value || null;
+    const note      = document.getElementById("completionNote").value.trim();
+    close();
+    await setOutcomeFn(bookingId, "completed", groomerId, note);
+  };
+}
+
+function openPayslipModal(row, c, from, to) {
+  document.getElementById("payslipModal")?.remove();
+  const fmt = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
+  const p   = row.payroll || {};
+  const modal = document.createElement("div");
+  modal.id = "payslipModal";
+  modal.className = "stat-modal-overlay";
+  modal.innerHTML = `
+    <div class="stat-modal" style="max-width:480px;width:95%;">
+      <div class="stat-modal-header" style="border-bottom-color:#f9c0d2;">
+        <div>
+          <h3 class="stat-modal-title" style="color:#9d174d;">Payslip — ${row.employee.name}</h3>
+          <p style="font-size:0.8rem;color:#888;margin:2px 0 0;">${row.employee.role} &bull; ${from} to ${to}</p>
+        </div>
+        <button class="stat-modal-close" id="payslipClose">&#x2715;</button>
+      </div>
+      <div class="stat-modal-body" style="padding:20px;">
+
+        <p style="font-weight:700;color:#444;margin-bottom:8px;">Attendance</p>
+        <div class="profile-info-grid" style="margin-bottom:16px;">
+          <div class="profile-info-item"><span class="profile-info-label">Days Present</span><span class="profile-info-value">${row.attendance.daysPresent}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Total Hours Logged</span><span class="profile-info-value">${row.attendance.totalHours}h</span></div>
+        </div>
+
+        <p style="font-weight:700;color:#444;margin-bottom:8px;">Earnings</p>
+        <div class="profile-info-grid" style="margin-bottom:16px;">
+          <div class="profile-info-item"><span class="profile-info-label">Semi-Monthly Basic</span><span class="profile-info-value">${fmt(c.semiBasic)}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">OT Hours</span><span class="profile-info-value">${row.manualOT}h @ ${fmt(p.overtimeRate||0)}/hr</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">OT Pay</span><span class="profile-info-value">${fmt(c.otPay)}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Commission</span><span class="profile-info-value">${fmt(c.commission)}</span></div>
+          <div class="profile-info-item" style="grid-column:1/-1;border-top:1px solid #f0e0e8;padding-top:8px;margin-top:4px;">
+            <span class="profile-info-label">Gross Pay</span>
+            <span class="profile-info-value" style="font-weight:700;font-size:1.05rem;">${fmt(c.gross)}</span>
+          </div>
+        </div>
+
+        <p style="font-weight:700;color:#444;margin-bottom:8px;">Deductions</p>
+        <div class="profile-info-grid" style="margin-bottom:16px;">
+          <div class="profile-info-item"><span class="profile-info-label">SSS</span><span class="profile-info-value">${fmt((p.sssAmt||0)/2)}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">PhilHealth</span><span class="profile-info-value">${fmt((p.philHealthAmt||0)/2)}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Pag-IBIG</span><span class="profile-info-value">${fmt((p.pagIbigAmt||0)/2)}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Withholding Tax</span><span class="profile-info-value">${fmt((p.tax||0)/2)}</span></div>
+          ${c.advance > 0 ? `<div class="profile-info-item"><span class="profile-info-label">Advance Salary</span><span class="profile-info-value" style="color:#856404;">${fmt(c.advance)}</span></div>` : ""}
+          <div class="profile-info-item" style="grid-column:1/-1;border-top:1px solid #f0e0e8;padding-top:8px;margin-top:4px;">
+            <span class="profile-info-label">Total Deductions</span>
+            <span class="profile-info-value" style="color:#721c24;font-weight:700;">${fmt(c.deductions + c.advance)}</span>
+          </div>
+        </div>
+
+        <div style="background:${c.net>=0?"#d1fae5":"#fee2e2"};border:1px solid ${c.net>=0?"#6ee7b7":"#fca5a5"};border-radius:10px;padding:16px;text-align:center;">
+          <p style="margin:0;font-size:0.85rem;color:${c.net>=0?"#065f46":"#991b1b"};">Net Pay</p>
+          <p style="margin:4px 0 0;font-size:1.7rem;font-weight:700;color:${c.net>=0?"#065f46":"#991b1b"};">${fmt(c.net)}</p>
+          ${c.net < 0 ? `<p style="font-size:0.78rem;color:#991b1b;margin:4px 0 0;">Advance exceeds net — carry over balance.</p>` : ""}
+        </div>
+
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = "hidden";
+  const close = () => { modal.remove(); document.body.style.overflow = ""; };
+  document.getElementById("payslipClose").onclick = close;
+  modal.addEventListener("click", e => { if (e.target === modal) close(); });
+}
+
+/* ── Attendance Adjust Modal ── */
+function openAdjustModal(id, timeIn, timeOut, from, to, reloadFn) {
+  document.getElementById("adjustModal")?.remove();
+  const fmt = (iso) => iso ? new Date(iso).toISOString().slice(0,16) : "";
+  const modal = document.createElement("div");
+  modal.id = "adjustModal";
+  modal.className = "stat-modal-overlay";
+  modal.innerHTML = `
+    <div class="stat-modal" style="max-width:400px;width:95%;">
+      <div class="stat-modal-header" style="border-bottom-color:#f9c0d2;">
+        <h3 class="stat-modal-title" style="color:#9d174d;">Adjust Attendance</h3>
+        <button class="stat-modal-close" id="adjustClose">&#x2715;</button>
+      </div>
+      <div class="stat-modal-body" style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+        <label class="admin-form-label">Time In
+          <input type="datetime-local" id="adjTimeIn" class="admin-form-input" value="${fmt(timeIn)}" />
+        </label>
+        <label class="admin-form-label">Time Out
+          <input type="datetime-local" id="adjTimeOut" class="admin-form-input" value="${fmt(timeOut)}" />
+        </label>
+        <label class="admin-form-label">Admin Note
+          <input type="text" id="adjNote" class="admin-form-input" placeholder="Reason for adjustment" />
+        </label>
+        <button class="btn" id="adjSaveBtn">Save</button>
+        <p id="adjMsg" style="font-size:0.85rem;color:#d44d7c;display:none;"></p>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = "hidden";
+  const close = () => { modal.remove(); document.body.style.overflow = ""; };
+  document.getElementById("adjustClose").onclick = close;
+  modal.addEventListener("click", e => { if (e.target === modal) close(); });
+
+  document.getElementById("adjSaveBtn").onclick = async () => {
+    const msg = document.getElementById("adjMsg");
+    try {
+      const res    = await fetch(`/api/admin/attendance/${id}/adjust`, {
+        method:  "POST",
+        headers: {"Content-Type":"application/json"},
+        body:    JSON.stringify({
+          timeIn:  document.getElementById("adjTimeIn").value  || null,
+          timeOut: document.getElementById("adjTimeOut").value || null,
+          note:    document.getElementById("adjNote").value.trim(),
+        }),
+      });
+      const result = await res.json();
+      if (result.success) { close(); if (reloadFn) reloadFn(); }
+      else { msg.textContent = result.message; msg.style.display = "block"; }
+    } catch { msg.textContent = "Error saving."; msg.style.display = "block"; }
+  };
 }

@@ -96,4 +96,145 @@ async function getMyDuty(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { getMe, getMyLeaves, submitLeave, cancelLeave, getMyDuty };
+
+/* ─────────────────────────────────────────
+   GROOMING STATS
+   Count confirmed-done bookings where this
+   employee is the actualGroomerId
+───────────────────────────────────────── */
+async function getGroomingStats(req, res, next) {
+  try {
+    const db = getDB();
+    const total = await db.collection("bookings").countDocuments({
+      actualGroomerId: new ObjectId(req.employee.id),
+      outcome:         "completed",
+    });
+
+    // Also get recent completions (last 5)
+    const recent = await db.collection("bookings")
+      .find({ actualGroomerId: new ObjectId(req.employee.id), outcome: "completed" })
+      .sort({ outcomeAt: -1 })
+      .limit(5)
+      .toArray();
+
+    res.json({ success: true, total, recent });
+  } catch (err) { next(err); }
+}
+
+// exports at bottom
+
+/* ─────────────────────────────────────────
+   ATTENDANCE — EMPLOYEE SIDE
+───────────────────────────────────────── */
+
+async function timeIn(req, res, next) {
+  try {
+    const db  = getDB();
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+    const todayEnd   = new Date(now); todayEnd.setHours(23,59,59,999);
+
+    // Check if already timed in today without timing out
+    const existing = await db.collection("attendance").findOne({
+      employeeId: new ObjectId(req.employee.id),
+      date: { $gte: todayStart, $lte: todayEnd },
+    });
+
+    if (existing && !existing.timeOut) {
+      return res.status(400).json({ success: false, message: "You are already timed in. Please time out first." });
+    }
+
+    const emp = await db.collection("employees").findOne({ _id: new ObjectId(req.employee.id) });
+
+    await db.collection("attendance").insertOne({
+      employeeId:   new ObjectId(req.employee.id),
+      employeeName: emp?.name || req.employee.name,
+      date:         todayStart,
+      timeIn:       now,
+      timeOut:      null,
+      hoursWorked:  null,
+      overtimeHours: null,
+      status:       "present",
+      createdAt:    now,
+    });
+
+    res.json({ success: true, message: "Timed in successfully!", timeIn: now });
+  } catch (err) { next(err); }
+}
+
+async function timeOut(req, res, next) {
+  try {
+    const db  = getDB();
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+    const todayEnd   = new Date(now); todayEnd.setHours(23,59,59,999);
+
+    const record = await db.collection("attendance").findOne({
+      employeeId: new ObjectId(req.employee.id),
+      date: { $gte: todayStart, $lte: todayEnd },
+      timeOut: null,
+    });
+
+    if (!record) {
+      return res.status(400).json({ success: false, message: "No active time-in record found for today." });
+    }
+
+    const emp = await db.collection("employees").findOne({ _id: new ObjectId(req.employee.id) });
+    const STANDARD_HOURS = 8;
+    const hoursWorked  = (now - record.timeIn) / 3600000; // ms to hours
+    const overtimeHours = Math.max(0, hoursWorked - STANDARD_HOURS);
+
+    await db.collection("attendance").updateOne(
+      { _id: record._id },
+      { $set: {
+        timeOut:       now,
+        hoursWorked:   parseFloat(hoursWorked.toFixed(2)),
+        overtimeHours: parseFloat(overtimeHours.toFixed(2)),
+        updatedAt:     now,
+      }}
+    );
+
+    res.json({
+      success: true,
+      message: "Timed out successfully!",
+      timeOut: now,
+      hoursWorked: parseFloat(hoursWorked.toFixed(2)),
+      overtimeHours: parseFloat(overtimeHours.toFixed(2)),
+    });
+  } catch (err) { next(err); }
+}
+
+async function getTodayAttendance(req, res, next) {
+  try {
+    const db  = getDB();
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+    const todayEnd   = new Date(now); todayEnd.setHours(23,59,59,999);
+
+    const record = await db.collection("attendance").findOne({
+      employeeId: new ObjectId(req.employee.id),
+      date: { $gte: todayStart, $lte: todayEnd },
+    });
+
+    res.json({ success: true, record: record || null });
+  } catch (err) { next(err); }
+}
+
+async function getMyAttendance(req, res, next) {
+  try {
+    const db = getDB();
+    const { from, to } = req.query;
+
+    const filter = { employeeId: new ObjectId(req.employee.id) };
+    if (from || to) {
+      filter.date = {};
+      if (from) filter.date.$gte = new Date(from);
+      if (to)   filter.date.$lte = new Date(to);
+    }
+
+    const records = await db.collection("attendance").find(filter).sort({ date: -1 }).toArray();
+    res.json({ success: true, records });
+  } catch (err) { next(err); }
+}
+
+module.exports = { getMe, getMyLeaves, submitLeave, cancelLeave, getMyDuty, timeIn, timeOut, getTodayAttendance, getMyAttendance, getGroomingStats };

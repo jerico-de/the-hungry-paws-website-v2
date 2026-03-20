@@ -33,3 +33,18 @@ router.put("/operations/leave/:id/reject",    requireAdmin, c.rejectLeave);
 router.delete("/operations/leave/:id",        requireAdmin, c.deleteLeave);
 
 module.exports = router;
+
+/* Attendance */
+router.get("/attendance",              requireAdmin, c.getAttendance);
+router.post("/attendance/:id/adjust",  requireAdmin, c.adjustAttendance);
+router.delete("/attendance/:id",       requireAdmin, c.deleteAttendance);
+
+/* Payroll */
+router.get("/payroll",                 requireAdmin, c.getPayroll);
+router.post("/payroll/release",        requireAdmin, c.releasePayroll);
+router.get("/payroll/history",         requireAdmin, c.getPayrollHistory);
+
+/* Advance Salary */
+router.get("/payroll/advances",        requireAdmin, c.getAdvances);
+router.post("/payroll/advance",        requireAdmin, c.giveAdvance);
+router.delete("/payroll/advance/:id",  requireAdmin, c.deleteAdvance);

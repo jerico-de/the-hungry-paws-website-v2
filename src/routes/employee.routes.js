@@ -18,3 +18,12 @@ router.delete("/leave/:id", requireEmployee, c.cancelLeave);
 router.get("/duty",         requireEmployee, c.getMyDuty);
 
 module.exports = router;
+
+/* Grooming stats */
+router.get("/grooming-stats",       requireEmployee, c.getGroomingStats);
+
+/* Attendance — time in / time out */
+router.post("/attendance/timein",   requireEmployee, c.timeIn);
+router.post("/attendance/timeout",  requireEmployee, c.timeOut);
+router.get("/attendance/today",     requireEmployee, c.getTodayAttendance);
+router.get("/attendance",           requireEmployee, c.getMyAttendance);
