@@ -37,9 +37,13 @@
         <button class="sidebar-link" data-section="leave">Leave Requests</button>
         <button class="sidebar-link" data-section="duty">My Duty Schedule</button>
 
-        <form action="/logout" method="POST" class="logout-form">
-          <button type="submit" class="sidebar-link logout-btn">Logout</button>
-        </form>
+        <button class="sidebar-link logout-btn" id="empLogoutBtn">Logout</button>
+        <script>
+          document.getElementById("empLogoutBtn").addEventListener("click", async () => {
+            await fetch("/api/auth/employee-logout", { method: "POST" });
+            window.location.href = "/employee-login.html";
+          });
+        </script>
       </aside>
 
       <div class="dashboard-overlay" id="dashboardOverlay"></div>

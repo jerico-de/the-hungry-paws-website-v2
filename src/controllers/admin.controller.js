@@ -125,6 +125,22 @@ async function revertToPending(req, res, next) {
   } catch (err) { next(err); }
 }
 
+async function setBookingOutcome(req, res, next) {
+  try {
+    const { outcome, outcomeNote } = req.body;
+    const VALID = ["completed", "no-show", "cancelled", "rescheduled"];
+    if (!VALID.includes(outcome)) throw new ValidationError("Invalid outcome value");
+
+    const db     = getDB();
+    const result = await db.collection("bookings").updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { outcome, outcomeNote: outcomeNote || "", outcomeAt: new Date(), updatedAt: new Date() } },
+    );
+    if (result.modifiedCount === 0) throw new NotFoundError("Booking not found");
+    res.json({ success:true, message:"Outcome saved." });
+  } catch (err) { next(err); }
+}
+
 /* ─────────────────────────────────────────
    EMPLOYEES
 ───────────────────────────────────────── */
@@ -138,16 +154,19 @@ async function getEmployees(req, res, next) {
 
 async function createEmployee(req, res, next) {
   try {
-    const { name, role, email, contact, shift, status, password } = req.body;
+    const { name, role, email, contact, address, shift, dateHired, status, password, payroll } = req.body;
     if (!name || !role) throw new ValidationError("Name and role are required");
 
     const db   = getDB();
     const data = {
       name, role,
-      email:   email   || "",
-      contact: contact || "",
-      shift:   shift   || "",
-      status:  status  || "active",
+      email:     email     || "",
+      contact:   contact   || "",
+      address:   address   || "",
+      shift:     shift     || "",
+      dateHired: dateHired ? new Date(dateHired) : null,
+      status:    status    || "active",
+      payroll:   payroll   || {},
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -164,21 +183,24 @@ async function createEmployee(req, res, next) {
 
 async function updateEmployee(req, res, next) {
   try {
-    const { name, role, email, contact, shift, status, password } = req.body;
+    const { name, role, email, contact, address, shift, dateHired, status, password, payroll } = req.body;
     if (!name || !role) throw new ValidationError("Name and role are required");
 
     const db      = getDB();
     const updates = {
       name, role,
-      email:   email   || "",
-      contact: contact || "",
-      shift:   shift   || "",
-      status:  status  || "active",
+      email:     email     || "",
+      contact:   contact   || "",
+      address:   address   || "",
+      shift:     shift     || "",
+      dateHired: dateHired ? new Date(dateHired) : null,
+      status:    status    || "active",
+      payroll:   payroll   || {},
       updatedAt: new Date(),
     };
 
     if (password) {
-      const bcrypt = require("bcrypt");
+      const bcrypt  = require("bcrypt");
       updates.password = await bcrypt.hash(password, 10);
     }
 
@@ -312,7 +334,7 @@ async function deleteLeave(req, res, next) {
 
 module.exports = {
   getDashboardStats, getStatDetail,
-  getBookings, approveBooking, rejectBooking, revertToPending,
+  getBookings, approveBooking, rejectBooking, revertToPending, setBookingOutcome,
   getEmployees, createEmployee, updateEmployee, deleteEmployee,
   getDuty, assignDuty, removeDuty,
   getLeaves, createLeave, approveLeave, rejectLeave, deleteLeave,

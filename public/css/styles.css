@@ -3085,3 +3085,24 @@ select option:disabled {
 .pet-photo {
   transition: width 0.15s ease, height 0.15s ease, top 0.15s ease, left 0.15s ease;
 }
+
+/* ── Booking History action buttons ── */
+.hist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 2px 2px 2px 0;
+  transition: opacity 0.15s;
+  font-family: inherit;
+}
+.hist-btn:hover { opacity: 0.8; }
+.hist-complete { background: #d1fae5; color: #065f46; }
+.hist-noshow   { background: #fee2e2; color: #991b1b; }
+.hist-cancel   { background: #f3f4f6; color: #374151; }
+.hist-resched  { background: #dbeafe; color: #1e40af; }

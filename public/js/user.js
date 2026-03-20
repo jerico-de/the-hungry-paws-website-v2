@@ -676,28 +676,45 @@ function loadBookingsSection() {
         </button>
       `;
 
+      const STATUS_COLOR = { pending: { bg:"#fff3cd", color:"#856404" }, approved: { bg:"#d4edda", color:"#155724" }, rejected: { bg:"#f8d7da", color:"#721c24" } };
+
       if (bookings.length > 0) {
-        html += `<div class="bookings-grid">`;
+        html += `<div class="emp-grid">`;
         bookings.forEach(b => {
-          const rejectReasonHtml = b.status === "rejected" && b.rejectReason
-            ? `<p class="booking-reject-reason"><strong>Reason:</strong> ${b.rejectReason}</p>` : "";
+          const sc  = STATUS_COLOR[b.status] || STATUS_COLOR.pending;
+          const isHotel = type === "hotel";
+          const petNames = b.pets.map(p => p.name).join(", ");
+          const dateStr  = new Date(b.appointmentDate).toLocaleDateString("en-PH", { month:"short", day:"numeric", year:"numeric" });
+          const timeStr  = b.appointmentTime || "N/A";
+          const checkoutStr = isHotel
+            ? `<p class="emp-card-meta">📤 Checkout: ${b.hotelCheckoutDate ? new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}) : "N/A"} ${b.hotelCheckoutTime || ""}</p>`
+            : "";
+          const servicesStr = !isHotel && b.services
+            ? `<p class="emp-card-meta">✂️ ${Array.isArray(b.services) ? b.services.join(", ") : b.services}</p>`
+            : "";
+          const groomerStr = b.requestedGroomerName
+            ? `<p class="emp-card-meta">✂️ Groomer: ${b.requestedGroomerName} <span style="color:#aaa;font-size:0.75rem;">(requested)</span></p>`
+            : "";
+          const rejectStr = b.status === "rejected" && b.rejectReason
+            ? `<p class="emp-card-meta" style="color:#721c24;">❌ ${b.rejectReason}</p>`
+            : "";
 
           html += `
-            <div class="booking-card">
-              <div class="booking-card-header">
-                <p><strong>Pets:</strong> ${b.pets.map(p => p.name).join(", ")}</p>
-                ${type === "grooming" && b.services ? `<p><strong>Services:</strong> ${Array.isArray(b.services) ? b.services.join(", ") : b.services}</p>` : ""}
+            <div class="emp-card">
+              <div class="emp-card-avatar">🐾</div>
+              <div class="emp-card-info">
+                <p class="emp-card-name">${petNames}</p>
+                <p class="emp-card-role">${isHotel ? "Pet Hotel" : "Grooming"}</p>
+                <p class="emp-card-meta">📅 ${dateStr} &bull; ${timeStr}</p>
+                ${checkoutStr}
+                ${servicesStr}
+                ${groomerStr}
+                ${rejectStr}
+                <span class="emp-status-badge" style="background:${sc.bg};color:${sc.color};">
+                  ${b.status.toUpperCase()}
+                </span>
               </div>
-              <div class="booking-card-datetime">
-                <p><strong>Date:</strong> ${new Date(b.appointmentDate).toLocaleDateString()}</p>
-                <p><strong>Time:</strong> ${b.appointmentTime || "N/A"}</p>
-                ${type === "hotel" ? `<p><strong>Checkout:</strong> ${b.hotelCheckoutDate ? new Date(b.hotelCheckoutDate).toLocaleDateString() : "N/A"} ${b.hotelCheckoutTime || ""}</p>` : ""}
-              </div>
-              <p style="text-align:center; margin:10px 0;">
-                <span class="booking-status ${b.status}">${b.status.toUpperCase()}</span>
-              </p>
-              ${rejectReasonHtml}
-              <div class="booking-actions">
+              <div class="emp-card-actions">
                 <button class="deleteBookingBtn" data-id="${b._id}">Delete</button>
               </div>
             </div>`;
@@ -800,6 +817,7 @@ async function showBookingForm(type) {
     const todayStr = new Date().toISOString().split("T")[0];
 
     let groomingServicesHTML = "";
+    let groomerHTML = "";
     if (type === "grooming") {
       groomingServicesHTML = `
         <div class="service-section">
@@ -825,6 +843,29 @@ async function showBookingForm(type) {
             </div>
           </div>
         </div>`;
+
+      /* Fetch active groomers for the request dropdown */
+      try {
+        const grRes  = await fetch("/api/bookings/groomers");
+        const grData = await grRes.json();
+        const groomers = grData.groomers || [];
+        if (groomers.length > 0) {
+          const opts = groomers.map(g =>
+            `<option value="${g._id}">${g.name}${g.shift ? " — " + g.shift : ""}</option>`
+          ).join("");
+          groomerHTML = `
+            <div class="service-section" style="margin-top:16px;">
+              <h4>Request a Groomer <span style="font-size:0.78rem;color:#aaa;font-weight:400;">(optional)</span></h4>
+              <p style="font-size:0.82rem;color:#888;margin:-4px 0 10px;">
+                Groomer requests are subject to availability. We’ll do our best to accommodate your preference.
+              </p>
+              <select id="requestedGroomer" name="requestedGroomer" style="width:100%;max-width:340px;padding:10px 12px;border:2px solid #eee;border-radius:10px;font-size:0.95rem;font-family:inherit;background:#fafafa;">
+                <option value="">No preference — assign any available groomer</option>
+                ${opts}
+              </select>
+            </div>`;
+        }
+      } catch (_) { /* silently skip */ }
     }
 
     const dateTimeHTML = type === "grooming"
@@ -853,6 +894,7 @@ async function showBookingForm(type) {
           </div>
         </div>
         ${groomingServicesHTML}
+        ${groomerHTML}
         ${dateTimeHTML}
         <div class="add-pet-checkbox">
           <input type="checkbox" id="addAnotherPet">
@@ -863,7 +905,6 @@ async function showBookingForm(type) {
           <button type="button" id="cancelBooking" class="logout-btn">Cancel</button>
         </div>
       </form>`;
-
     if (type === "grooming") {
       const dateInput = document.getElementById("appointmentDate");
       const timeWrap  = document.getElementById("timeSlotWrap");
@@ -937,7 +978,9 @@ async function showBookingForm(type) {
         if (!mainService) { alert("Please select a main grooming service"); return; }
         services = [mainService, ...[...document.querySelectorAll('input[name="addonServices"]:checked')].map(cb => cb.value)];
       }
-      showBookingConfirmation(type, pets, services, e.target);
+      const requestedGroomer     = document.getElementById("requestedGroomer")?.value || null;
+      const requestedGroomerName = document.getElementById("requestedGroomer")?.selectedOptions[0]?.text || null;
+      showBookingConfirmation(type, pets, services, e.target, requestedGroomer, requestedGroomerName);
     };
   } catch (err) { console.error(err); alert("Error loading booking form"); }
 }
@@ -945,7 +988,10 @@ async function showBookingForm(type) {
 /* ===============================
    BOOKING CONFIRMATION DIALOG
 ================================ */
-function showBookingConfirmation(type, pets, services, form) {
+function showBookingConfirmation(type, pets, services, form, requestedGroomer, requestedGroomerName) {
+  const groomerNote = requestedGroomer && requestedGroomerName && requestedGroomerName !== "No preference — assign any available groomer"
+    ? `<li>✓ Requested groomer: <strong>${requestedGroomerName}</strong> — subject to availability</li>`
+    : "";
   const modal = document.createElement("div");
   modal.className = "confirmation-modal active";
   modal.innerHTML = `
@@ -959,6 +1005,7 @@ function showBookingConfirmation(type, pets, services, form) {
           <li>✓ Prices may vary depending on pet size, fur length and condition, and selected services</li>
           <li>✓ Final pricing will be confirmed at the shop</li>
           <li>✓ Please arrive on time for your appointment</li>
+          ${groomerNote}
         </ul>
       </div>
       <p style="text-align:center; margin-top:15px; font-weight:600;">Do you understand and wish to proceed with the booking?</p>
@@ -968,20 +1015,21 @@ function showBookingConfirmation(type, pets, services, form) {
       </div>
     </div>`;
   document.body.appendChild(modal);
-  modal.querySelector(".confirm-yes").onclick = async () => { modal.remove(); await submitBooking(type, pets, services, form); };
+  modal.querySelector(".confirm-yes").onclick = async () => { modal.remove(); await submitBooking(type, pets, services, form, requestedGroomer); };
   modal.querySelector(".confirm-no").onclick  = () => modal.remove();
 }
 
 /* ===============================
    SUBMIT BOOKING
 ================================ */
-async function submitBooking(type, pets, services, form) {
+async function submitBooking(type, pets, services, form, requestedGroomer) {
   const formData = {
     type, pets, services,
     appointmentDate:   form.appointmentDate?.value,
     appointmentTime:   form.appointmentTime?.value,
     hotelCheckoutDate: form.hotelCheckoutDate?.value,
     hotelCheckoutTime: form.hotelCheckoutTime?.value,
+    requestedGroomer:  requestedGroomer || null,
   };
   try {
     const res    = await fetch("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });

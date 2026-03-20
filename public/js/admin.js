@@ -126,7 +126,7 @@ function renderDashboardStats(s) {
       card.style.cssText = `background:${c.bg};border-color:${c.border};`;
       card.innerHTML = `
         <p class="admin-stat-label">${label}</p>
-        <p class="admin-stat-num" style="color:${c.num};">${value ?? "—"}</p>
+        <p class="admin-stat-num" style="color:${c.num};">${value ?? "u2014"}</p>
         ${fetchKey ? `<span class="admin-stat-hint">Click to view details</span>` : ""}
       `;
       if (fetchKey) card.addEventListener("click", () => openStatModal(label, fetchKey, c));
@@ -151,7 +151,7 @@ async function openStatModal(title, fetchKey, colors) {
       <div class="stat-modal-body" id="statModalBody">
         <div class="stat-modal-loading">
           <div class="stat-modal-spinner"></div>
-          <p>Loading bookings…</p>
+          <p>Loading bookingsu2026</p>
         </div>
       </div>
     </div>
@@ -222,7 +222,7 @@ function loadProfile() {
   const contact = el.dataset.contact || "";
   const address = el.dataset.address || "";
   const joined  = el.dataset.joined
-    ? new Date(el.dataset.joined).toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"}) : "—";
+    ? new Date(el.dataset.joined).toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"}) : "u2014";
 
   content.innerHTML = `
     <h2>My Profile</h2>
@@ -246,11 +246,11 @@ function loadProfile() {
         </div>
         <div class="profile-info-item">
           <span class="profile-info-label">Contact</span>
-          <span class="profile-info-value">${contact || "—"}</span>
+          <span class="profile-info-value">${contact || "u2014"}</span>
         </div>
         <div class="profile-info-item">
           <span class="profile-info-label">Address</span>
-          <span class="profile-info-value">${address || "—"}</span>
+          <span class="profile-info-value">${address || "u2014"}</span>
         </div>
         <div class="profile-info-item">
           <span class="profile-info-label">Date Joined</span>
@@ -358,40 +358,119 @@ async function loadEmployees() {
     <h2>Employees</h2>
     <button class="btn" id="addEmpBtn" style="margin-bottom:20px;">+ Add Employee</button>
 
+    <!-- Add/Edit Form -->
     <div id="empForm" style="display:none;margin-bottom:24px;">
-      <div class="admin-form-box" style="max-width:520px;">
+      <div class="admin-form-box" style="max-width:600px;">
         <h3 id="empFormTitle" style="color:#d44d7c;margin-bottom:16px;">Add Employee</h3>
         <input type="hidden" id="empId" />
-        <label class="admin-form-label">Full Name *
-          <input type="text" id="empName" class="admin-form-input" placeholder="e.g. Maria Santos" />
-        </label>
-        <label class="admin-form-label">Role / Position *
-          <select id="empRole" class="admin-form-input">
-            <option value="">Select role</option>
-            <option value="Groomer">Groomer</option>
-            <option value="Receptionist">Receptionist</option>
-            <option value="Pet Hotel Staff">Pet Hotel Staff</option>
-            <option value="Manager">Manager</option>
-            <option value="Other">Other</option>
-          </select>
-        </label>
-        <label class="admin-form-label">Email
-          <input type="email" id="empEmail" class="admin-form-input" placeholder="email@example.com" />
-        </label>
-        <label class="admin-form-label">Contact Number
-          <input type="text" id="empContact" class="admin-form-input" placeholder="09XX-XXX-XXXX" />
-        </label>
-        <label class="admin-form-label">Shift Schedule
-          <input type="text" id="empShift" class="admin-form-input" placeholder="e.g. Mon–Fri 8AM–5PM" />
-        </label>
-        <label class="admin-form-label">Status
-          <select id="empStatus" class="admin-form-input">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="on leave">On Leave</option>
-          </select>
-        </label>
-        <div class="admin-form-btns">
+
+        <!-- Form tabs -->
+        <div class="ops-tabs" style="margin-bottom:16px;">
+          <button class="ops-tab-btn active" data-tab="info">Info</button>
+          <button class="ops-tab-btn" data-tab="payroll">Payroll</button>
+        </div>
+
+        <!-- INFO TAB -->
+        <div id="empTabInfo">
+          <label class="admin-form-label">Full Name *
+            <input type="text" id="empName" class="admin-form-input" placeholder="e.g. Maria Santos" />
+          </label>
+          <label class="admin-form-label">Role / Position *
+            <select id="empRole" class="admin-form-input">
+              <option value="">Select role</option>
+              <option value="Groomer">Groomer</option>
+              <option value="Receptionist">Receptionist</option>
+              <option value="Pet Hotel Staff">Pet Hotel Staff</option>
+              <option value="Veterinary Assistant">Veterinary Assistant</option>
+              <option value="Manager">Manager</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label class="admin-form-label">Email
+            <input type="email" id="empEmail" class="admin-form-input" placeholder="email@example.com" />
+          </label>
+          <label class="admin-form-label">Contact Number
+            <input type="text" id="empContact" class="admin-form-input" placeholder="09XX-XXX-XXXX" />
+          </label>
+          <label class="admin-form-label">Address
+            <input type="text" id="empAddress" class="admin-form-input" placeholder="Home address" />
+          </label>
+          <label class="admin-form-label">Shift Schedule
+            <input type="text" id="empShift" class="admin-form-input" placeholder="e.g. Mon–Fri 8AM–5PM" />
+          </label>
+          <label class="admin-form-label">Date Hired
+            <input type="date" id="empDateHired" class="admin-form-input" />
+          </label>
+          <label class="admin-form-label">Status
+            <select id="empStatus" class="admin-form-input">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="on leave">On Leave</option>
+            </select>
+          </label>
+          <label class="admin-form-label">Portal Password
+            <input type="password" id="empPassword" class="admin-form-input" placeholder="Set login password" />
+            <span style="font-size:0.75rem;color:#aaa;margin-top:3px;display:block;">Leave blank when editing to keep existing password.</span>
+          </label>
+        </div>
+
+        <!-- PAYROLL TAB -->
+        <div id="empTabPayroll" style="display:none;">
+          <p style="font-size:0.82rem;color:#888;margin-bottom:12px;">All amounts in Philippine Peso (₱)</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <label class="admin-form-label">Basic Pay (monthly) ₱
+              <input type="number" id="empBasicPay" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
+            </label>
+            <label class="admin-form-label">Hourly Rate ₱
+              <input type="number" id="empHourlyRate" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
+            </label>
+            <label class="admin-form-label">Overtime Rate ₱/hr
+              <input type="number" id="empOvertimeRate" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
+            </label>
+            <label class="admin-form-label">Commission Rate %
+              <input type="number" id="empCommissionRate" class="admin-form-input" placeholder="0" min="0" max="100" step="0.1" />
+            </label>
+          </div>
+          <p style="font-weight:600;color:#444;margin:16px 0 8px;">Government Benefits</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <label class="admin-form-label">SSS No.
+              <input type="text" id="empSSSNo" class="admin-form-input" placeholder="XX-XXXXXXX-X" />
+            </label>
+            <label class="admin-form-label">SSS Contribution ₱
+              <input type="number" id="empSSSAmt" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
+            </label>
+            <label class="admin-form-label">PhilHealth No.
+              <input type="text" id="empPhilHealthNo" class="admin-form-input" placeholder="XX-XXXXXXXXX-X" />
+            </label>
+            <label class="admin-form-label">PhilHealth Contribution ₱
+              <input type="number" id="empPhilHealthAmt" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
+            </label>
+            <label class="admin-form-label">Pag-IBIG No.
+              <input type="text" id="empPagIbigNo" class="admin-form-input" placeholder="XXXX-XXXX-XXXX" />
+            </label>
+            <label class="admin-form-label">Pag-IBIG Contribution ₱
+              <input type="number" id="empPagIbigAmt" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
+            </label>
+            <label class="admin-form-label">TIN
+              <input type="text" id="empTIN" class="admin-form-input" placeholder="XXX-XXX-XXX" />
+            </label>
+            <label class="admin-form-label">Withholding Tax ₱
+              <input type="number" id="empTax" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
+            </label>
+          </div>
+          <p style="font-weight:600;color:#444;margin:16px 0 8px;">Other</p>
+          <label class="admin-form-label">Bank / Wallet (for payroll)
+            <input type="text" id="empBank" class="admin-form-input" placeholder="e.g. BDO, GCash" />
+          </label>
+          <label class="admin-form-label">Account Number
+            <input type="text" id="empBankAcct" class="admin-form-input" placeholder="Account number" />
+          </label>
+          <label class="admin-form-label">Notes
+            <textarea id="empPayrollNotes" rows="2" class="admin-form-input" style="resize:vertical;" placeholder="Any additional payroll notes..."></textarea>
+          </label>
+        </div>
+
+        <div class="admin-form-btns" style="margin-top:16px;">
           <button class="btn" id="saveEmpBtn">Save Employee</button>
           <button class="btn" id="cancelEmpBtn" style="background:#6c757d;">Cancel</button>
         </div>
@@ -399,42 +478,106 @@ async function loadEmployees() {
       </div>
     </div>
 
+    <!-- Employee list -->
     <div id="empListWrap"><p>Loading employees...</p></div>
   `;
 
-  document.getElementById("addEmpBtn").onclick  = () => openEmpForm(null);
+  /* Form tab switching */
+  document.querySelectorAll("#empForm .ops-tab-btn").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll("#empForm .ops-tab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("empTabInfo").style.display    = btn.dataset.tab === "info"    ? "block" : "none";
+      document.getElementById("empTabPayroll").style.display = btn.dataset.tab === "payroll" ? "block" : "none";
+    };
+  });
+
+  document.getElementById("addEmpBtn").onclick   = () => openEmpForm(null);
   document.getElementById("cancelEmpBtn").onclick = () => { document.getElementById("empForm").style.display = "none"; };
-  document.getElementById("saveEmpBtn").onclick  = saveEmployee;
+  document.getElementById("saveEmpBtn").onclick   = saveEmployee;
   await fetchAndRenderEmployees();
 }
 
 function openEmpForm(emp) {
   const form = document.getElementById("empForm");
   document.getElementById("empFormTitle").textContent = emp ? "Edit Employee" : "Add Employee";
-  document.getElementById("empId").value      = emp ? emp._id     : "";
-  document.getElementById("empName").value    = emp ? emp.name    : "";
-  document.getElementById("empRole").value    = emp ? emp.role    : "";
-  document.getElementById("empEmail").value   = emp ? emp.email   : "";
-  document.getElementById("empContact").value = emp ? emp.contact : "";
-  document.getElementById("empShift").value   = emp ? emp.shift   : "";
-  document.getElementById("empStatus").value  = emp ? emp.status  : "active";
+
+  /* Reset to info tab */
+  document.querySelectorAll("#empForm .ops-tab-btn").forEach((b) => b.classList.remove("active"));
+  document.querySelector("#empForm .ops-tab-btn[data-tab='info']").classList.add("active");
+  document.getElementById("empTabInfo").style.display    = "block";
+  document.getElementById("empTabPayroll").style.display = "none";
+
+  /* Info fields */
+  document.getElementById("empId").value        = emp ? emp._id        : "";
+  document.getElementById("empName").value      = emp ? emp.name       : "";
+  document.getElementById("empRole").value      = emp ? emp.role       : "";
+  document.getElementById("empEmail").value     = emp ? emp.email      : "";
+  document.getElementById("empContact").value   = emp ? emp.contact    : "";
+  document.getElementById("empAddress").value   = emp ? emp.address    : "";
+  document.getElementById("empShift").value     = emp ? emp.shift      : "";
+  document.getElementById("empDateHired").value = emp && emp.dateHired ? emp.dateHired.slice(0,10) : "";
+  document.getElementById("empStatus").value    = emp ? emp.status     : "active";
+  document.getElementById("empPassword").value  = ""; // never pre-fill
+
+  /* Payroll fields */
+  const p = emp?.payroll || {};
+  document.getElementById("empBasicPay").value      = p.basicPay      || "";
+  document.getElementById("empHourlyRate").value    = p.hourlyRate    || "";
+  document.getElementById("empOvertimeRate").value  = p.overtimeRate  || "";
+  document.getElementById("empCommissionRate").value= p.commissionRate|| "";
+  document.getElementById("empSSSNo").value         = p.sssNo         || "";
+  document.getElementById("empSSSAmt").value        = p.sssAmt        || "";
+  document.getElementById("empPhilHealthNo").value  = p.philHealthNo  || "";
+  document.getElementById("empPhilHealthAmt").value = p.philHealthAmt || "";
+  document.getElementById("empPagIbigNo").value     = p.pagIbigNo     || "";
+  document.getElementById("empPagIbigAmt").value    = p.pagIbigAmt    || "";
+  document.getElementById("empTIN").value           = p.tin           || "";
+  document.getElementById("empTax").value           = p.tax           || "";
+  document.getElementById("empBank").value          = p.bank          || "";
+  document.getElementById("empBankAcct").value      = p.bankAcct      || "";
+  document.getElementById("empPayrollNotes").value  = p.notes         || "";
+
   document.getElementById("empMsg").style.display = "none";
   form.style.display = "block";
   form.scrollIntoView({ behavior:"smooth", block:"start" });
 }
 
 async function saveEmployee() {
-  const msg  = document.getElementById("empMsg");
-  const id   = document.getElementById("empId").value;
+  const msg = document.getElementById("empMsg");
+  const id  = document.getElementById("empId").value;
+  const pw  = document.getElementById("empPassword").value;
+
   const body = {
-    name:    document.getElementById("empName").value.trim(),
-    role:    document.getElementById("empRole").value,
-    email:   document.getElementById("empEmail").value.trim(),
-    contact: document.getElementById("empContact").value.trim(),
-    shift:   document.getElementById("empShift").value.trim(),
-    status:  document.getElementById("empStatus").value,
+    name:      document.getElementById("empName").value.trim(),
+    role:      document.getElementById("empRole").value,
+    email:     document.getElementById("empEmail").value.trim(),
+    contact:   document.getElementById("empContact").value.trim(),
+    address:   document.getElementById("empAddress").value.trim(),
+    shift:     document.getElementById("empShift").value.trim(),
+    dateHired: document.getElementById("empDateHired").value || null,
+    status:    document.getElementById("empStatus").value,
+    payroll: {
+      basicPay:       parseFloat(document.getElementById("empBasicPay").value)       || 0,
+      hourlyRate:     parseFloat(document.getElementById("empHourlyRate").value)     || 0,
+      overtimeRate:   parseFloat(document.getElementById("empOvertimeRate").value)   || 0,
+      commissionRate: parseFloat(document.getElementById("empCommissionRate").value) || 0,
+      sssNo:          document.getElementById("empSSSNo").value.trim(),
+      sssAmt:         parseFloat(document.getElementById("empSSSAmt").value)         || 0,
+      philHealthNo:   document.getElementById("empPhilHealthNo").value.trim(),
+      philHealthAmt:  parseFloat(document.getElementById("empPhilHealthAmt").value)  || 0,
+      pagIbigNo:      document.getElementById("empPagIbigNo").value.trim(),
+      pagIbigAmt:     parseFloat(document.getElementById("empPagIbigAmt").value)     || 0,
+      tin:            document.getElementById("empTIN").value.trim(),
+      tax:            parseFloat(document.getElementById("empTax").value)            || 0,
+      bank:           document.getElementById("empBank").value.trim(),
+      bankAcct:       document.getElementById("empBankAcct").value.trim(),
+      notes:          document.getElementById("empPayrollNotes").value.trim(),
+    },
   };
+  if (pw) body.password = pw;
   if (!body.name || !body.role) { msg.textContent = "Name and role are required."; msg.style.display = "block"; return; }
+
   try {
     const url    = id ? `/api/admin/employees/${id}` : "/api/admin/employees";
     const method = id ? "PUT" : "POST";
@@ -461,14 +604,14 @@ async function fetchAndRenderEmployees() {
     wrap.innerHTML = `
       <div class="emp-grid">
         ${data.employees.map((e) => `
-          <div class="emp-card">
+          <div class="emp-card emp-card-clickable" data-id="${e._id}" style="cursor:pointer;">
             <div class="emp-card-avatar">${(e.name||"?").charAt(0).toUpperCase()}</div>
             <div class="emp-card-info">
               <p class="emp-card-name">${e.name}</p>
               <p class="emp-card-role">${e.role}</p>
-              ${e.email   ? `<p class="emp-card-meta">${e.email}</p>`         : ""}
-              ${e.contact ? `<p class="emp-card-meta">${e.contact}</p>`       : ""}
-              ${e.shift   ? `<p class="emp-card-meta">🕐 ${e.shift}</p>`      : ""}
+              ${e.email   ? `<p class="emp-card-meta">${e.email}</p>`   : ""}
+              ${e.contact ? `<p class="emp-card-meta">${e.contact}</p>` : ""}
+              ${e.shift   ? `<p class="emp-card-meta">🕐 ${e.shift}</p>` : ""}
               <span class="emp-status-badge" style="background:${STATUS_COLOR[e.status]||"#e9ecef"};color:${STATUS_TEXT[e.status]||"#333"};">
                 ${(e.status||"active").toUpperCase()}
               </span>
@@ -480,11 +623,21 @@ async function fetchAndRenderEmployees() {
           </div>`).join("")}
       </div>`;
 
+    /* Click card → detail view */
+    wrap.querySelectorAll(".emp-card-clickable").forEach((card) => {
+      card.onclick = (ev) => {
+        if (ev.target.closest("button")) return; // don't open detail on button click
+        const emp = data.employees.find((e) => e._id === card.dataset.id);
+        if (emp) openEmpDetail(emp);
+      };
+    });
+
     wrap.querySelectorAll(".emp-edit-btn").forEach((btn) => {
-      btn.onclick = () => { const emp = data.employees.find((e) => e._id === btn.dataset.id); if (emp) openEmpForm(emp); };
+      btn.onclick = (ev) => { ev.stopPropagation(); const emp = data.employees.find((e) => e._id === btn.dataset.id); if (emp) openEmpForm(emp); };
     });
     wrap.querySelectorAll(".emp-del-btn").forEach((btn) => {
-      btn.onclick = async () => {
+      btn.onclick = async (ev) => {
+        ev.stopPropagation();
         if (!confirm("Delete this employee?")) return;
         try {
           const res    = await fetch(`/api/admin/employees/${btn.dataset.id}`, { method:"DELETE" });
@@ -497,8 +650,190 @@ async function fetchAndRenderEmployees() {
   } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading employees.</p>"; }
 }
 
+/* ── Employee Detail Modal ── */
+function openEmpDetail(emp) {
+  document.getElementById("empDetailModal")?.remove();
+
+  const STATUS_COLOR = { active:"#d4edda", inactive:"#f8d7da", "on leave":"#fff3cd" };
+  const STATUS_TEXT  = { active:"#155724", inactive:"#721c24", "on leave":"#856404" };
+  const sc = STATUS_COLOR[emp.status] || "#e9ecef";
+  const st = STATUS_TEXT[emp.status]  || "#333";
+  const p  = emp.payroll || {};
+
+  const fmt  = (v) => v ? `₱${parseFloat(v).toLocaleString("en-PH", {minimumFractionDigits:2})}` : "—";
+  const hired = emp.dateHired ? new Date(emp.dateHired).toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"}) : "—";
+
+  const modal = document.createElement("div");
+  modal.id = "empDetailModal";
+  modal.className = "stat-modal-overlay";
+  modal.innerHTML = `
+    <div class="stat-modal" style="max-width:560px;width:95%;">
+      <div class="stat-modal-header" style="border-bottom-color:#f9c0d2;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="emp-card-avatar" style="width:44px;height:44px;font-size:1.2rem;flex-shrink:0;">${(emp.name||"?").charAt(0).toUpperCase()}</div>
+          <div>
+            <h3 class="stat-modal-title" style="color:#9d174d;margin:0;">${emp.name}</h3>
+            <p style="margin:0;font-size:0.85rem;color:#888;">${emp.role}</p>
+          </div>
+        </div>
+        <button class="stat-modal-close" id="empDetailClose">&#x2715;</button>
+      </div>
+
+      <!-- Detail tabs -->
+      <div class="ops-tabs" style="padding:12px 20px 0;border-bottom:1px solid #f0e0e8;">
+        <button class="ops-tab-btn active" data-dtab="info">Info</button>
+        <button class="ops-tab-btn" data-dtab="payroll">Payroll</button>
+      </div>
+
+      <div class="stat-modal-body" style="padding:20px;">
+
+        <!-- INFO TAB -->
+        <div id="dtabInfo">
+          <div class="profile-info-grid">
+            <div class="profile-info-item">
+              <span class="profile-info-label">Status</span>
+              <span class="emp-status-badge" style="background:${sc};color:${st};">${(emp.status||"active").toUpperCase()}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Email</span>
+              <span class="profile-info-value">${emp.email || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Contact</span>
+              <span class="profile-info-value">${emp.contact || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Address</span>
+              <span class="profile-info-value">${emp.address || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Shift</span>
+              <span class="profile-info-value">${emp.shift || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Date Hired</span>
+              <span class="profile-info-value">${hired}</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:10px;">
+            <button class="btn" id="empDetailEditBtn">Edit Info</button>
+          </div>
+        </div>
+
+        <!-- PAYROLL TAB -->
+        <div id="dtabPayroll" style="display:none;">
+          <p style="font-weight:700;color:#d44d7c;margin-bottom:10px;">Compensation</p>
+          <div class="profile-info-grid">
+            <div class="profile-info-item">
+              <span class="profile-info-label">Basic Pay (monthly)</span>
+              <span class="profile-info-value">${fmt(p.basicPay)}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Hourly Rate</span>
+              <span class="profile-info-value">${fmt(p.hourlyRate)}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Overtime Rate</span>
+              <span class="profile-info-value">${fmt(p.overtimeRate)}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Commission Rate</span>
+              <span class="profile-info-value">${p.commissionRate ? p.commissionRate + "%" : "—"}</span>
+            </div>
+          </div>
+
+          <p style="font-weight:700;color:#d44d7c;margin:16px 0 10px;">Government Benefits</p>
+          <div class="profile-info-grid">
+            <div class="profile-info-item">
+              <span class="profile-info-label">SSS No.</span>
+              <span class="profile-info-value">${p.sssNo || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">SSS Contribution</span>
+              <span class="profile-info-value">${fmt(p.sssAmt)}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">PhilHealth No.</span>
+              <span class="profile-info-value">${p.philHealthNo || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">PhilHealth Contribution</span>
+              <span class="profile-info-value">${fmt(p.philHealthAmt)}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Pag-IBIG No.</span>
+              <span class="profile-info-value">${p.pagIbigNo || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Pag-IBIG Contribution</span>
+              <span class="profile-info-value">${fmt(p.pagIbigAmt)}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">TIN</span>
+              <span class="profile-info-value">${p.tin || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Withholding Tax</span>
+              <span class="profile-info-value">${fmt(p.tax)}</span>
+            </div>
+          </div>
+
+          <p style="font-weight:700;color:#d44d7c;margin:16px 0 10px;">Bank / Wallet</p>
+          <div class="profile-info-grid">
+            <div class="profile-info-item">
+              <span class="profile-info-label">Bank / Wallet</span>
+              <span class="profile-info-value">${p.bank || "—"}</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="profile-info-label">Account Number</span>
+              <span class="profile-info-value">${p.bankAcct || "—"}</span>
+            </div>
+            ${p.notes ? `<div class="profile-info-item" style="grid-column:1/-1;">
+              <span class="profile-info-label">Notes</span>
+              <span class="profile-info-value">${p.notes}</span>
+            </div>` : ""}
+          </div>
+
+          <div style="margin-top:16px;">
+            <button class="btn" id="empDetailPayrollEditBtn">Edit Payroll</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = "hidden";
+
+  const close = () => { modal.remove(); document.body.style.overflow = ""; };
+  document.getElementById("empDetailClose").onclick = close;
+  modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+
+  /* Detail tab switching */
+  modal.querySelectorAll(".ops-tab-btn[data-dtab]").forEach((btn) => {
+    btn.onclick = () => {
+      modal.querySelectorAll(".ops-tab-btn[data-dtab]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("dtabInfo").style.display    = btn.dataset.dtab === "info"    ? "block" : "none";
+      document.getElementById("dtabPayroll").style.display = btn.dataset.dtab === "payroll" ? "block" : "none";
+    };
+  });
+
+  document.getElementById("empDetailEditBtn").onclick = () => { close(); openEmpForm(emp); };
+  document.getElementById("empDetailPayrollEditBtn").onclick = () => {
+    close();
+    openEmpForm(emp);
+    // Switch to payroll tab after form opens
+    setTimeout(() => {
+      const btn = document.querySelector("#empForm .ops-tab-btn[data-tab='payroll']");
+      if (btn) btn.click();
+    }, 50);
+  };
+}
+
 /* ===============================
-   4. ON DUTY — full page
+   4. ON DUTY u2014 full page
 ================================ */
 async function loadDutySection() {
   content.innerHTML = `
@@ -543,7 +878,7 @@ async function renderDutyPage() {
               <label class="admin-form-label">Groomer / Staff
                 <select id="dutyGroomer" class="admin-form-input">
                   <option value="">Select employee</option>
-                  ${groomers.map((g) => `<option value="${g._id}">${g.name} — ${g.role}</option>`).join("")}
+                  ${groomers.map((g) => `<option value="${g._id}">${g.name} u2014 ${g.role}</option>`).join("")}
                 </select>
               </label>
               <label class="admin-form-label">Date
@@ -579,7 +914,7 @@ async function renderDutyPage() {
                           <p class="ops-duty-name">${d.groomerName}</p>
                           ${d.notes ? `<p class="ops-duty-meta">${d.notes}</p>` : ""}
                         </div>
-                        <button class="duty-remove-btn" data-id="${d._id}">✕</button>
+                        <button class="duty-remove-btn" data-id="${d._id}">u2715</button>
                       </div>`).join("")}
                   </div>`).join("")}
           </div>
@@ -620,7 +955,7 @@ async function renderDutyPage() {
 }
 
 /* ===============================
-   5. LEAVE REQUESTS — full page
+   5. LEAVE REQUESTS u2014 full page
 ================================ */
 async function loadLeaveSection() {
   content.innerHTML = `
@@ -635,17 +970,18 @@ async function renderLeavePage() {
   if (!wrap) return;
 
   try {
-    const res    = await fetch("/api/admin/operations/leave");
-    const data   = await res.json();
+    const res  = await fetch("/api/admin/operations/leave");
+    const data = await res.json();
     const leaves = data.leaves || [];
 
     const STATUS_STYLE = {
-      pending:  { bg: "#fff3cd", color: "#856404" },
-      approved: { bg: "#d4edda", color: "#155724" },
-      rejected: { bg: "#f8d7da", color: "#721c24" },
+      pending:  { bg:"#fff3cd", color:"#856404" },
+      approved: { bg:"#d4edda", color:"#155724" },
+      rejected: { bg:"#f8d7da", color:"#721c24" },
     };
 
-    const counts = { pending: 0, approved: 0, rejected: 0 };
+    // Summary counts
+    const counts = { pending:0, approved:0, rejected:0 };
     leaves.forEach((l) => { if (counts[l.status] !== undefined) counts[l.status]++; });
 
     wrap.innerHTML = `
@@ -664,14 +1000,49 @@ async function renderLeavePage() {
           <span class="leave-summary-num" style="color:#991b1b;">${counts.rejected}</span>
           <span class="leave-summary-label">Rejected</span>
         </div>
-        <p class="leave-portal-note">Employees submit leave requests via their own portal.</p>
+        <button class="btn" id="fileLeaveBtn" style="margin-left:auto;">+ File Leave</button>
+      </div>
+
+      <!-- File Leave Form -->
+      <div id="leaveForm" style="display:none;margin-bottom:24px;">
+        <div class="admin-form-box" style="max-width:520px;">
+          <h3 style="color:#d44d7c;margin-bottom:16px;">File Leave Request</h3>
+          <label class="admin-form-label">Employee *
+            <select id="leaveEmployee" class="admin-form-input">
+              <option value="">Loading...</option>
+            </select>
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <label class="admin-form-label">From *
+              <input type="date" id="leaveFrom" class="admin-form-input" />
+            </label>
+            <label class="admin-form-label">To *
+              <input type="date" id="leaveTo" class="admin-form-input" />
+            </label>
+          </div>
+          <label class="admin-form-label">Leave Type
+            <select id="leaveType" class="admin-form-input">
+              <option value="Sick Leave">Sick Leave</option>
+              <option value="Vacation Leave">Vacation Leave</option>
+              <option value="Emergency Leave">Emergency Leave</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label class="admin-form-label">Reason
+            <textarea id="leaveReason" rows="2" class="admin-form-input" style="resize:vertical;" placeholder="Brief reason..."></textarea>
+          </label>
+          <div class="admin-form-btns">
+            <button class="btn" id="saveLeaveBtn">Submit Request</button>
+            <button class="btn" id="cancelLeaveBtn" style="background:#6c757d;">Cancel</button>
+          </div>
+        </div>
       </div>
 
       <!-- Leave table -->
       <div class="ops-section-card" style="margin-top:0;">
         <h3 class="ops-card-title" style="margin-bottom:16px;">All Leave Requests</h3>
         ${leaves.length === 0
-          ? `<p class="cal-empty" style="padding:28px 0;">No leave requests submitted yet.</p>`
+          ? `<p class="cal-empty" style="padding:28px 0;">No leave requests on file.</p>`
           : `<div class="leave-table-wrap">
               <table class="leave-table">
                 <thead>
@@ -694,15 +1065,15 @@ async function renderLeavePage() {
                     const days = Math.max(1, Math.round((to - from) / 86400000) + 1);
                     return `
                       <tr>
-                        <td><strong>${l.employeeName || "—"}</strong></td>
-                        <td>${l.leaveType || "—"}</td>
-                        <td>${from.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}</td>
-                        <td>${to.toLocaleDateString("en-PH",   { month: "short", day: "numeric", year: "numeric" })}</td>
+                        <td><strong>${l.employeeName||"u2014"}</strong></td>
+                        <td>${l.leaveType||"u2014"}</td>
+                        <td>${from.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}</td>
+                        <td>${to.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}</td>
                         <td style="text-align:center;">${days}</td>
-                        <td style="max-width:180px;word-break:break-word;">${l.reason || "—"}</td>
+                        <td style="max-width:180px;word-break:break-word;">${l.reason||"u2014"}</td>
                         <td>
                           <span class="leave-status-badge" style="background:${s.bg};color:${s.color};">
-                            ${(l.status || "pending").toUpperCase()}
+                            ${(l.status||"pending").toUpperCase()}
                           </span>
                         </td>
                         <td style="white-space:nowrap;">
@@ -719,11 +1090,45 @@ async function renderLeavePage() {
       </div>
     `;
 
+    /* File leave button u2014 load employee list on open */
+    document.getElementById("fileLeaveBtn").onclick = async () => {
+      const form = document.getElementById("leaveForm");
+      form.style.display = "block";
+      form.scrollIntoView({ behavior:"smooth", block:"start" });
+      try {
+        const r = await fetch("/api/admin/employees");
+        const d = await r.json();
+        const sel = document.getElementById("leaveEmployee");
+        sel.innerHTML = `<option value="">Select employee</option>` +
+          (d.employees||[]).map((e) => `<option value="${e._id}">${e.name} u2014 ${e.role}</option>`).join("");
+      } catch(_) {}
+    };
+
+    document.getElementById("cancelLeaveBtn").onclick = () => {
+      document.getElementById("leaveForm").style.display = "none";
+    };
+
+    document.getElementById("saveLeaveBtn").onclick = async () => {
+      const body = {
+        employeeId: document.getElementById("leaveEmployee").value,
+        fromDate:   document.getElementById("leaveFrom").value,
+        toDate:     document.getElementById("leaveTo").value,
+        leaveType:  document.getElementById("leaveType").value,
+        reason:     document.getElementById("leaveReason").value.trim(),
+      };
+      if (!body.employeeId || !body.fromDate || !body.toDate) { alert("Employee and dates are required."); return; }
+      try {
+        const res    = await fetch("/api/admin/operations/leave", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+        const result = await res.json();
+        if (result.success) await renderLeavePage();
+        else alert(result.message);
+      } catch (err) { alert("Error filing leave."); }
+    };
+
     wrap.querySelectorAll(".leave-approve-btn").forEach((btn) => {
       btn.onclick = async () => {
-        if (!confirm("Approve this leave request?")) return;
         try {
-          const res    = await fetch(`/api/admin/operations/leave/${btn.dataset.id}/approve`, { method: "PUT" });
+          const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}/approve`, { method:"PUT" });
           const result = await res.json();
           if (result.success) await renderLeavePage();
           else alert(result.message);
@@ -735,7 +1140,7 @@ async function renderLeavePage() {
       btn.onclick = async () => {
         if (!confirm("Reject this leave request?")) return;
         try {
-          const res    = await fetch(`/api/admin/operations/leave/${btn.dataset.id}/reject`, { method: "PUT" });
+          const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}/reject`, { method:"PUT" });
           const result = await res.json();
           if (result.success) await renderLeavePage();
           else alert(result.message);
@@ -747,7 +1152,7 @@ async function renderLeavePage() {
       btn.onclick = async () => {
         if (!confirm("Delete this leave request?")) return;
         try {
-          const res    = await fetch(`/api/admin/operations/leave/${btn.dataset.id}`, { method: "DELETE" });
+          const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}`, { method:"DELETE" });
           const result = await res.json();
           if (result.success) await renderLeavePage();
           else alert(result.message);
@@ -884,11 +1289,20 @@ function showRejectModal(bookingId, onConfirm) {
 }
 
 /* ===============================
-   7. BOOKINGS — CALENDAR VIEW
+   7. BOOKINGS u2014 CALENDAR VIEW
 ================================ */
-function loadBookingsSection() {
+function loadBookingsSection(defaultTab = "calendar") {
   content.innerHTML = `
     <h2>Manage Bookings</h2>
+
+    <!-- Top-level view tabs -->
+    <div class="ops-tabs" style="margin-bottom:20px;">
+      <button class="ops-tab-btn ${defaultTab === "calendar" ? "active" : ""}" data-view="calendar">&#128197; Calendar</button>
+      <button class="ops-tab-btn ${defaultTab === "history"  ? "active" : ""}" data-view="history">&#128203; Booking History</button>
+    </div>
+
+    <!-- Calendar view -->
+    <div id="bookingViewCalendar" style="display:block;">
     <div class="cal-layout">
       <div class="cal-main">
         <div class="cal-toolbar">
@@ -932,6 +1346,10 @@ function loadBookingsSection() {
       <p class="cal-side-date" id="calDrawerDate" style="padding:8px 16px;font-size:12px;color:#999;"></p>
       <div class="cal-side-list" id="calDrawerList" style="max-height:60vh;overflow-y:auto;"></div>
     </div>
+    </div><!-- /bookingViewCalendar -->
+
+    <!-- History view -->
+    <div id="bookingViewHistory" style="display:none;"></div>
   `;
 
   const today = new Date();
@@ -1006,7 +1424,7 @@ function loadBookingsSection() {
     const dH=b.type==="hotel"?`Check-in: ${new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} ${b.appointmentTime||""} &bull; Check-out: ${b.hotelCheckoutDate?new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"}):"N/A"} ${b.hotelCheckoutTime||""}`:`Time: ${b.appointmentTime||"N/A"} &bull; ${Array.isArray(b.services)?b.services.join(", "):(b.services||"")}`;
     const sb=isPending?"":`<span class="cal-status-badge cal-status-${b.status}">${b.status.toUpperCase()}</span>`;
     const ac=isPending?`<div class="cal-bi-actions"><button class="cal-btn-approve" data-id="${b._id}">Approve</button><button class="cal-btn-reject" data-id="${b._id}">Reject</button></div>`:`<div class="cal-bi-actions"><button class="cal-btn-edit" data-id="${b._id}">Move to Pending</button></div>`;
-    item.innerHTML=`<div class="cal-bi-top"><div><p class="cal-bi-name">${b.userName||"Unknown"}</p><p class="cal-bi-email">${b.userEmail||""}</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="cal-type-pill ${b.type==="hotel"?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span>${sb}</div></div><div class="cal-bi-pets">${pH}</div><p class="cal-bi-detail">${dH}</p><p class="cal-bi-contact">${b.userContact||""}</p>${ac}`;
+    const groomerLine=b.requestedGroomerName?`<p class="cal-bi-detail" style="color:#d44d7c;">✂️ Requested groomer: <strong>${b.requestedGroomerName}</strong></p>`:""; item.innerHTML=`<div class="cal-bi-top"><div><p class="cal-bi-name">${b.userName||"Unknown"}</p><p class="cal-bi-email">${b.userEmail||""}</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="cal-type-pill ${b.type==="hotel"?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span>${sb}</div></div><div class="cal-bi-pets">${pH}</div><p class="cal-bi-detail">${dH}</p>${groomerLine}<p class="cal-bi-contact">${b.userContact||""}</p>${ac}`;
     listEl.appendChild(item);
     item.querySelectorAll(".pet-photo[data-s3key]").forEach(async(img)=>{const k=img.dataset.s3key;if(!k)return;try{const r=await fetch(`/api/file?name=${encodeURIComponent(k)}`);const d=await r.json();if(d.success)img.src=d.url;}catch(_){}});
     const ab=item.querySelector(".cal-btn-approve");
@@ -1054,4 +1472,223 @@ function loadBookingsSection() {
   document.querySelectorAll(".cal-type-btn").forEach((btn)=>{btn.onclick=()=>{document.querySelectorAll(".cal-type-btn").forEach((b)=>b.classList.remove("active"));btn.classList.add("active");activeType=btn.dataset.type;fetchAll();};});
   window.addEventListener("resize",()=>renderCal());
   fetchAll();
+
+  /* ── View tab switching (Calendar / History) ── */
+  document.querySelectorAll(".ops-tab-btn[data-view]").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll(".ops-tab-btn[data-view]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const cal  = document.getElementById("bookingViewCalendar");
+      const hist = document.getElementById("bookingViewHistory");
+      if (btn.dataset.view === "calendar") {
+        cal.style.display  = "block";
+        hist.style.display = "none";
+      } else {
+        cal.style.display  = "none";
+        hist.style.display = "block";
+        loadBookingHistory();
+      }
+    };
+  });
+
+  /* If defaultTab is history, load it now */
+  if (defaultTab === "history") {
+    document.getElementById("bookingViewCalendar").style.display = "none";
+    document.getElementById("bookingViewHistory").style.display  = "block";
+    loadBookingHistory();
+  }
+}
+
+/* ═══════════════════════════════════════
+   BOOKING HISTORY
+═══════════════════════════════════════ */
+async function loadBookingHistory() {
+  const wrap = document.getElementById("bookingViewHistory");
+  if (!wrap) return;
+  wrap.innerHTML = "<p>Loading history...</p>";
+
+  try {
+    /* Fetch all approved bookings for both types */
+    const [grRes, htRes] = await Promise.all([
+      fetch("/api/admin/bookings?type=grooming&status=approved"),
+      fetch("/api/admin/bookings?type=hotel&status=approved"),
+    ]);
+    const grData = await grRes.json();
+    const htData = await htRes.json();
+    const bookings = [
+      ...(grData.bookings || []).map((b) => ({ ...b, type:"grooming" })),
+      ...(htData.bookings || []).map((b) => ({ ...b, type:"hotel"    })),
+    ].sort((a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate));
+
+    const OUTCOME_STYLE = {
+      completed:   { bg:"#d1fae5", color:"#065f46", label:"Completed"      },
+      "no-show":   { bg:"#fee2e2", color:"#991b1b", label:"No Show"        },
+      "cancelled": { bg:"#f3f4f6", color:"#374151", label:"Cancelled"      },
+      rescheduled: { bg:"#dbeafe", color:"#1e40af", label:"Rescheduled"    },
+    };
+
+    /* Filter controls */
+    wrap.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+        <div class="cal-type-tabs" style="margin:0;">
+          <button class="cal-type-btn active" data-htype="all">All</button>
+          <button class="cal-type-btn" data-htype="grooming">Grooming</button>
+          <button class="cal-type-btn" data-htype="hotel">Hotel</button>
+        </div>
+        <div class="cal-type-tabs" style="margin:0;">
+          <button class="cal-type-btn active" data-houtcome="all">All Outcomes</button>
+          <button class="cal-type-btn" data-houtcome="none">Pending Action</button>
+          <button class="cal-type-btn" data-houtcome="completed">Completed</button>
+          <button class="cal-type-btn" data-houtcome="no-show">No Show</button>
+        </div>
+      </div>
+      <div id="historyList"></div>
+    `;
+
+    let activeHType    = "all";
+    let activeHOutcome = "all";
+
+    function renderHistory() {
+      const list = document.getElementById("historyList");
+      if (!list) return;
+
+      const filtered = bookings.filter((b) => {
+        const typeMatch    = activeHType === "all" || b.type === activeHType;
+        const outcomeMatch = activeHOutcome === "all"
+          ? true
+          : activeHOutcome === "none"
+            ? !b.outcome
+            : b.outcome === activeHOutcome;
+        return typeMatch && outcomeMatch;
+      });
+
+      if (!filtered.length) {
+        list.innerHTML = `<p class="cal-empty" style="padding:32px 0;">No bookings found.</p>`;
+        return;
+      }
+
+      list.innerHTML = `
+        <div class="leave-table-wrap">
+          <table class="leave-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Pets</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Services</th>
+                <th>Outcome</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered.map((b) => {
+                const isHotel   = b.type === "hotel";
+                const dateStr   = new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
+                const coStr     = isHotel && b.hotelCheckoutDate
+                  ? ` → ${new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})}`
+                  : "";
+                const petsStr   = Array.isArray(b.pets) ? b.pets.map((p) => p.name||p).join(", ") : "—";
+                const svcStr    = !isHotel && b.services
+                  ? (Array.isArray(b.services) ? b.services.join(", ") : b.services)
+                  : isHotel ? "Pet Hotel" : "—";
+                const oc        = b.outcome;
+                const ocStyle   = oc ? (OUTCOME_STYLE[oc] || { bg:"#e9ecef", color:"#333", label:oc }) : null;
+                return `
+                  <tr data-id="${b._id}">
+                    <td>
+                      <strong>${b.userName||"—"}</strong>
+                      <p style="font-size:0.78rem;color:#888;margin:0;">${b.userContact||""}</p>
+                    </td>
+                    <td>${petsStr}</td>
+                    <td><span class="cal-type-pill ${isHotel?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span></td>
+                    <td style="white-space:nowrap;">${dateStr}${coStr}</td>
+                    <td>${b.appointmentTime||"—"}</td>
+                    <td style="max-width:140px;word-break:break-word;">${svcStr}${b.requestedGroomerName?`<br><span style="font-size:0.75rem;color:#d44d7c;">✂️ ${b.requestedGroomerName}</span>`:""}</td>
+                    <td>
+                      ${oc
+                        ? `<span class="leave-status-badge" style="background:${ocStyle.bg};color:${ocStyle.color};">${ocStyle.label}</span>`
+                        : `<span style="color:#aaa;font-size:0.8rem;">—</span>`}
+                      ${b.outcomeNote ? `<p style="font-size:0.75rem;color:#888;margin:2px 0 0;">${b.outcomeNote}</p>` : ""}
+                    </td>
+                    <td style="white-space:nowrap;">
+                      <div class="history-action-btns" data-id="${b._id}">
+                        <button class="hist-btn hist-complete" data-id="${b._id}" title="Completed">✅ Done</button>
+                        <button class="hist-btn hist-noshow"   data-id="${b._id}" title="No Show">🚫 No Show</button>
+                        <button class="hist-btn hist-cancel"   data-id="${b._id}" title="Cancelled">❌ Cancelled</button>
+                        <button class="hist-btn hist-resched"  data-id="${b._id}" title="Rescheduled">🔄 Rescheduled</button>
+                      </div>
+                    </td>
+                  </tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      /* Outcome buttons */
+      const setOutcome = async (id, outcome, note = "") => {
+        try {
+          const res    = await fetch(`/api/admin/bookings/${id}/outcome`, {
+            method:  "PUT",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ outcome, outcomeNote: note }),
+          });
+          const result = await res.json();
+          if (result.success) {
+            const b = bookings.find((x) => x._id === id);
+            if (b) { b.outcome = outcome; b.outcomeNote = note; }
+            renderHistory();
+          } else alert(result.message);
+        } catch (err) { alert("Error updating outcome."); }
+      };
+
+      list.querySelectorAll(".hist-complete").forEach((btn) => {
+        btn.onclick = () => setOutcome(btn.dataset.id, "completed");
+      });
+      list.querySelectorAll(".hist-noshow").forEach((btn) => {
+        btn.onclick = async () => {
+          const note = prompt("Optional note (e.g. called but no answer):", "") ?? "";
+          setOutcome(btn.dataset.id, "no-show", note);
+        };
+      });
+      list.querySelectorAll(".hist-cancel").forEach((btn) => {
+        btn.onclick = async () => {
+          const note = prompt("Cancellation reason (optional):", "") ?? "";
+          setOutcome(btn.dataset.id, "cancelled", note);
+        };
+      });
+      list.querySelectorAll(".hist-resched").forEach((btn) => {
+        btn.onclick = async () => {
+          const note = prompt("New date or note:", "") ?? "";
+          setOutcome(btn.dataset.id, "rescheduled", note);
+        };
+      });
+    }
+
+    /* Filter tab listeners */
+    wrap.querySelectorAll(".cal-type-btn[data-htype]").forEach((btn) => {
+      btn.onclick = () => {
+        wrap.querySelectorAll(".cal-type-btn[data-htype]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeHType = btn.dataset.htype;
+        renderHistory();
+      };
+    });
+    wrap.querySelectorAll(".cal-type-btn[data-houtcome]").forEach((btn) => {
+      btn.onclick = () => {
+        wrap.querySelectorAll(".cal-type-btn[data-houtcome]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeHOutcome = btn.dataset.houtcome;
+        renderHistory();
+      };
+    });
+
+    renderHistory();
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("historyList").innerHTML = "<p>Error loading history.</p>";
+  }
 }

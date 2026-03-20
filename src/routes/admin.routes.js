@@ -12,6 +12,7 @@ router.get("/bookings",                requireAdmin, c.getBookings);
 router.put("/bookings/:id/approve",    requireAdmin, c.approveBooking);
 router.put("/bookings/:id/reject",     requireAdmin, c.rejectBooking);
 router.put("/bookings/:id/pending",    requireAdmin, c.revertToPending);
+router.put("/bookings/:id/outcome",    requireAdmin, c.setBookingOutcome);
 
 /* Employees */
 router.get("/employees",               requireAdmin, c.getEmployees);

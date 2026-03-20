@@ -11,6 +11,7 @@ async function startServer() {
       console.log(`🚀 Server running at http://localhost:${PORT}`);
       console.log(`📱 User dashboard: http://localhost:${PORT}/user`);
       console.log(`👨‍💼 Admin dashboard: http://localhost:${PORT}/admin`);
+      console.log(`Employee Login: http://localhost:${PORT}/employee-login.html`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);

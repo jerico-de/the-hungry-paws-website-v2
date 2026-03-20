@@ -114,7 +114,7 @@ async function getBookings(req, res, next) {
  */
 async function createBooking(req, res, next) {
   try {
-    const { pets, type, services, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime } = req.body;
+    const { pets, type, services, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime, requestedGroomer } = req.body;
     const userId = req.user?.id || req.session.user.id;
 
     if (!pets || !pets.length || !type || !appointmentDate || !appointmentTime) {
@@ -162,6 +162,16 @@ async function createBooking(req, res, next) {
       throw new ValidationError("This time slot is already booked. Please choose another time.");
     }
 
+    /* Resolve requested groomer name if provided */
+    let requestedGroomerName = null;
+    if (requestedGroomer) {
+      const groomer = await db.collection("employees").findOne(
+        { _id: new ObjectId(requestedGroomer), role: "Groomer", status: "active" },
+        { projection: { name: 1 } }
+      );
+      requestedGroomerName = groomer?.name || null;
+    }
+
     await db.collection("bookings").insertOne({
       userId: new ObjectId(userId),
       type,
@@ -171,6 +181,8 @@ async function createBooking(req, res, next) {
       appointmentTime,
       hotelCheckoutDate: hotelCheckoutDate ? new Date(hotelCheckoutDate) : null,
       hotelCheckoutTime: hotelCheckoutTime || null,
+      requestedGroomerId:   requestedGroomer     ? new ObjectId(requestedGroomer) : null,
+      requestedGroomerName: requestedGroomerName,
       status: "pending",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -240,4 +252,21 @@ async function deleteBooking(req, res, next) {
   }
 }
 
-module.exports = { getBookings, getAvailableSlots, createBooking, cancelBooking, deleteBooking };
+module.exports = { getBookings, getAvailableSlots, createBooking, cancelBooking, deleteBooking, getActiveGroomers };
+
+/* ─────────────────────────────────────────
+   GET /api/bookings/groomers
+   Returns active groomer employees for the booking form
+   Only exposes name, role, shift — no sensitive data
+───────────────────────────────────────── */
+async function getActiveGroomers(req, res, next) {
+  try {
+    const db       = getDB();
+    const groomers = await db.collection("employees")
+      .find({ role: "Groomer", status: "active" })
+      .project({ name: 1, role: 1, shift: 1 })
+      .sort({ name: 1 })
+      .toArray();
+    res.json({ success: true, groomers });
+  } catch (err) { next(err); }
+}
