@@ -9,13 +9,14 @@ const path = require("path");
 const passport = require("./config/passport");
 const { errorHandler } = require("./utils/errors");
 
-const authRoutes = require("./routes/auth.routes");
-const userRoutes = require("./routes/user.routes");
-const petRoutes = require("./routes/pet.routes");
-const bookingRoutes = require("./routes/booking.routes");
-const adminRoutes = require("./routes/admin.routes");
-const contactRoutes = require("./routes/contact.routes");
-const uploadRouter = require("./routes/upload.routes");
+const authRoutes     = require("./routes/auth.routes");
+const userRoutes     = require("./routes/user.routes");
+const petRoutes      = require("./routes/pet.routes");
+const bookingRoutes  = require("./routes/booking.routes");
+const adminRoutes    = require("./routes/admin.routes");
+const contactRoutes  = require("./routes/contact.routes");
+const uploadRouter   = require("./routes/upload.routes");
+const employeesRouter = require("./routes/employee.routes");
 
 const app = express();
 
@@ -27,21 +28,11 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'", // needed for inline scripts in EJS
-          "cdn.jsdelivr.net", // Bootstrap
-        ],
-        styleSrc: ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
-        imgSrc: [
-          "'self'",
-          "data:",
-          "*.amazonaws.com", // S3 images
-          "www.google.com", // Google favicon
-          "*.googleusercontent.com", // Google profile pictures
-        ],
+        scriptSrc:  ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
+        styleSrc:   ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
+        imgSrc:     ["'self'", "data:", "*.amazonaws.com", "www.google.com", "*.googleusercontent.com"],
         connectSrc: ["'self'"],
-        fontSrc: ["'self'", "cdn.jsdelivr.net"],
+        fontSrc:    ["'self'", "cdn.jsdelivr.net"],
       },
     },
   }),
@@ -68,7 +59,7 @@ app.use(
       dbName: "hungry-paws",
     }),
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -83,18 +74,19 @@ app.use(passport.session());
 // =====================
 // API Routes
 // =====================
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/pets", petRoutes);
+app.use("/api/auth",     authRoutes);
+app.use("/api/user",     userRoutes);
+app.use("/api/pets",     petRoutes);
 app.use("/api/bookings", bookingRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/contact", contactRoutes);
-app.use("/api", uploadRouter);
+app.use("/api/admin",    adminRoutes);
+app.use("/api/contact",  contactRoutes);
+app.use("/api",          uploadRouter);
+app.use("/api/employee", employeesRouter);
 
 // Legacy routes for backward compatibility
 app.post("/api/signup", require("./controllers/auth.controller").signup);
-app.post("/api/login", require("./controllers/auth.controller").login);
-app.post("/logout", require("./controllers/auth.controller").logout);
+app.post("/api/login",  require("./controllers/auth.controller").login);
+app.post("/logout",     require("./controllers/auth.controller").logout);
 
 // =====================
 // View Engine Setup
@@ -115,6 +107,11 @@ app.get("/admin", (req, res) => {
   if (!req.session.user) return res.redirect("/");
   if (!req.session.user.isAdmin) return res.redirect("/user");
   res.render("admin", { user: req.session.user });
+});
+
+app.get("/employee-dashboard", (req, res) => {
+  if (!req.session.employee) return res.redirect("/");
+  res.render("employee", { employee: req.session.employee });
 });
 
 // =====================

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employee Portal — The HungryPaws</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+
+    <!-- Top Bar -->
+    <header class="user-topbar">
+      <div class="user-topbar-left">
+        <button class="dashboard-menu-toggle" id="dashboardMenuToggle">
+          <span></span><span></span><span></span>
+        </button>
+        <img src="/images/logo.png" alt="The Hungry Paws" class="user-logo" />
+        <span class="welcome-text">
+          Welcome, <strong><%= employee.name %></strong>
+          <span style="font-size:0.85rem;color:#888;margin-left:6px;">(<%= employee.role %>)</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- Dashboard layout -->
+    <div class="dashboard">
+
+      <!-- Sidebar -->
+      <aside class="sidebar" id="dashboardSidebar">
+        <button class="sidebar-link active" data-section="overview">Overview</button>
+        <button class="sidebar-link" data-section="leave">Leave Requests</button>
+        <button class="sidebar-link" data-section="duty">My Duty Schedule</button>
+
+        <form action="/logout" method="POST" class="logout-form">
+          <button type="submit" class="sidebar-link logout-btn">Logout</button>
+        </form>
+      </aside>
+
+      <div class="dashboard-overlay" id="dashboardOverlay"></div>
+
+      <!-- Main content — filled by employee.js -->
+      <main class="dashboard-content" id="dashboardContent"
+        data-empid="<%= employee.id %>"
+        data-name="<%= employee.name %>"
+        data-role="<%= employee.role %>">
+      </main>
+
+    </div>
+
+    <script src="/js/employee.js"></script>
+  </body>
+</html>

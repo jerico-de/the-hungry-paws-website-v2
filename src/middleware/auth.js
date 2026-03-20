@@ -49,4 +49,12 @@ function requireAdmin(req, res, next) {
   });
 }
 
-module.exports = { isLoggedIn, isAdmin, requireAuth, requireAdmin };
+function requireEmployee(req, res, next) {
+  if (req.session?.employee) {
+    req.employee = req.session.employee; // { id, name, role }
+    return next();
+  }
+  res.status(401).json({ success: false, message: "Employee login required" });
+}
+
+module.exports = { isLoggedIn, isAdmin, requireAuth, requireAdmin, requireEmployee };
