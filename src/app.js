@@ -16,7 +16,8 @@ const bookingRoutes  = require("./routes/booking.routes");
 const adminRoutes    = require("./routes/admin.routes");
 const contactRoutes  = require("./routes/contact.routes");
 const uploadRouter   = require("./routes/upload.routes");
-const employeesRouter = require("./routes/employee.routes");
+const employeesRouter    = require("./routes/employee.routes");
+const guestBookingRouter = require("./routes/guest.booking.routes");
 
 const app = express();
 
@@ -81,7 +82,8 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin",    adminRoutes);
 app.use("/api/contact",  contactRoutes);
 app.use("/api",          uploadRouter);
-app.use("/api/employee", employeesRouter);
+app.use("/api/employee",      employeesRouter);
+app.use("/api/guest.bookings", guestBookingRouter);
 
 // Legacy routes for backward compatibility
 app.post("/api/signup", require("./controllers/auth.controller").signup);

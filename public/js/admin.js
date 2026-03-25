@@ -1300,6 +1300,7 @@ function loadBookingsSection(defaultTab = "calendar") {
     <div class="ops-tabs" style="margin-bottom:20px;">
       <button class="ops-tab-btn ${defaultTab === "calendar" ? "active" : ""}" data-view="calendar">&#128197; Calendar</button>
       <button class="ops-tab-btn ${defaultTab === "history"  ? "active" : ""}" data-view="history">&#128203; Booking History</button>
+      <button class="ops-tab-btn ${defaultTab === "guest"    ? "active" : ""}" data-view="guest">&#128100; Guest Bookings</button>
     </div>
 
     <!-- Calendar view -->
@@ -1351,6 +1352,7 @@ function loadBookingsSection(defaultTab = "calendar") {
 
     <!-- History view -->
     <div id="bookingViewHistory" style="display:none;"></div>
+    <div id="bookingViewGuest"   style="display:none;"></div>
   `;
 
   const today = new Date();
@@ -1479,16 +1481,15 @@ function loadBookingsSection(defaultTab = "calendar") {
     btn.onclick = () => {
       document.querySelectorAll(".ops-tab-btn[data-view]").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      const cal  = document.getElementById("bookingViewCalendar");
-      const hist = document.getElementById("bookingViewHistory");
-      if (btn.dataset.view === "calendar") {
-        cal.style.display  = "block";
-        hist.style.display = "none";
-      } else {
-        cal.style.display  = "none";
-        hist.style.display = "block";
-        loadBookingHistory();
-      }
+      const cal   = document.getElementById("bookingViewCalendar");
+      const hist  = document.getElementById("bookingViewHistory");
+      const guest = document.getElementById("bookingViewGuest");
+      cal.style.display   = "none";
+      hist.style.display  = "none";
+      guest.style.display = "none";
+      if (btn.dataset.view === "calendar") { cal.style.display  = "block"; }
+      else if (btn.dataset.view === "history") { hist.style.display = "block"; loadBookingHistory(); }
+      else if (btn.dataset.view === "guest")   { guest.style.display = "block"; loadGuestBookings(); }
     };
   });
 
@@ -1497,6 +1498,11 @@ function loadBookingsSection(defaultTab = "calendar") {
     document.getElementById("bookingViewCalendar").style.display = "none";
     document.getElementById("bookingViewHistory").style.display  = "block";
     loadBookingHistory();
+  }
+  if (defaultTab === "guest") {
+    document.getElementById("bookingViewCalendar").style.display = "none";
+    document.getElementById("bookingViewGuest").style.display    = "block";
+    loadGuestBookings();
   }
 }
 
@@ -2339,4 +2345,239 @@ function openAdjustModal(id, timeIn, timeOut, from, to, reloadFn) {
       else { msg.textContent = result.message; msg.style.display = "block"; }
     } catch { msg.textContent = "Error saving."; msg.style.display = "block"; }
   };
+}
+
+/* ═══════════════════════════════════════
+   GUEST BOOKINGS
+═══════════════════════════════════════ */
+async function loadGuestBookings() {
+  const wrap = document.getElementById("bookingViewGuest");
+  if (!wrap) return;
+  wrap.innerHTML = "<p>Loading guest bookings...</p>";
+
+  const STATUS_STYLE = {
+    pending:  { bg:"#fff3cd", color:"#856404" },
+    approved: { bg:"#d4edda", color:"#155724" },
+    rejected: { bg:"#f8d7da", color:"#721c24" },
+  };
+
+  try {
+    const res  = await fetch("/api/guest.bookings?status=all");
+    const data = await res.json();
+    if (!data.success) { wrap.innerHTML = `<p>Error: ${data.message}</p>`; return; }
+
+    const bookings = data.bookings || [];
+
+    wrap.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+        <div class="cal-type-tabs" style="margin:0;">
+          <button class="cal-type-btn active" data-gs="all">All</button>
+          <button class="cal-type-btn" data-gs="pending">Pending</button>
+          <button class="cal-type-btn" data-gs="approved">Approved</button>
+          <button class="cal-type-btn" data-gs="rejected">Rejected</button>
+        </div>
+        <p style="font-size:0.82rem;color:#888;margin:0;">${bookings.length} total guest bookings</p>
+      </div>
+      <div id="guestBookingList"></div>
+    `;
+
+    let activeFilter = "all";
+
+    function renderGuest() {
+      const list = document.getElementById("guestBookingList");
+      const filtered = activeFilter === "all" ? bookings : bookings.filter(b => b.status === activeFilter);
+
+      if (!filtered.length) {
+        list.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No ${activeFilter === "all" ? "" : activeFilter + " "}guest bookings found.</p>`;
+        return;
+      }
+
+      list.innerHTML = `
+        <div class="leave-table-wrap">
+          <table class="leave-table">
+            <thead>
+              <tr>
+                <th>Owner</th>
+                <th>Pet</th>
+                <th>Services</th>
+                <th>Date & Time</th>
+                <th>Groomer Req.</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered.map(b => {
+                const s       = STATUS_STYLE[b.status] || STATUS_STYLE.pending;
+                const date    = new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
+                const svcs    = Array.isArray(b.services) ? b.services.join(", ") : b.services;
+                const subDate = new Date(b.createdAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
+                return `
+                  <tr>
+                    <td>
+                      <strong>${b.ownerName}</strong>
+                      <p style="font-size:0.75rem;color:#888;margin:0;">${b.email}</p>
+                      <p style="font-size:0.75rem;color:#888;margin:0;">${b.phone}</p>
+                    </td>
+                    <td>
+                      <strong>${b.petName}</strong>
+                      <p style="font-size:0.75rem;color:#888;margin:0;">${b.breed} • ${b.gender}</p>
+                      ${b.age ? `<p style="font-size:0.75rem;color:#888;margin:0;">${b.age}</p>` : ""}
+                    </td>
+                    <td style="max-width:160px;font-size:0.82rem;">${svcs}</td>
+                    <td style="white-space:nowrap;">${date}<br/><span style="color:#888;font-size:0.8rem;">${b.appointmentTime}</span></td>
+                    <td style="font-size:0.82rem;">${b.requestedGroomerName || "—"}</td>
+                    <td style="font-size:0.8rem;color:#888;">${subDate}</td>
+                    <td>
+                      <span class="leave-status-badge" style="background:${s.bg};color:${s.color};">
+                        ${b.status.toUpperCase()}
+                      </span>
+                      ${b.rejectReason ? `<p style="font-size:0.72rem;color:#888;margin:2px 0 0;">${b.rejectReason}</p>` : ""}
+                    </td>
+                    <td style="white-space:nowrap;">
+                      <button class="hist-btn guest-detail-btn" style="background:#dbeafe;color:#1e40af;" data-id="${b._id}">View</button>
+                      ${b.status === "pending" ? `
+                        <button class="hist-btn hist-complete guest-approve-btn" data-id="${b._id}">✅ Approve</button>
+                        <button class="hist-btn hist-noshow guest-reject-btn" data-id="${b._id}">❌ Reject</button>
+                      ` : b.status !== "pending" ? `
+                        <button class="hist-btn hist-cancel guest-pending-btn" data-id="${b._id}">↩ Pending</button>
+                      ` : ""}
+                    </td>
+                  </tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>`;
+
+      /* Detail view */
+      list.querySelectorAll(".guest-detail-btn").forEach(btn => {
+        btn.onclick = () => {
+          const b = bookings.find(x => x._id === btn.dataset.id);
+          if (b) openGuestDetailModal(b);
+        };
+      });
+
+      /* Approve */
+      list.querySelectorAll(".guest-approve-btn").forEach(btn => {
+        btn.onclick = async () => {
+          const b = bookings.find(x => x._id === btn.dataset.id);
+          if (!confirm(`Approve booking for ${b?.ownerName}? An email will be sent to ${b?.email}.`)) return;
+          try {
+            const res    = await fetch(`/api/guest.bookings/${btn.dataset.id}/approve`, { method:"PUT" });
+            const result = await res.json();
+            if (result.success) { alert(result.message); loadGuestBookings(); }
+            else alert(result.message);
+          } catch { alert("Error approving booking."); }
+        };
+      });
+
+      /* Reject */
+      list.querySelectorAll(".guest-reject-btn").forEach(btn => {
+        btn.onclick = () => {
+          const b = bookings.find(x => x._id === btn.dataset.id);
+          showRejectModal(btn.dataset.id, async (reason) => {
+            try {
+              const res    = await fetch(`/api/guest.bookings/${btn.dataset.id}/reject`, {
+                method:  "PUT",
+                headers: {"Content-Type":"application/json"},
+                body:    JSON.stringify({ reason }),
+              });
+              const result = await res.json();
+              if (result.success) { alert(result.message); loadGuestBookings(); }
+              else alert(result.message);
+            } catch { alert("Error rejecting booking."); }
+          });
+        };
+      });
+
+      /* Revert to pending */
+      list.querySelectorAll(".guest-pending-btn").forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm("Move this booking back to pending?")) return;
+          try {
+            const res    = await fetch(`/api/guest.bookings/${btn.dataset.id}/pending`, { method:"PUT" });
+            const result = await res.json();
+            if (result.success) loadGuestBookings();
+            else alert(result.message);
+          } catch { alert("Error updating booking."); }
+        };
+      });
+    }
+
+    /* Filter tabs */
+    wrap.querySelectorAll(".cal-type-btn[data-gs]").forEach(btn => {
+      btn.onclick = () => {
+        wrap.querySelectorAll(".cal-type-btn[data-gs]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeFilter = btn.dataset.gs;
+        renderGuest();
+      };
+    });
+
+    renderGuest();
+
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = "<p>Error loading guest bookings.</p>";
+  }
+}
+
+/* ── Guest Detail Modal ── */
+function openGuestDetailModal(b) {
+  document.getElementById("guestDetailModal")?.remove();
+  const svcs = Array.isArray(b.services) ? b.services.join(", ") : b.services;
+  const date = new Date(b.appointmentDate).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  const rabies = b.lastAntiRabiesShot ? new Date(b.lastAntiRabiesShot).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}) : "Not provided";
+
+  const STATUS_STYLE = { pending:{bg:"#fff3cd",color:"#856404"}, approved:{bg:"#d4edda",color:"#155724"}, rejected:{bg:"#f8d7da",color:"#721c24"} };
+  const s = STATUS_STYLE[b.status] || STATUS_STYLE.pending;
+
+  const modal = document.createElement("div");
+  modal.id = "guestDetailModal";
+  modal.className = "stat-modal-overlay";
+  modal.innerHTML = `
+    <div class="stat-modal" style="max-width:500px;width:95%;">
+      <div class="stat-modal-header" style="border-bottom-color:#93c5fd;">
+        <div>
+          <h3 class="stat-modal-title" style="color:#1e40af;">👤 Guest Booking</h3>
+          <span class="leave-status-badge" style="background:${s.bg};color:${s.color};">${b.status.toUpperCase()}</span>
+        </div>
+        <button class="stat-modal-close" id="guestDetailClose">&#x2715;</button>
+      </div>
+      <div class="stat-modal-body" style="padding:20px;">
+
+        <p style="font-weight:700;color:#444;margin-bottom:8px;">Owner</p>
+        <div class="profile-info-grid" style="margin-bottom:16px;">
+          <div class="profile-info-item"><span class="profile-info-label">Name</span><span class="profile-info-value">${b.ownerName}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Email</span><span class="profile-info-value">${b.email}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Phone</span><span class="profile-info-value">${b.phone}</span></div>
+        </div>
+
+        <p style="font-weight:700;color:#444;margin-bottom:8px;">Pet</p>
+        <div class="profile-info-grid" style="margin-bottom:16px;">
+          <div class="profile-info-item"><span class="profile-info-label">Name</span><span class="profile-info-value">${b.petName}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Breed</span><span class="profile-info-value">${b.breed}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Gender</span><span class="profile-info-value">${b.gender}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Age</span><span class="profile-info-value">${b.age || "—"}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Last Anti-Rabies</span><span class="profile-info-value">${rabies}</span></div>
+        </div>
+
+        <p style="font-weight:700;color:#444;margin-bottom:8px;">Appointment</p>
+        <div class="profile-info-grid" style="margin-bottom:16px;">
+          <div class="profile-info-item"><span class="profile-info-label">Date</span><span class="profile-info-value">${date}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Time</span><span class="profile-info-value">${b.appointmentTime}</span></div>
+          <div class="profile-info-item" style="grid-column:1/-1;"><span class="profile-info-label">Services</span><span class="profile-info-value">${svcs}</span></div>
+          <div class="profile-info-item"><span class="profile-info-label">Requested Groomer</span><span class="profile-info-value">${b.requestedGroomerName || "No preference"}</span></div>
+        </div>
+
+        ${b.rejectReason ? `<div style="background:#fee2e2;border-radius:8px;padding:12px;font-size:0.85rem;"><strong>Rejection reason:</strong> ${b.rejectReason}</div>` : ""}
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = "hidden";
+  const close = () => { modal.remove(); document.body.style.overflow = ""; };
+  document.getElementById("guestDetailClose").onclick = close;
+  modal.addEventListener("click", e => { if (e.target === modal) close(); });
 }

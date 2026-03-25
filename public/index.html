@@ -14,14 +14,11 @@
   </head>
   <body>
 
-    <!-- =====================
-         NAVBAR
-    ===================== -->
+    <!-- NAVBAR -->
     <div id="navbar">
       <div class="container">
         <img src="images/logo.png" class="logo" alt="TheHungryPaws" />
 
-        <!-- Hamburger -->
         <button class="hamburger" id="hamburger" aria-label="Menu">
           <span></span>
           <span></span>
@@ -51,7 +48,6 @@
           <a href="#contact">Contact</a>
         </div>
 
-        <!-- Auth Buttons -->
         <div class="nav-auth">
           <button id="loginBtn" class="login-btn">Login</button>
           <button id="signupBtn" class="signup-btn">Sign Up</button>
@@ -68,15 +64,12 @@
               <p>Sign in to your account</p>
             </div>
 
-            <a
-              href="/api/auth/google"
-              style="display:inline-flex;align-items:center;gap:10px;padding:11px 20px;border:2px solid #eee;border-radius:12px;text-decoration:none;color:#333;font-weight:600;font-size:0.95rem;background:white;width:100%;justify-content:center;margin-bottom:15px;transition:0.2s ease;"
-            >
+            <a href="/api/auth/google" class="google-btn">
               <img src="https://www.google.com/favicon.ico" width="20" height="20" alt="Google" />
               Sign in with Google
             </a>
 
-            <div style="text-align:center;color:#aaa;font-size:0.85rem;margin-bottom:15px;">— or sign in with email —</div>
+            <div class="auth-divider">— or sign in with email —</div>
 
             <form id="loginForm" class="auth-form">
               <div class="auth-field">
@@ -166,9 +159,7 @@
       </div>
     </div>
 
-    <!-- =====================
-         HERO
-    ===================== -->
+    <!-- HERO -->
     <div id="hero">
       <div class="container">
         <div class="hero-header">
@@ -182,19 +173,17 @@
           </p>
         </div>
         <div class="hero-btn">
-          <button><a href="#services">Book Now</a></button>
+          <button><a href="#services">Check Services</a></button>
           <button><a href="#about">Know More</a></button>
         </div>
       </div>
     </div>
 
-    <!-- =====================
-         ABOUT
-    ===================== -->
+    <!-- ABOUT -->
     <div id="about">
       <div class="container">
         <div class="about-header">
-          <h2>About Us</h2>
+          <h2 class="section-header">About Us</h2>
         </div>
         <div class="about-content">
           <p>The HungryPaws is a one-stop-shop for all your pet needs. We have pet supplies, grooming services, and pet-hotel services for whenever you need someone to care for your pet.</p>
@@ -203,13 +192,11 @@
       </div>
     </div>
 
-    <!-- =====================
-         OUR SHOP
-    ===================== -->
+    <!-- OUR SHOP -->
     <div id="our-shop">
       <div class="container">
         <div class="shop-header">
-          <h2>Our Shop</h2>
+          <h2 class="section-header">Our Shop</h2>
         </div>
         <div class="photo-grid">
           <a href="#shop1" class="span-3"><img src="images/ourshop1.JPEG" alt="Our Shop 1" /></a>
@@ -217,19 +204,18 @@
           <a href="#shop3" class="span-2"><img src="images/ourshop6.JPEG" alt="Our Shop 3" /></a>
           <a href="#shop4" class="span-3"><img src="images/ourshop4.JPEG" alt="Our Shop 4" /></a>
         </div>
-        <div id="shop1" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop1.JPEG" /></div>
-        <div id="shop2" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop5.JPEG" /></div>
-        <div id="shop3" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop6.JPEG" /></div>
-        <div id="shop4" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop4.JPEG" /></div>
+
+        <div id="shop1" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop1.JPEG" alt="Shop photo 1" /></div>
+        <div id="shop2" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop5.JPEG" alt="Shop photo 2" /></div>
+        <div id="shop3" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop6.JPEG" alt="Shop photo 3" /></div>
+        <div id="shop4" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop4.JPEG" alt="Shop photo 4" /></div>
       </div>
     </div>
 
-<!-- =====================
-         SERVICES
-    ===================== -->
+    <!-- SERVICES -->
     <div id="services">
       <div class="container">
-        <h2 class="services-header">Our Services</h2>
+        <h2 class="services-header section-header">Our Services</h2>
 
         <div class="services-parent services-bg">
           <div class="services-text">
@@ -237,7 +223,7 @@
             <p>Our grooming team is dedicated to making pets look great and feel even better. Safe, gentle, and joyful—creating happy tails every time!</p>
             <p><em>Full Groom</em> starts at ₱500, while <em>Bath and Blowdry</em> starts at ₱250.</p>
             <p>We also offer <em>A La Carte</em> services including nail trim, ear cleaning, teeth cleaning, and more!</p>
-            <button class="btn">Book Now</button>
+            <button class="btn" id="bookGroomingBtn">Book Grooming</button>
           </div>
           <div class="services-image">
             <a href="#grooming"><img src="images/grooming.jpg" alt="Grooming Services Pricelist" /></a>
@@ -250,25 +236,24 @@
             <p>From tiny paws to gentle giants, our pet hotel gives every guest a cozy space to rest, play, and feel loved. Because while you're away, we're here creating happy tails every day!</p>
             <p><em>24 Hours Stay</em> starts at ₱450, while <em>12 Hours Stay</em> starts at ₱350.</p>
             <p>We also offer <em>Day Care</em> services starting at ₱250 for 3 hours then ₱50 for every succeeding hour.</p>
-            <button class="btn">Book Now</button>
+            <button class="btn" id="bookHotelBtn">Book Hotel</button>
           </div>
           <div class="services-image">
             <a href="#petHotel"><img src="images/hotel.jpg" alt="Pet Hotel Pricelist" /></a>
           </div>
         </div>
 
-        <div id="grooming" class="lightbox"><a href="#services" class="close">&times;</a><img src="images/grooming.jpg" /></div>
-        <div id="petHotel" class="lightbox"><a href="#services" class="close">&times;</a><img src="images/hotel.jpg" /></div>
+        <div id="grooming" class="lightbox"><a href="#services" class="close">&times;</a><img src="images/grooming.jpg" alt="Grooming pricelist" /></div>
+        <div id="petHotel" class="lightbox"><a href="#services" class="close">&times;</a><img src="images/hotel.jpg" alt="Pet hotel pricelist" /></div>
       </div>
     </div>
 
-    <!-- =====================
-         PROMOTIONS
-    ===================== -->
+    <!-- PROMOTIONS -->
     <div id="promotions">
       <div class="container">
         <div class="promotions-header">
-          <h2>Promotions</h2>
+          <h2 class="section-header">Promotions</h2>
+        </div>
           <div class="promotions-parent">
             <div class="promotions-card">
               <a href="#promo1"><img src="images/promo1.jpg" alt="Get A Crochet Paw Keychain" width="100%" /></a>
@@ -286,20 +271,20 @@
               <p class="details">Get a chance to win 700 pesos off when (1) you like this post and tag a friend in the comments, (2) post your pet's glow up after grooming at The HungryPaws, and (3) buy any grooming products in-store.</p>
             </div>
           </div>
-          <div id="promo1" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo1.jpg" /></div>
-          <div id="promo2" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo2.jpg" /></div>
-          <div id="promo3" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo3.jpg" /></div>
-        </div>
+
+          <div id="promo1" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo1.jpg" alt="Promo 1" /></div>
+          <div id="promo2" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo2.jpg" alt="Promo 2" /></div>
+          <div id="promo3" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo3.jpg" alt="Promo 3" /></div>
       </div>
     </div>
 
-    <!-- =====================
-         TESTIMONIALS
-    ===================== -->
+    <!-- TESTIMONIALS -->
     <div id="testimonials">
       <div class="container">
         <div class="testimonials-header">
-          <h2>Testimonials</h2>
+          <h2 class="section-header">Testimonials</h2>
+        </div>
+      
           <div id="testimonialsCarousel" class="carousel slide">
             <div class="carousel-inner">
               <div class="carousel-item active">
@@ -326,21 +311,16 @@
               <span class="visually-hidden">Next</span>
             </button>
           </div>
-        </div>
       </div>
     </div>
 
-    <div id="testimonial1" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony1.JPG" /></div>
-    <div id="testimonial2" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony2.JPG" /></div>
-    <div id="testimonial3" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony3.JPG" /></div>
+    <div id="testimonial1" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony1.JPG" alt="Testimonial 1" /></div>
+    <div id="testimonial2" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony2.JPG" alt="Testimonial 2" /></div>
+    <div id="testimonial3" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony3.JPG" alt="Testimonial 3" /></div>
 
-    
-
-    <!-- =====================
-         CONTACT
-    ===================== -->
+    <!-- CONTACT -->
     <section id="contact" class="contact-section py-5">
-      <h2 class="services-header">Contact Us</h2>
+      <h2 class="services-header section-header">Contact Us</h2>
       <div class="container">
         <div class="row mb-4 text-center">
           <div class="col">
@@ -374,7 +354,7 @@
             <div class="ratio ratio-4x3 rounded-3 shadow-sm mb-3">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.913851112695!2d121.03414827510182!3d14.631045477425054!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7c5d214123f%3A0x8f8e8a5f92eabcde!2s392%20Del%20Monte%20Ave%2C%20Quezon%20City%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1699259999999!5m2!1sen!2sph"
-                style="border:0;" allowfullscreen="" loading="lazy">
+                style="border:0;" allowfullscreen="" loading="lazy" title="TheHungryPaws Location">
               </iframe>
             </div>
             <p class="text-muted mb-1"><strong>Address:</strong> 392 Del Monte Ave, Quezon City, Metro Manila</p>
@@ -397,9 +377,7 @@
       </div>
     </div>
 
-    <!-- =====================
-         FOOTER
-    ===================== -->
+    <!-- FOOTER -->
     <footer>
       <div class="footer-container">
         <p>
@@ -409,6 +387,244 @@
       </div>
     </footer>
 
+    <!-- BOOKING CHOICE MODAL -->
+    <div id="bookingChoiceModal" class="booking-choice-modal">
+      <div class="booking-choice-box">
+        <div class="booking-choice-icon">🐾</div>
+        <h2 class="booking-choice-title">Book an Appointment</h2>
+        <p class="booking-choice-sub">How would you like to proceed?</p>
+        <div class="booking-choice-actions">
+          <button id="choiceLogin" class="choice-btn choice-btn--primary">🔑 Login to my account</button>
+          <button id="choiceSignup" class="choice-btn choice-btn--outline">📝 Create an account</button>
+          <button id="choiceGuest" class="choice-btn choice-btn--ghost">👤 Continue as Guest</button>
+        </div>
+        <p class="booking-choice-note">Guest bookings are confirmed via email</p>
+        <button id="choiceClose" class="booking-choice-close">&#x2715;</button>
+      </div>
+    </div>
+
+    <!-- GUEST GROOMING BOOKING MODAL -->
+    <div id="guestBookingModal" class="guest-modal">
+      <div class="guest-modal-box">
+        <button id="guestFormClose" class="guest-modal-close">&#x2715;</button>
+        <div class="guest-modal-header">
+          <div class="guest-modal-icon">✂️</div>
+          <h2 class="guest-modal-title">Guest Grooming Booking</h2>
+          <p class="guest-modal-sub">We'll email you when your booking is approved or rejected</p>
+        </div>
+
+        <form id="guestBookingForm" class="guest-form">
+
+          <p class="guest-section-label guest-section-label--pink">OWNER INFORMATION</p>
+          <div class="guest-grid-2">
+            <label class="guest-label">Full Name *
+              <input type="text" name="ownerName" required placeholder="Juan dela Cruz" class="guest-input guest-input--pink" />
+            </label>
+            <label class="guest-label">Phone Number *
+              <input type="tel" name="phone" required placeholder="09XX-XXX-XXXX" class="guest-input guest-input--pink" />
+            </label>
+          </div>
+          <label class="guest-label guest-mb">Email Address *
+            <input type="email" name="email" required placeholder="juan@email.com" class="guest-input guest-input--pink" />
+          </label>
+
+          <p class="guest-section-label guest-section-label--pink">PET INFORMATION</p>
+          <div class="guest-grid-2">
+            <label class="guest-label">Pet Name *
+              <input type="text" name="petName" required placeholder="Buddy" class="guest-input guest-input--pink" />
+            </label>
+            <label class="guest-label">Breed *
+              <input type="text" name="breed" required placeholder="Shih Tzu" class="guest-input guest-input--pink" />
+            </label>
+            <label class="guest-label">Gender *
+              <select name="gender" required class="guest-input guest-input--pink">
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </label>
+            <label class="guest-label">Age
+              <input type="text" name="age" placeholder="e.g. 2 years" class="guest-input guest-input--pink" />
+            </label>
+          </div>
+          <label class="guest-label guest-mb">Last Anti-Rabies Shot
+            <input type="date" name="lastAntiRabiesShot" class="guest-input guest-input--pink" />
+          </label>
+
+          <p class="guest-section-label guest-section-label--pink">GROOMING SERVICES</p>
+          <div class="guest-mb-sm">
+            <p class="guest-sublabel">Main Service *</p>
+            <div class="guest-radio-group">
+              <label class="guest-radio-option">
+                <input type="radio" name="mainService" value="Full Groom" required /> Full Groom
+              </label>
+              <label class="guest-radio-option">
+                <input type="radio" name="mainService" value="Bath and Blowdry" /> Bath and Blowdry
+              </label>
+            </div>
+          </div>
+          <div class="guest-mb">
+            <p class="guest-sublabel">Add-on Services (optional)</p>
+            <div class="guest-grid-2">
+              <label class="guest-check"><input type="checkbox" name="addonServices" value="Nail Trim" /> Nail Trim</label>
+              <label class="guest-check"><input type="checkbox" name="addonServices" value="Ear Cleaning" /> Ear Cleaning</label>
+              <label class="guest-check"><input type="checkbox" name="addonServices" value="Hair Trim" /> Hair Trim</label>
+              <label class="guest-check"><input type="checkbox" name="addonServices" value="Poodle Feet" /> Poodle Feet</label>
+              <label class="guest-check"><input type="checkbox" name="addonServices" value="Tear Stain Removal" /> Tear Stain Removal</label>
+              <label class="guest-check"><input type="checkbox" name="addonServices" value="Teeth Cleaning" /> Teeth Cleaning</label>
+              <label class="guest-check"><input type="checkbox" name="addonServices" value="Dematting" /> Dematting</label>
+              <label class="guest-check"><input type="checkbox" name="addonServices" value="Anal Sac Draining" /> Anal Sac Draining</label>
+            </div>
+          </div>
+
+          <label class="guest-label guest-mb">
+            Request a Groomer <span class="guest-optional">(optional — subject to availability)</span>
+            <select id="guestGroomerSelect" name="requestedGroomerId" class="guest-input guest-input--pink">
+              <option value="">No preference</option>
+            </select>
+          </label>
+
+          <p class="guest-section-label guest-section-label--pink">APPOINTMENT</p>
+          <div class="guest-grid-2 guest-mb">
+            <label class="guest-label">Date *
+              <input type="date" name="appointmentDate" id="guestApptDate" required class="guest-input guest-input--pink" />
+            </label>
+            <label class="guest-label">Time *
+              <div id="guestTimeWrap">
+                <select name="appointmentTime" disabled class="guest-input" style="background:#f8f9fa;">
+                  <option>Select date first</option>
+                </select>
+              </div>
+            </label>
+          </div>
+
+          <div class="guest-notice guest-notice--pink">
+            <strong>📌 Please note:</strong><br/>
+            • Booking is <strong>PENDING</strong> until approved by our team<br/>
+            • You'll receive an <strong>email notification</strong> for approval/rejection<br/>
+            • Payment is at the shop upon arrival<br/>
+            • Prices vary based on pet size and fur condition
+          </div>
+
+          <p id="guestBookingMsg" class="guest-msg"></p>
+
+          <button type="submit" id="guestSubmitBtn" class="guest-submit-btn guest-submit-btn--pink">
+            Submit Booking Request
+          </button>
+        </form>
+
+        <!-- Success state -->
+        <div id="guestBookingSuccess" class="guest-success">
+          <div class="guest-success-icon">✅</div>
+          <h3 class="guest-success-title">Booking Submitted!</h3>
+          <p class="guest-success-sub">We've received your request. Check your email for confirmation.</p>
+          <p id="guestRefNo" class="guest-ref"></p>
+          <button id="guestSuccessClose" class="guest-submit-btn guest-submit-btn--pink">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUEST HOTEL BOOKING MODAL -->
+    <div id="guestHotelModal" class="guest-modal">
+      <div class="guest-modal-box">
+        <button id="guestHotelClose" class="guest-modal-close">&#x2715;</button>
+        <div class="guest-modal-header">
+          <div class="guest-modal-icon">🏨</div>
+          <h2 class="guest-modal-title guest-modal-title--blue">Guest Pet Hotel Booking</h2>
+          <p class="guest-modal-sub">We'll email you when your booking is approved or rejected</p>
+        </div>
+
+        <form id="guestHotelForm" class="guest-form">
+
+          <p class="guest-section-label guest-section-label--blue">OWNER INFORMATION</p>
+          <div class="guest-grid-2">
+            <label class="guest-label">Full Name *
+              <input type="text" name="ownerName" required placeholder="Juan dela Cruz" class="guest-input guest-input--blue" />
+            </label>
+            <label class="guest-label">Phone Number *
+              <input type="tel" name="phone" required placeholder="09XX-XXX-XXXX" class="guest-input guest-input--blue" />
+            </label>
+          </div>
+          <label class="guest-label guest-mb">Email Address *
+            <input type="email" name="email" required placeholder="juan@email.com" class="guest-input guest-input--blue" />
+          </label>
+
+          <p class="guest-section-label guest-section-label--blue">PET INFORMATION</p>
+          <div class="guest-grid-2 guest-mb">
+            <label class="guest-label">Pet Name *
+              <input type="text" name="petName" required placeholder="Buddy" class="guest-input guest-input--blue" />
+            </label>
+            <label class="guest-label">Breed *
+              <input type="text" name="breed" required placeholder="Shih Tzu" class="guest-input guest-input--blue" />
+            </label>
+            <label class="guest-label">Gender *
+              <select name="gender" required class="guest-input guest-input--blue">
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </label>
+            <label class="guest-label">Age
+              <input type="text" name="age" placeholder="e.g. 2 years" class="guest-input guest-input--blue" />
+            </label>
+          </div>
+
+          <p class="guest-section-label guest-section-label--blue">STAY TYPE *</p>
+          <div class="guest-radio-group guest-mb">
+            <label class="guest-radio-option">
+              <input type="radio" name="stayType" value="24 Hours Stay" required /> 24 Hours Stay
+            </label>
+            <label class="guest-radio-option">
+              <input type="radio" name="stayType" value="12 Hours Stay" /> 12 Hours Stay
+            </label>
+            <label class="guest-radio-option">
+              <input type="radio" name="stayType" value="Day Care" /> Day Care
+            </label>
+          </div>
+
+          <p class="guest-section-label guest-section-label--blue">CHECK-IN &amp; CHECK-OUT</p>
+          <div class="guest-grid-2 guest-mb">
+            <label class="guest-label">Check-in Date *
+              <input type="date" name="checkInDate" id="guestHotelCheckIn" required class="guest-input guest-input--blue" />
+            </label>
+            <label class="guest-label">Check-in Time *
+              <input type="time" name="checkInTime" required class="guest-input guest-input--blue" />
+            </label>
+            <label class="guest-label">Check-out Date *
+              <input type="date" name="checkOutDate" id="guestHotelCheckOut" required class="guest-input guest-input--blue" />
+            </label>
+            <label class="guest-label">Check-out Time *
+              <input type="time" name="checkOutTime" required class="guest-input guest-input--blue" />
+            </label>
+          </div>
+
+          <div class="guest-notice guest-notice--blue">
+            <strong>📌 Please note:</strong><br/>
+            • Booking is <strong>PENDING</strong> until approved by our team<br/>
+            • You'll receive an <strong>email notification</strong> for approval/rejection<br/>
+            • 24 Hours Stay starts at ₱450 · 12 Hours Stay starts at ₱350<br/>
+            • Day Care starts at ₱250 for 3 hours then ₱50/hour
+          </div>
+
+          <p id="guestHotelMsg" class="guest-msg"></p>
+
+          <button type="submit" id="guestHotelSubmitBtn" class="guest-submit-btn guest-submit-btn--blue">
+            Submit Hotel Booking Request
+          </button>
+        </form>
+
+        <!-- Success state -->
+        <div id="guestHotelSuccess" class="guest-success">
+          <div class="guest-success-icon">✅</div>
+          <h3 class="guest-success-title">Hotel Booking Submitted!</h3>
+          <p class="guest-success-sub">We've received your request. Check your email for confirmation.</p>
+          <p id="guestHotelRefNo" class="guest-ref"></p>
+          <button id="guestHotelSuccessClose" class="guest-submit-btn guest-submit-btn--blue">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"

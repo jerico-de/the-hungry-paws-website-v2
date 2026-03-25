@@ -151,8 +151,173 @@ async function sendPasswordChangedEmail(email, fullName) {
   }
 }
 
+/**
+ * Send guest booking received (pending)
+ */
+async function sendGuestBookingReceived(booking) {
+  try {
+    const subject = "📋 Booking Request Received - The Hungry Paws";
+
+    const mailOptions = {
+      from: `"The Hungry Paws" <${process.env.EMAIL_USER}>`,
+      to: booking.email,
+      subject,
+      html: `
+        <div style="font-family:Segoe UI,sans-serif;max-width:560px;margin:0 auto;color:#333;">
+          <div style="background:#d44d7c;padding:24px;text-align:center;border-radius:12px 12px 0 0;">
+            <h1 style="color:#fff;margin:0;font-size:1.4rem;">🐾 The Hungry Paws</h1>
+          </div>
+
+          <div style="background:#fff;padding:28px;border:1px solid #f5d5d5;border-top:none;border-radius:0 0 12px 12px;">
+            <h2 style="color:#d44d7c;margin-top:0;">Hi ${booking.ownerName}! 👋</h2>
+            <p>Your grooming booking request has been received and is currently <strong>PENDING</strong>.</p>
+
+            <div style="background:#fce7f0;border-radius:8px;padding:16px;margin:20px 0;">
+              <h3 style="margin:0 0 12px;color:#9d174d;">Booking Details</h3>
+              <table style="width:100%;font-size:0.9rem;">
+                <tr><td>Pet Name</td><td><strong>${booking.petName}</strong></td></tr>
+                <tr><td>Breed</td><td>${booking.breed}</td></tr>
+                <tr><td>Services</td><td>${Array.isArray(booking.services) ? booking.services.join(", ") : booking.services}</td></tr>
+                <tr><td>Date</td><td>${new Date(booking.appointmentDate).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</td></tr>
+                <tr><td>Time</td><td>${booking.appointmentTime}</td></tr>
+                ${
+                  booking.requestedGroomerName
+                    ? `<tr><td>Groomer</td><td>${booking.requestedGroomerName} (subject to availability)</td></tr>`
+                    : ""
+                }
+              </table>
+            </div>
+
+            <p style="font-size:0.9rem;color:#666;">
+              You’ll receive another email once your booking is approved or rejected.
+            </p>
+
+            <p style="font-size:0.8rem;color:#999;">
+              Ref #: <strong>${booking._id || booking.refNo}</strong>
+            </p>
+          </div>
+        </div>
+      `,
+    };
+
+    const transport = getTransporter();
+    await transport.sendMail(mailOptions);
+
+    console.log(`✅ Booking received email sent to ${booking.email}`);
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error sending booking received email:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Send guest booking approved
+ */
+async function sendGuestBookingApproved(booking) {
+  try {
+    const subject = "✅ Booking Approved - The Hungry Paws";
+
+    const mailOptions = {
+      from: `"The Hungry Paws" <${process.env.EMAIL_USER}>`,
+      to: booking.email,
+      subject,
+      html: `
+        <div style="font-family:Segoe UI,sans-serif;max-width:560px;margin:0 auto;color:#333;">
+          <div style="background:#059669;padding:24px;text-align:center;border-radius:12px 12px 0 0;">
+            <h1 style="color:#fff;margin:0;">✅ Booking Approved!</h1>
+          </div>
+
+          <div style="background:#fff;padding:28px;border:1px solid #d1fae5;border-top:none;border-radius:0 0 12px 12px;">
+            <h2 style="color:#065f46;">Great news, ${booking.ownerName}! 🎉</h2>
+            <p>Your appointment for <strong>${booking.petName}</strong> is confirmed.</p>
+
+            <div style="background:#d1fae5;border-radius:8px;padding:16px;margin:20px 0;">
+              <table style="width:100%;font-size:0.9rem;">
+                <tr><td>Services</td><td>${Array.isArray(booking.services) ? booking.services.join(", ") : booking.services}</td></tr>
+                <tr><td>Date</td><td>${new Date(booking.appointmentDate).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</td></tr>
+                <tr><td>Time</td><td>${booking.appointmentTime}</td></tr>
+              </table>
+            </div>
+
+            <p style="font-size:0.9rem;">
+              Please arrive on time. Payment will be handled at the shop.
+            </p>
+
+            <p style="font-size:0.8rem;color:#999;">
+              Ref #: <strong>${booking._id || booking.refNo}</strong>
+            </p>
+          </div>
+        </div>
+      `,
+    };
+
+    const transport = getTransporter();
+    await transport.sendMail(mailOptions);
+
+    console.log(`✅ Booking approved email sent to ${booking.email}`);
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error sending booking approved email:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Send guest booking rejected
+ */
+async function sendGuestBookingRejected(booking, reason) {
+  try {
+    const subject = "❌ Booking Update - The Hungry Paws";
+
+    const mailOptions = {
+      from: `"The Hungry Paws" <${process.env.EMAIL_USER}>`,
+      to: booking.email,
+      subject,
+      html: `
+        <div style="font-family:Segoe UI,sans-serif;max-width:560px;margin:0 auto;color:#333;">
+          <div style="background:#dc2626;padding:24px;text-align:center;border-radius:12px 12px 0 0;">
+            <h1 style="color:#fff;margin:0;">Booking Update</h1>
+          </div>
+
+          <div style="background:#fff;padding:28px;border:1px solid #fee2e2;border-top:none;border-radius:0 0 12px 12px;">
+            <h2 style="color:#991b1b;">Hi ${booking.ownerName},</h2>
+            <p>We’re unable to accommodate your booking for <strong>${booking.petName}</strong> on ${new Date(booking.appointmentDate).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}.</p>
+
+            ${
+              reason
+                ? `<div style="background:#fee2e2;padding:12px;border-radius:6px;margin:15px 0;">
+                    <strong>Reason:</strong> ${reason}
+                   </div>`
+                : ""
+            }
+
+            <p>Please feel free to book again at another time.</p>
+
+            <p style="font-size:0.8rem;color:#999;">
+              Ref #: <strong>${booking._id || booking.refNo}</strong>
+            </p>
+          </div>
+        </div>
+      `,
+    };
+
+    const transport = getTransporter();
+    await transport.sendMail(mailOptions);
+
+    console.log(`✅ Booking rejected email sent to ${booking.email}`);
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error sending booking rejected email:", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 module.exports = {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendPasswordChangedEmail,
+  sendGuestBookingReceived,
+  sendGuestBookingApproved,
+  sendGuestBookingRejected,
 };
