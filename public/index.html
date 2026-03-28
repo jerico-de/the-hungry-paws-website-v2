@@ -16,8 +16,26 @@
 
     <!-- NAVBAR -->
     <div id="navbar">
-      <div class="container">
-        <img src="images/logo.png" class="logo" alt="TheHungryPaws" />
+      <div class="container nav-wrapper">
+
+        <!-- LEFT: LOGO -->
+        <div class="nav-left">
+          <img src="images/logo.png" class="logo" alt="TheHungryPaws" />
+        </div>
+
+        <!-- CENTER: NAV LINKS -->
+        <div class="nav-links">
+          <a href="#hero">Home</a>
+          <a href="#services">Services</a>
+          <a href="#contact">Contact</a>
+        </div>
+
+        <!-- RIGHT: AUTH -->
+        <div class="nav-auth">
+          <button id="loginBtn" class="login-btn">Login</button>
+          <button id="signupBtn" class="signup-btn">Sign Up</button>
+          <a href="employee-login.html" class="employee-btn">Employee Portal</a>
+        </div>
 
         <button class="hamburger" id="hamburger" aria-label="Menu">
           <span></span>
@@ -38,19 +56,8 @@
           <div class="mobile-auth">
             <button id="mobileLoginBtn" class="login-btn">Login</button>
             <button id="mobileSignupBtn" class="signup-btn">Sign Up</button>
+            <a href="employee-login.html" class="employee-btn">Employee Portal</a>
           </div>
-        </div>
-
-        <!-- Desktop Nav -->
-        <div class="nav-links">
-          <a href="#hero">Home</a>
-          <a href="#services">Services</a>
-          <a href="#contact">Contact</a>
-        </div>
-
-        <div class="nav-auth">
-          <button id="loginBtn" class="login-btn">Login</button>
-          <button id="signupBtn" class="signup-btn">Sign Up</button>
         </div>
 
         <!-- Login Modal -->

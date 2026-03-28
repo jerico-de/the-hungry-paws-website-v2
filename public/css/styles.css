@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-  max-width: 1100px;
+  max-width: 1300px;
   margin: auto;
   padding: 0 20px;
   display: flex;
@@ -36,8 +36,8 @@ body {
 #navbar .container {
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   height: 60px;
+  width: 100%;
 }
 
 #navbar a {
@@ -54,15 +54,38 @@ body {
   height: 30px;
 }
 
-#navbar a:hover,
-#navbar a.active {
+#navbar .nav-links a:hover {
   background-color: #d44d7c;
-  color: white;
+  color: rgb(255, 255, 255);
   border-radius: 50px;
 }
 
-#navbar a.active::after {
-  content: " 🐾";
+.nav-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  height: 60px;
+}
+
+.nav-links {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+}
+
+.nav-auth {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
 }
 
 /* ========== HAMBURGER MENU ========== */
@@ -132,7 +155,7 @@ body {
   margin-bottom: 20px;
 }
 
-.mobile-nav-links a {
+#navbar .mobile-nav-links a {
   padding: 12px 15px;
   text-decoration: none;
   font-weight: 600;
@@ -169,17 +192,30 @@ body {
   color: white;
 }
 
-/* Auth Buttons */
-.nav-auth {
-  display: flex;
-  gap: 10px;
+#navbar .mobile-auth .employee-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background-color: #6c757d;
+  border: 2px solid #6c757d;
+  color: white;
+  padding: 10px;
+  border-radius: 30px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.3s ease;
 }
 
+.mobile-auth .employee-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Auth Buttons */
 .nav-auth button {
   background-color: #1870c7;
   border: 2px solid #1870c7;
   color: white;
-  padding: 6px 16px;
+  padding: 5px 12px;
   border-radius: 30px;
   font-weight: 600;
   cursor: pointer;
@@ -197,6 +233,38 @@ body {
 .mobile-auth button:hover {
   opacity: 0.85;
   transform: translateY(-1px);
+}
+
+#navbar .nav-auth .employee-btn {
+  display: inline-block;
+  background-color: #6c757d;
+  border: 2px solid #6c757d;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 30px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.3s ease;
+}
+
+.nav-auth .employee-btn:hover {
+  background-color: #5a6268;
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+
+  .nav-auth {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
 }
 
 /* ========== AFTER SECTION HEADER ======= */
