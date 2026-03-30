@@ -1,23 +1,24 @@
 require("dotenv").config();
 
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const session = require("express-session");
+const express    = require("express");
+const cors       = require("cors");
+const helmet     = require("helmet");
+const session    = require("express-session");
 const MongoStore = require("connect-mongo");
-const path = require("path");
-const passport = require("./config/passport");
+const path       = require("path");
+const passport   = require("./config/passport");
 const { errorHandler } = require("./utils/errors");
 
-const authRoutes     = require("./routes/auth.routes");
-const userRoutes     = require("./routes/user.routes");
-const petRoutes      = require("./routes/pet.routes");
-const bookingRoutes  = require("./routes/booking.routes");
-const adminRoutes    = require("./routes/admin.routes");
-const contactRoutes  = require("./routes/contact.routes");
-const uploadRouter   = require("./routes/upload.routes");
+const authRoutes         = require("./routes/auth.routes");
+const userRoutes         = require("./routes/user.routes");
+const petRoutes          = require("./routes/pet.routes");
+const bookingRoutes      = require("./routes/booking.routes");
+const adminRoutes        = require("./routes/admin.routes");
+const contactRoutes      = require("./routes/contact.routes");
+const uploadRouter       = require("./routes/upload.routes");
 const employeesRouter    = require("./routes/employee.routes");
 const guestBookingRouter = require("./routes/guest.booking.routes");
+const feedbackRouter     = require("./routes/feedback.routes");
 
 const app = express();
 
@@ -29,11 +30,47 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc:  ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
-        styleSrc:   ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
-        imgSrc:     ["'self'", "data:", "*.amazonaws.com", "www.google.com", "*.googleusercontent.com"],
-        connectSrc: ["'self'"],
-        fontSrc:    ["'self'", "cdn.jsdelivr.net"],
+
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://cdn.jsdelivr.net",
+        ],
+
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://cdn.jsdelivr.net",
+          "https://fonts.googleapis.com",
+        ],
+
+        fontSrc: [
+          "'self'",
+          "https://fonts.gstatic.com",
+          "https://cdn.jsdelivr.net",
+        ],
+
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https://*.amazonaws.com",
+          "https://www.google.com",
+          "https://*.googleapis.com",
+          "https://*.gstatic.com",
+          "https://*.googleusercontent.com",
+        ],
+
+        
+        connectSrc: [
+          "'self'",
+          "https://cdn.jsdelivr.net",
+        ],
+
+        frameSrc: [
+          "'self'",
+          "https://www.google.com",
+          "https://maps.google.com",
+        ],
       },
     },
   }),
@@ -57,12 +94,12 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
-      dbName: "hungry-paws",
+      dbName:   "hungry-paws",
     }),
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge:   1000 * 60 * 60 * 24,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure:   process.env.NODE_ENV === "production",
       sameSite: "lax",
     },
     proxy: true,
@@ -75,17 +112,18 @@ app.use(passport.session());
 // =====================
 // API Routes
 // =====================
-app.use("/api/auth",     authRoutes);
-app.use("/api/user",     userRoutes);
-app.use("/api/pets",     petRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/admin",    adminRoutes);
-app.use("/api/contact",  contactRoutes);
-app.use("/api",          uploadRouter);
+app.use("/api/auth",          authRoutes);
+app.use("/api/user",          userRoutes);
+app.use("/api/pets",          petRoutes);
+app.use("/api/bookings",      bookingRoutes);
+app.use("/api/admin",         adminRoutes);
+app.use("/api/contact",       contactRoutes);
+app.use("/api",               uploadRouter);
 app.use("/api/employee",      employeesRouter);
 app.use("/api/guest.bookings", guestBookingRouter);
+app.use("/api/feedback",      feedbackRouter);
 
-// Legacy routes for backward compatibility
+// Legacy routes
 app.post("/api/signup", require("./controllers/auth.controller").signup);
 app.post("/api/login",  require("./controllers/auth.controller").login);
 app.post("/logout",     require("./controllers/auth.controller").logout);

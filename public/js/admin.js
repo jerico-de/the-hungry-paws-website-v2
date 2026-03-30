@@ -1,3 +1,50 @@
+// @ts-nocheck
+
+/* ═══════════════════════════════════════════════════════
+   UNIVERSAL TOAST  –  showToast(msg, type, duration)
+════════════════════════════════════════════════════════ */
+function showToast(msg, type = "success", duration = 3200) {
+  const ICONS  = { success:"✅", error:"❌", info:"ℹ️", warning:"⚠️" };
+  const COLORS = {
+    success:{ bg:"#d1fae5", border:"#6ee7b7", text:"#065f46" },
+    error:  { bg:"#fee2e2", border:"#fca5a5", text:"#991b1b" },
+    info:   { bg:"#dbeafe", border:"#93c5fd", text:"#1e40af" },
+    warning:{ bg:"#fef3c7", border:"#fcd34d", text:"#92400e" },
+  };
+  const c = COLORS[type]||COLORS.info;
+  const existing = document.querySelectorAll(".hp-toast");
+  const offset   = 24 + existing.length*68;
+  const t = document.createElement("div");
+  t.className="hp-toast";
+  t.style.cssText=`position:fixed;bottom:${offset}px;right:24px;z-index:99999;display:flex;align-items:center;gap:10px;background:${c.bg};border:1.5px solid ${c.border};color:${c.text};padding:13px 18px;border-radius:12px;font-size:0.9rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,0.12);max-width:340px;animation:toastIn .28s cubic-bezier(.34,1.56,.64,1) both;font-family:"Segoe UI",Tahoma,sans-serif;`;
+  t.innerHTML=`<span style="font-size:1.1rem;flex-shrink:0;">${ICONS[type]}</span><span>${msg}</span>`;
+  if (!document.getElementById("toastStyle")) {
+    const s=document.createElement("style"); s.id="toastStyle";
+    s.textContent=`@keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes toastOut{to{opacity:0;transform:translateY(12px) scale(.95)}}`;
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.animation="toastOut .25s ease forwards"; setTimeout(()=>t.remove(),260); },duration);
+}
+
+/* ═══════════════════════════════════════════════════════
+   UNIVERSAL CONFIRM  –  returns Promise<boolean>
+════════════════════════════════════════════════════════ */
+function showConfirm({ title="Are you sure?", message="", confirmText="Confirm", cancelText="Cancel", danger=false }={}) {
+  return new Promise(resolve => {
+    document.getElementById("hpConfirmModal")?.remove();
+    const el=document.createElement("div"); el.id="hpConfirmModal";
+    el.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px;animation:statFadeIn .18s ease;font-family:'Segoe UI',Tahoma,sans-serif;";
+    const btnColor=danger?"background:#d44d7c;color:#fff;":"background:#1870c7;color:#fff;";
+    el.innerHTML=`<div style="background:#fff;border-radius:16px;padding:28px 26px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.18);animation:statSlideUp .22s ease;"><h3 style="font-size:1.1rem;font-weight:700;color:#222;margin:0 0 8px;">${title}</h3>${message?`<p style="font-size:0.88rem;color:#666;margin:0 0 22px;line-height:1.55;">${message}</p>`:`<div style="margin-bottom:22px;"></div>`}<div style="display:flex;gap:10px;"><button id="hpConfirmYes" style="flex:1;padding:11px 0;border:none;border-radius:30px;${btnColor}font-weight:700;font-size:0.95rem;cursor:pointer;font-family:inherit;">${confirmText}</button><button id="hpConfirmNo" style="flex:1;padding:11px 0;border:2px solid #e0e0e0;border-radius:30px;background:none;color:#777;font-weight:600;font-size:0.95rem;cursor:pointer;font-family:inherit;">${cancelText}</button></div></div>`;
+    document.body.appendChild(el); document.body.style.overflow="hidden";
+    const done=v=>{ el.remove(); document.body.style.overflow=""; resolve(v); };
+    document.getElementById("hpConfirmYes").onclick=()=>done(true);
+    document.getElementById("hpConfirmNo").onclick=()=>done(false);
+    el.addEventListener("click",e=>{ if(e.target===el)done(false); });
+  });
+}
+
 const sidebarLinks = document.querySelectorAll(".sidebar-link[data-section]");
 const content      = document.getElementById("dashboardContent");
 
@@ -44,6 +91,7 @@ sidebarLinks.forEach((link) => {
     if (s === "leave")      loadLeaveSection();
     if (s === "messages")   loadMessagesSection();
     if (s === "payroll")    loadPayrollSection();
+    if (s === "feedback")   loadFeedbackSection();
   });
 });
 
@@ -51,7 +99,41 @@ document.addEventListener("DOMContentLoaded", () => {
   loadDashboard();
   pollUnreadMessages();
   setInterval(pollUnreadMessages, 30000);
+
+  /* Logout confirmation — admin */
+  document.getElementById("adminLogoutBtn")?.addEventListener("click", function(e) {
+    e.preventDefault();
+    const form = document.getElementById("adminLogoutForm");
+    showLogoutConfirmAdmin(() => form.submit());
+  });
 });
+
+/* ===============================
+   LOGOUT CONFIRM (ADMIN)
+================================ */
+function showLogoutConfirmAdmin(onConfirm) {
+  document.getElementById("logoutConfirmAdmin")?.remove();
+  const el = document.createElement("div");
+  el.id = "logoutConfirmAdmin";
+  el.className = "logout-confirm-overlay";
+  el.innerHTML = `
+    <div class="logout-confirm-box">
+      <div class="logout-confirm-icon">👋</div>
+      <h3>Logging Out?</h3>
+      <p>Are you sure you want to log out of the admin panel?</p>
+      <div class="logout-confirm-btns">
+        <button class="logout-confirm-yes" id="ladmYes">Yes, Log Out</button>
+        <button class="logout-confirm-no"  id="ladmNo">Stay</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(el);
+  document.body.style.overflow = "hidden";
+  const close = () => { el.remove(); document.body.style.overflow = ""; };
+  document.getElementById("ladmNo").onclick = close;
+  el.addEventListener("click", e => { if (e.target === el) close(); });
+  document.getElementById("ladmYes").onclick = () => { close(); onConfirm(); };
+}
 
 /* ===============================
    SHARED HELPERS
@@ -127,7 +209,7 @@ function renderDashboardStats(s) {
       card.style.cssText = `background:${c.bg};border-color:${c.border};`;
       card.innerHTML = `
         <p class="admin-stat-label">${label}</p>
-        <p class="admin-stat-num" style="color:${c.num};">${value ?? "u2014"}</p>
+        <p class="admin-stat-num" style="color:${c.num};">${value ?? "—"}</p>
         ${fetchKey ? `<span class="admin-stat-hint">Click to view details</span>` : ""}
       `;
       if (fetchKey) card.addEventListener("click", () => openStatModal(label, fetchKey, c));
@@ -152,7 +234,7 @@ async function openStatModal(title, fetchKey, colors) {
       <div class="stat-modal-body" id="statModalBody">
         <div class="stat-modal-loading">
           <div class="stat-modal-spinner"></div>
-          <p>Loading bookingsu2026</p>
+          <p>Loading bookings…</p>
         </div>
       </div>
     </div>
@@ -223,7 +305,7 @@ function loadProfile() {
   const contact = el.dataset.contact || "";
   const address = el.dataset.address || "";
   const joined  = el.dataset.joined
-    ? new Date(el.dataset.joined).toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"}) : "u2014";
+    ? new Date(el.dataset.joined).toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"}) : "—";
 
   content.innerHTML = `
     <h2>My Profile</h2>
@@ -247,11 +329,11 @@ function loadProfile() {
         </div>
         <div class="profile-info-item">
           <span class="profile-info-label">Contact</span>
-          <span class="profile-info-value">${contact || "u2014"}</span>
+          <span class="profile-info-value">${contact || "—"}</span>
         </div>
         <div class="profile-info-item">
           <span class="profile-info-label">Address</span>
-          <span class="profile-info-value">${address || "u2014"}</span>
+          <span class="profile-info-value">${address || "—"}</span>
         </div>
         <div class="profile-info-item">
           <span class="profile-info-label">Date Joined</span>
@@ -322,7 +404,7 @@ function loadProfile() {
       const result = await res.json();
       if (result.success) {
         content.dataset.name = body.fullName; content.dataset.contact = body.contact; content.dataset.address = body.address;
-        alert("Profile updated!"); loadProfile();
+        showToast("Profile updated!"); loadProfile();
       } else { msg.textContent = result.message; msg.style.display = "block"; }
     } catch (err) { msg.textContent = "Error saving profile."; msg.style.display = "block"; }
   };
@@ -345,7 +427,7 @@ function loadProfile() {
     try {
       const res    = await fetch("/api/user/change-password", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ currentPassword:current, newPassword:newPass }) });
       const result = await res.json();
-      if (result.success) { alert("Password updated!"); loadProfile(); }
+      if (result.success) { showToast("Password updated!"); loadProfile(); }
       else { msg.textContent = result.message; msg.style.display = "block"; }
     } catch (err) { msg.textContent = "Error updating password."; msg.style.display = "block"; }
   };
@@ -639,13 +721,13 @@ async function fetchAndRenderEmployees() {
     wrap.querySelectorAll(".emp-del-btn").forEach((btn) => {
       btn.onclick = async (ev) => {
         ev.stopPropagation();
-        if (!confirm("Delete this employee?")) return;
+        if (!await showConfirm({title:"Confirm Action",message:"Delete this employee?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
         try {
           const res    = await fetch(`/api/admin/employees/${btn.dataset.id}`, { method:"DELETE" });
           const result = await res.json();
           if (result.success) await fetchAndRenderEmployees();
-          else alert(result.message);
-        } catch (err) { alert("Error deleting employee."); }
+          else showToast(result.message,"error");
+        } catch (err) { showToast("Error deleting employee.","error"); }
       };
     });
   } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading employees.</p>"; }
@@ -834,7 +916,7 @@ function openEmpDetail(emp) {
 }
 
 /* ===============================
-   4. ON DUTY u2014 full page
+   4. ON DUTY — full page
 ================================ */
 async function loadDutySection() {
   content.innerHTML = `
@@ -879,7 +961,7 @@ async function renderDutyPage() {
               <label class="admin-form-label">Groomer / Staff
                 <select id="dutyGroomer" class="admin-form-input">
                   <option value="">Select employee</option>
-                  ${groomers.map((g) => `<option value="${g._id}">${g.name} u2014 ${g.role}</option>`).join("")}
+                  ${groomers.map((g) => `<option value="${g._id}">${g.name} — ${g.role}</option>`).join("")}
                 </select>
               </label>
               <label class="admin-form-label">Date
@@ -915,7 +997,7 @@ async function renderDutyPage() {
                           <p class="ops-duty-name">${d.groomerName}</p>
                           ${d.notes ? `<p class="ops-duty-meta">${d.notes}</p>` : ""}
                         </div>
-                        <button class="duty-remove-btn" data-id="${d._id}">u2715</button>
+                        <button class="duty-remove-btn" data-id="${d._id}">✕</button>
                       </div>`).join("")}
                   </div>`).join("")}
           </div>
@@ -928,24 +1010,24 @@ async function renderDutyPage() {
       const groomerId = document.getElementById("dutyGroomer").value;
       const date      = document.getElementById("dutyDate").value;
       const notes     = document.getElementById("dutyNotes").value.trim();
-      if (!groomerId || !date) { alert("Please select an employee and date."); return; }
+      if (!groomerId || !date) { showToast("Please select an employee and date.","warning"); return; }
       try {
         const res    = await fetch("/api/admin/operations/duty", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ groomerId, date, notes }) });
         const result = await res.json();
         if (result.success) await renderDutyPage();
-        else alert(result.message);
-      } catch (err) { alert("Error assigning duty."); }
+        else showToast(result.message,"error");
+      } catch (err) { showToast("Error assigning duty.","error"); }
     };
 
     wrap.querySelectorAll(".duty-remove-btn").forEach((btn) => {
       btn.onclick = async () => {
-        if (!confirm("Remove this duty assignment?")) return;
+        if (!await showConfirm({title:"Confirm Action",message:"Remove this duty assignment?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
         try {
           const res    = await fetch(`/api/admin/operations/duty/${btn.dataset.id}`, { method:"DELETE" });
           const result = await res.json();
           if (result.success) await renderDutyPage();
-          else alert(result.message);
-        } catch (err) { alert("Error removing assignment."); }
+          else showToast(result.message,"error");
+        } catch (err) { showToast("Error removing assignment.","error"); }
       };
     });
 
@@ -956,7 +1038,7 @@ async function renderDutyPage() {
 }
 
 /* ===============================
-   5. LEAVE REQUESTS u2014 full page
+   5. LEAVE REQUESTS — full page
 ================================ */
 async function loadLeaveSection() {
   content.innerHTML = `
@@ -1066,12 +1148,12 @@ async function renderLeavePage() {
                     const days = Math.max(1, Math.round((to - from) / 86400000) + 1);
                     return `
                       <tr>
-                        <td><strong>${l.employeeName||"u2014"}</strong></td>
-                        <td>${l.leaveType||"u2014"}</td>
+                        <td><strong>${l.employeeName||"—"}</strong></td>
+                        <td>${l.leaveType||"—"}</td>
                         <td>${from.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}</td>
                         <td>${to.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}</td>
                         <td style="text-align:center;">${days}</td>
-                        <td style="max-width:180px;word-break:break-word;">${l.reason||"u2014"}</td>
+                        <td style="max-width:180px;word-break:break-word;">${l.reason||"—"}</td>
                         <td>
                           <span class="leave-status-badge" style="background:${s.bg};color:${s.color};">
                             ${(l.status||"pending").toUpperCase()}
@@ -1091,7 +1173,7 @@ async function renderLeavePage() {
       </div>
     `;
 
-    /* File leave button u2014 load employee list on open */
+    /* File leave button — load employee list on open */
     document.getElementById("fileLeaveBtn").onclick = async () => {
       const form = document.getElementById("leaveForm");
       form.style.display = "block";
@@ -1101,7 +1183,7 @@ async function renderLeavePage() {
         const d = await r.json();
         const sel = document.getElementById("leaveEmployee");
         sel.innerHTML = `<option value="">Select employee</option>` +
-          (d.employees||[]).map((e) => `<option value="${e._id}">${e.name} u2014 ${e.role}</option>`).join("");
+          (d.employees||[]).map((e) => `<option value="${e._id}">${e.name} — ${e.role}</option>`).join("");
       } catch(_) {}
     };
 
@@ -1117,13 +1199,13 @@ async function renderLeavePage() {
         leaveType:  document.getElementById("leaveType").value,
         reason:     document.getElementById("leaveReason").value.trim(),
       };
-      if (!body.employeeId || !body.fromDate || !body.toDate) { alert("Employee and dates are required."); return; }
+      if (!body.employeeId || !body.fromDate || !body.toDate) { showToast("Employee and dates are required."); return; }
       try {
         const res    = await fetch("/api/admin/operations/leave", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
         const result = await res.json();
         if (result.success) await renderLeavePage();
-        else alert(result.message);
-      } catch (err) { alert("Error filing leave."); }
+        else showToast(result.message,"error");
+      } catch (err) { showToast("Error filing leave.","error"); }
     };
 
     wrap.querySelectorAll(".leave-approve-btn").forEach((btn) => {
@@ -1132,32 +1214,32 @@ async function renderLeavePage() {
           const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}/approve`, { method:"PUT" });
           const result = await res.json();
           if (result.success) await renderLeavePage();
-          else alert(result.message);
-        } catch (err) { alert("Error approving leave."); }
+          else showToast(result.message,"error");
+        } catch (err) { showToast("Error approving leave.","error"); }
       };
     });
 
     wrap.querySelectorAll(".leave-reject-btn").forEach((btn) => {
       btn.onclick = async () => {
-        if (!confirm("Reject this leave request?")) return;
+        if (!await showConfirm({title:"Confirm Action",message:"Reject this leave request?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
         try {
           const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}/reject`, { method:"PUT" });
           const result = await res.json();
           if (result.success) await renderLeavePage();
-          else alert(result.message);
-        } catch (err) { alert("Error rejecting leave."); }
+          else showToast(result.message,"error");
+        } catch (err) { showToast("Error rejecting leave.","error"); }
       };
     });
 
     wrap.querySelectorAll(".leave-del-btn").forEach((btn) => {
       btn.onclick = async () => {
-        if (!confirm("Delete this leave request?")) return;
+        if (!await showConfirm({title:"Confirm Action",message:"Delete this leave request?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
         try {
           const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}`, { method:"DELETE" });
           const result = await res.json();
           if (result.success) await renderLeavePage();
-          else alert(result.message);
-        } catch (err) { alert("Error deleting leave."); }
+          else showToast(result.message,"error");
+        } catch (err) { showToast("Error deleting leave.","error"); }
       };
     });
 
@@ -1216,13 +1298,13 @@ function loadMessagesSection() {
       messagesContent.innerHTML = html;
       document.querySelectorAll(".markReadBtn").forEach((btn) => {
         btn.onclick = async () => {
-          try { const res = await fetch(`/api/contact/${btn.dataset.id}/read`,{method:"PUT"}); const r = await res.json(); if(r.success){loadMessages(status);pollUnreadMessages();}else alert(r.message); } catch(err){alert("Error");}
+          try { const res = await fetch(`/api/contact/${btn.dataset.id}/read`,{method:"PUT"}); const r = await res.json(); if(r.success){loadMessages(status);pollUnreadMessages();}else showToast(r.message,"error"); } catch(err){showToast("Error");}
         };
       });
       document.querySelectorAll(".deleteMessageBtn").forEach((btn) => {
         btn.onclick = async () => {
-          if (!confirm("Delete this message?")) return;
-          try { const res = await fetch(`/api/contact/${btn.dataset.id}`,{method:"DELETE"}); const r = await res.json(); if(r.success){alert(r.message);loadMessages(status);pollUnreadMessages();}else alert(r.message); } catch(err){alert("Error");}
+          if (!await showConfirm({title:"Confirm Action",message:"Delete this message?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
+          try { const res = await fetch(`/api/contact/${btn.dataset.id}`,{method:"DELETE"}); const r = await res.json(); if(r.success){showToast(r.message,"error");loadMessages(status);pollUnreadMessages();}else showToast(r.message,"error"); } catch(err){showToast("Error");}
         };
       });
     } catch (err) { messagesContent.innerHTML = "<p>Error loading messages.</p>"; }
@@ -1290,7 +1372,7 @@ function showRejectModal(bookingId, onConfirm) {
 }
 
 /* ===============================
-   7. BOOKINGS u2014 CALENDAR VIEW
+   7. BOOKINGS — CALENDAR VIEW
 ================================ */
 function loadBookingsSection(defaultTab = "calendar") {
   content.innerHTML = `
@@ -1373,6 +1455,27 @@ function loadBookingsSection(defaultTab = "calendar") {
         } catch(err){ console.error(err); }
       }
     }
+    /* Also load guest bookings (grooming + hotel) */
+    try {
+      const gRes  = await fetch("/api/guest.bookings?status=all");
+      const gData = await gRes.json();
+      if (gData.success) {
+        (gData.bookings || []).forEach(b => {
+          results.push({
+            ...b,
+            type:        b.type || "grooming",
+            status:      b.status,
+            isGuest:     true,
+            userName:    b.ownerName,
+            userEmail:   b.email,
+            userContact: b.phone,
+            pets:        [{ name: b.petName, breed: b.breed, photo: null }],
+            services:    b.services,
+          });
+        });
+      }
+    } catch(err){ console.error("Guest booking calendar fetch error:", err); }
+
     allBookings = results; renderCal(); updateBadge();
     if (selDate) { window.innerWidth<=768?openDrawer(selDate):populateSidePanel(selDate); }
   }
@@ -1402,17 +1505,20 @@ function loadBookingsSection(defaultTab = "calendar") {
     const num=document.createElement("span"); num.className="cal-cell-num"; num.textContent=date.getDate(); cell.appendChild(num);
     const dayB=getFor(date);
     if(window.innerWidth<=768){
-      const c={pending:0,approved:0,rejected:0}; dayB.forEach((b)=>{if(c[b.status]!==undefined)c[b.status]++;});
+      const c={pending:0,approved:0,rejected:0,guest:0}; dayB.forEach((b)=>{if(b.isGuest)c.guest++;else if(c[b.status]!==undefined)c[b.status]++;});
       const dr=document.createElement("div"); dr.className="cal-dot-row";
       if(c.pending)  dr.innerHTML+=`<span class="cal-mini-dot cal-mini-pending">${c.pending}</span>`;
       if(c.approved) dr.innerHTML+=`<span class="cal-mini-dot cal-mini-approved">${c.approved}</span>`;
       if(c.rejected) dr.innerHTML+=`<span class="cal-mini-dot cal-mini-rejected">${c.rejected}</span>`;
+      if(c.guest)    dr.innerHTML+=`<span class="cal-mini-dot cal-mini-guest">${c.guest}</span>`;
       if(dr.innerHTML) cell.appendChild(dr);
     } else {
       dayB.slice(0,3).forEach((b)=>{
-        const dot=document.createElement("div"); dot.className=`cal-dot cal-dot-${b.type}-${b.status}`;
-        let p="G ";
-        if(b.type==="hotel"){if(b.hotelCheckoutDate){const ci=midnight(new Date(b.appointmentDate)),co=midnight(new Date(b.hotelCheckoutDate)),cur=midnight(date);if(cur.getTime()===ci.getTime())p="H-CI ";else if(cur.getTime()===co.getTime())p="H-CO ";else p="H-";}else p="H ";}
+        const isGuest = !!b.isGuest;
+        const dotClass = isGuest ? `cal-dot cal-dot-grooming-guest-${b.status}` : `cal-dot cal-dot-${b.type}-${b.status}`;
+        const dot=document.createElement("div"); dot.className=dotClass;
+        let p = isGuest ? "👤 " : "G ";
+        if(b.type==="hotel"&&!isGuest){if(b.hotelCheckoutDate){const ci=midnight(new Date(b.appointmentDate)),co=midnight(new Date(b.hotelCheckoutDate)),cur=midnight(date);if(cur.getTime()===ci.getTime())p="H-CI ";else if(cur.getTime()===co.getTime())p="H-CO ";else p="H-";}else p="H ";}
         dot.textContent=p+(b.userName||"?").split(" ")[0]; cell.appendChild(dot);
       });
       if(dayB.length>3){const m=document.createElement("div");m.className="cal-more";m.textContent=`+${dayB.length-3} more`;cell.appendChild(m);}
@@ -1423,21 +1529,27 @@ function loadBookingsSection(defaultTab = "calendar") {
 
   function buildCard(b,isPending,listEl) {
     const item=document.createElement("div"); item.className="cal-booking-item";
-    const pH=b.pets.map((p)=>`<span class="cal-pet-chip"><img src="/images/default-pet.png" data-s3key="${p.photo||""}" alt="${p.name}" class="cal-pet-av pet-photo"/>${p.name}</span>`).join("");
+    const isGuest = !!b.isGuest;
+    const guestBadge = isGuest ? `<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:8px;font-weight:700;letter-spacing:.03em;margin-left:4px;">GUEST</span>` : "";
+    const pH=b.pets.map((p)=>`<span class="cal-pet-chip"><img src="/images/default-pet.png" ${!isGuest&&p.photo?`data-s3key="${p.photo}"`:""}  alt="${p.name}" class="cal-pet-av ${!isGuest&&p.photo?"pet-photo":""}"/>${p.name}</span>`).join("");
     const dH=b.type==="hotel"?`Check-in: ${new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} ${b.appointmentTime||""} &bull; Check-out: ${b.hotelCheckoutDate?new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"}):"N/A"} ${b.hotelCheckoutTime||""}`:`Time: ${b.appointmentTime||"N/A"} &bull; ${Array.isArray(b.services)?b.services.join(", "):(b.services||"")}`;
     const sb=isPending?"":`<span class="cal-status-badge cal-status-${b.status}">${b.status.toUpperCase()}</span>`;
-    const ac=isPending?`<div class="cal-bi-actions"><button class="cal-btn-approve" data-id="${b._id}">Approve</button><button class="cal-btn-reject" data-id="${b._id}">Reject</button></div>`:`<div class="cal-bi-actions"><button class="cal-btn-edit" data-id="${b._id}">Move to Pending</button></div>`;
-    const groomerLine=b.requestedGroomerName?`<p class="cal-bi-detail" style="color:#d44d7c;">✂️ Requested groomer: <strong>${b.requestedGroomerName}</strong></p>`:""; item.innerHTML=`<div class="cal-bi-top"><div><p class="cal-bi-name">${b.userName||"Unknown"}</p><p class="cal-bi-email">${b.userEmail||""}</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="cal-type-pill ${b.type==="hotel"?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span>${sb}</div></div><div class="cal-bi-pets">${pH}</div><p class="cal-bi-detail">${dH}</p>${groomerLine}<p class="cal-bi-contact">${b.userContact||""}</p>${ac}`;
+    const ac=isPending?`<div class="cal-bi-actions"><button class="cal-btn-approve" data-id="${b._id}" data-guest="${isGuest}">Approve</button><button class="cal-btn-reject" data-id="${b._id}" data-guest="${isGuest}">Reject</button></div>`:`<div class="cal-bi-actions"><button class="cal-btn-edit" data-id="${b._id}" data-guest="${isGuest}">Move to Pending</button></div>`;
+    const groomerLine=b.requestedGroomerName?`<p class="cal-bi-detail" style="color:#d44d7c;">✂️ Requested: <strong>${b.requestedGroomerName}</strong></p>`:"";
+    const contactLine=isGuest&&b.phone?`<p class="cal-bi-contact">${b.userEmail||""} · ${b.phone}</p>`:`<p class="cal-bi-contact">${b.userContact||""}</p>`;
+    item.innerHTML=`<div class="cal-bi-top"><div><p class="cal-bi-name" style="display:inline;">${b.userName||"Unknown"}</p>${guestBadge}<p class="cal-bi-email">${b.userEmail||""}</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="cal-type-pill ${b.type==="hotel"?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span>${sb}</div></div><div class="cal-bi-pets">${pH}</div><p class="cal-bi-detail">${dH}</p>${groomerLine}${contactLine}${ac}`;
     listEl.appendChild(item);
-    item.querySelectorAll(".pet-photo[data-s3key]").forEach(async(img)=>{const k=img.dataset.s3key;if(!k)return;try{const r=await fetch(`/api/file?name=${encodeURIComponent(k)}`);const d=await r.json();if(d.success)img.src=d.url;}catch(_){}});
+    if(!isGuest){ item.querySelectorAll(".pet-photo[data-s3key]").forEach(async(img)=>{const k=img.dataset.s3key;if(!k)return;try{const r=await fetch(`/api/file?name=${encodeURIComponent(k)}`);const d=await r.json();if(d.success)img.src=d.url;}catch(_){}}); }
+    const approveUrl=(id)=>isGuest?`/api/guest.bookings/${id}/approve`:`/api/admin/bookings/${id}/approve`;
+    const rejectUrl =(id)=>isGuest?`/api/guest.bookings/${id}/reject` :`/api/admin/bookings/${id}/reject`;
+    const pendingUrl=(id)=>isGuest?`/api/guest.bookings/${id}/pending`:`/api/admin/bookings/${id}/pending`;
     const ab=item.querySelector(".cal-btn-approve");
-    if(ab){ab.onclick=async()=>{if(!confirm("Approve this booking?"))return;try{const r=await fetch(`/api/admin/bookings/${ab.dataset.id}/approve`,{method:"PUT"});const rs=await r.json();if(rs.success){closeDrawer();alert(rs.message);await fetchAll();}else alert(rs.message);}catch(e){alert("Error approving booking");}};}
+    if(ab){ab.onclick = async ()=>{if(!confirm(`Approve this booking?${isGuest?" An email will be sent to the guest.":""}`))return;try{const r=await fetch(approveUrl(ab.dataset.id),{method:"PUT"});const rs=await r.json();if(rs.success){closeDrawer();await fetchAll();}else showToast(rs.message,"error");}catch(e){showToast("Error approving booking.","error");}};}
     const rb=item.querySelector(".cal-btn-reject");
-    if(rb){rb.onclick=()=>{showRejectModal(rb.dataset.id,async(reason)=>{try{const r=await fetch(`/api/admin/bookings/${rb.dataset.id}/reject`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({reason})});const rs=await r.json();if(rs.success){closeDrawer();alert(rs.message);await fetchAll();}else alert(rs.message);}catch(e){alert("Error rejecting booking");}});};}
+    if(rb){rb.onclick=()=>{showRejectModal(rb.dataset.id,async(reason)=>{try{const r=await fetch(rejectUrl(rb.dataset.id),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({reason})});const rs=await r.json();if(rs.success){closeDrawer();await fetchAll();}else showToast(rs.message,"error");}catch(e){showToast("Error rejecting booking.","error")}});};}
     const eb=item.querySelector(".cal-btn-edit");
-    if(eb){eb.onclick=async()=>{if(!confirm("Move this booking back to pending?"))return;try{const r=await fetch(`/api/admin/bookings/${eb.dataset.id}/pending`,{method:"PUT",headers:{"Content-Type":"application/json"}});const rs=await r.json();if(rs.success){closeDrawer();alert(rs.message);await fetchAll();}else alert(rs.message);}catch(e){alert("Error updating booking");}};}
+    if(eb){eb.onclick = async ()=>{if(!confirm("Move this booking back to pending?"))return;try{const r=await fetch(pendingUrl(eb.dataset.id),{method:"PUT",headers:{"Content-Type":"application/json"}});const rs=await r.json();if(rs.success){closeDrawer();await fetchAll();}else showToast(rs.message,"error");}catch(e){showToast("Error updating booking.","error");}};}
   }
-
   function populateSidePanel(date) {
     const sd=document.getElementById("calSideDate"),sl=document.getElementById("calSideList"),st=document.getElementById("calSideTitle");
     sd.textContent=date.toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
@@ -1647,8 +1759,8 @@ async function loadBookingHistory() {
             const b = bookings.find((x) => x._id === id);
             if (b) { b.outcome = outcome; b.outcomeNote = note; }
             renderHistory();
-          } else alert(result.message);
-        } catch (err) { alert("Error updating outcome."); }
+          } else showToast(result.message,"error");
+        } catch (err) { showToast("Error updating outcome.","error"); }
       };
 
       list.querySelectorAll(".hist-complete").forEach((btn) => {
@@ -1836,13 +1948,13 @@ async function loadPayrollSection() {
   /* ── Release payroll ── */
   document.getElementById("releasePayrollBtn").onclick = async () => {
     const [from, to] = document.getElementById("periodSelect").value.split("|");
-    if (!confirm(`Mark payroll for ${from} to ${to} as released? This will be recorded in history.`)) return;
+    if (!await showConfirm({title:"Release Payroll?",message:"Mark this payroll period as released? This will be recorded in history.",confirmText:"Yes, Release",cancelText:"Cancel",danger:false})) return;
     try {
       const res    = await fetch("/api/admin/payroll/release", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ from, to }) });
       const result = await res.json();
-      if (result.success) alert("Payroll released and recorded!");
-      else alert(result.message);
-    } catch { alert("Error releasing payroll."); }
+      if (result.success) showToast("Payroll released and recorded!");
+      else showToast(result.message,"error");
+    } catch { showToast("Error releasing payroll.","error"); }
   };
 
   /* ── Attendance tab ── */
@@ -1981,7 +2093,7 @@ async function loadPayrollSection() {
     const wrap = document.getElementById("attendanceList");
     const from = document.getElementById("attFrom").value;
     const to   = document.getElementById("attTo").value;
-    if (!from || !to) { alert("Please select both dates."); return; }
+    if (!from || !to) { showToast("Please select both dates.","warning"); return; }
     wrap.innerHTML = "<p>Loading...</p>";
 
     try {
@@ -2025,10 +2137,10 @@ async function loadPayrollSection() {
       });
       wrap.querySelectorAll(".att-del").forEach(btn => {
         btn.onclick = async () => {
-          if (!confirm("Delete this attendance record?")) return;
+          if (!await showConfirm({title:"Confirm Action",message:"Delete this attendance record?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
           const res = await fetch(`/api/admin/attendance/${btn.dataset.id}`, { method:"DELETE" });
           const r   = await res.json();
-          if (r.success) loadAttendanceView(); else alert(r.message);
+          if (r.success) loadAttendanceView(); else showToast(r.message,"error");
         };
       });
     } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading attendance.</p>"; }
@@ -2075,7 +2187,7 @@ async function loadPayrollSection() {
           document.getElementById("advAmount").value = "";
           document.getElementById("advNote").value   = "";
           msg.style.display = "none";
-          alert("Advance salary recorded.");
+          showToast("Advance salary recorded.");
           loadAdvanceList();
         } else { msg.textContent = result.message; msg.style.display = "block"; }
       } catch { msg.textContent = "Error recording advance."; msg.style.display = "block"; }
@@ -2116,10 +2228,10 @@ async function loadPayrollSection() {
 
       wrap.querySelectorAll(".adv-del-btn").forEach(btn => {
         btn.onclick = async () => {
-          if (!confirm("Remove this advance record?")) return;
+          if (!await showConfirm({title:"Confirm Action",message:"Remove this advance record?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
           const res = await fetch(`/api/admin/payroll/advance/${btn.dataset.id}`, { method:"DELETE" });
           const r   = await res.json();
-          if (r.success) loadAdvanceList(); else alert(r.message);
+          if (r.success) loadAdvanceList(); else showToast(r.message,"error");
         };
       });
     } catch { wrap.innerHTML = "<p>Error loading advances.</p>"; }
@@ -2466,9 +2578,9 @@ async function loadGuestBookings() {
           try {
             const res    = await fetch(`/api/guest.bookings/${btn.dataset.id}/approve`, { method:"PUT" });
             const result = await res.json();
-            if (result.success) { alert(result.message); loadGuestBookings(); }
-            else alert(result.message);
-          } catch { alert("Error approving booking."); }
+            if (result.success) { showToast(result.message,"error"); loadGuestBookings(); }
+            else showToast(result.message,"error");
+          } catch { showToast("Error approving booking.","error"); }
         };
       });
 
@@ -2484,9 +2596,9 @@ async function loadGuestBookings() {
                 body:    JSON.stringify({ reason }),
               });
               const result = await res.json();
-              if (result.success) { alert(result.message); loadGuestBookings(); }
-              else alert(result.message);
-            } catch { alert("Error rejecting booking."); }
+              if (result.success) { showToast(result.message,"error"); loadGuestBookings(); }
+              else showToast(result.message,"error");
+            } catch { showToast("Error rejecting booking.","error"); }
           });
         };
       });
@@ -2494,13 +2606,13 @@ async function loadGuestBookings() {
       /* Revert to pending */
       list.querySelectorAll(".guest-pending-btn").forEach(btn => {
         btn.onclick = async () => {
-          if (!confirm("Move this booking back to pending?")) return;
+          if (!await showConfirm({title:"Confirm Action",message:"Move this booking back to pending?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
           try {
             const res    = await fetch(`/api/guest.bookings/${btn.dataset.id}/pending`, { method:"PUT" });
             const result = await res.json();
             if (result.success) loadGuestBookings();
-            else alert(result.message);
-          } catch { alert("Error updating booking."); }
+            else showToast(result.message,"error");
+          } catch { showToast("Error updating booking.","error"); }
         };
       });
     }
@@ -2580,4 +2692,145 @@ function openGuestDetailModal(b) {
   const close = () => { modal.remove(); document.body.style.overflow = ""; };
   document.getElementById("guestDetailClose").onclick = close;
   modal.addEventListener("click", e => { if (e.target === modal) close(); });
+}
+
+/* ═══════════════════════════════════════
+   ADMIN FEEDBACK SECTION
+═══════════════════════════════════════ */
+async function loadFeedbackSection() {
+  content.innerHTML = `
+    <h2>Customer Feedback</h2>
+
+    <!-- Filter tabs -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
+      <div class="cal-type-tabs" style="margin:0;">
+        <button class="cal-type-btn active" data-fb="all">All</button>
+        <button class="cal-type-btn" data-fb="featured">⭐ Featured</button>
+        <button class="cal-type-btn" data-fb="Grooming">Grooming</button>
+        <button class="cal-type-btn" data-fb="Pet Hotel">Pet Hotel</button>
+        <button class="cal-type-btn" data-fb="General">General</button>
+      </div>
+    </div>
+    <div id="feedbackListWrap"><p>Loading...</p></div>
+  `;
+
+  let activeFilter = "all";
+
+  try {
+    const res  = await fetch("/api/feedback/all");
+    const data = await res.json();
+    if (!data.success) { document.getElementById("feedbackListWrap").innerHTML = `<p>Error: ${data.message}</p>`; return; }
+
+    const feedbacks = data.feedbacks || [];
+
+    function renderFeedbacks() {
+      const wrap = document.getElementById("feedbackListWrap");
+      let filtered = feedbacks;
+      if (activeFilter === "featured")  filtered = feedbacks.filter(f => f.featured);
+      else if (activeFilter !== "all")  filtered = feedbacks.filter(f => f.serviceType === activeFilter);
+
+      if (!filtered.length) {
+        wrap.innerHTML = `<p class="cal-empty" style="padding:32px 0;">No feedback found.</p>`;
+        return;
+      }
+
+      const rows = filtered.map(f => {
+        const stars     = "★".repeat(f.rating) + "☆".repeat(5 - f.rating);
+        const starColor = f.rating >= 4 ? "#f59e0b" : f.rating === 3 ? "#fb923c" : "#ef4444";
+        const date      = new Date(f.createdAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
+        const featured  = f.featured;
+        return `
+          <tr>
+            <td>
+              <strong style="font-size:0.92rem;">${f.name || "Anonymous"}</strong>
+              ${f.email ? `<p style="font-size:0.75rem;color:#888;margin:0;">${f.email}</p>` : ""}
+            </td>
+            <td>
+              <span style="color:${starColor};font-size:1rem;letter-spacing:1px;">${stars}</span>
+              <span style="font-size:0.75rem;color:#aaa;margin-left:4px;">(${f.rating}/5)</span>
+            </td>
+            <td><span class="leave-status-badge" style="background:#f5d5d5;color:#9d174d;">${f.serviceType || "General"}</span></td>
+            <td style="max-width:280px;font-size:0.85rem;color:#444;font-style:italic;">"${f.comment}"</td>
+            <td style="font-size:0.78rem;color:#888;">${date}</td>
+            <td style="white-space:nowrap;">
+              <button class="fb-feature-btn ${featured ? "on" : "off"}" data-id="${f._id}" data-featured="${featured}">
+                ${featured ? "★ Featured" : "☆ Feature"}
+              </button>
+              <button class="hist-btn hist-cancel fb-del-btn" data-id="${f._id}" style="margin-left:4px;">Delete</button>
+            </td>
+          </tr>`;
+      }).join("");
+
+      wrap.innerHTML = `
+        <p style="font-size:0.82rem;color:#888;margin-bottom:12px;">${filtered.length} feedback${filtered.length !== 1 ? "s" : ""} found
+          · <strong style="color:#f59e0b;">${feedbacks.filter(f=>f.featured).length} featured</strong> (shown on homepage)
+        </p>
+        <div class="leave-table-wrap">
+          <table class="leave-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Rating</th>
+                <th>Service</th>
+                <th>Comment</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+
+      /* Feature toggle */
+      wrap.querySelectorAll(".fb-feature-btn").forEach(btn => {
+        btn.onclick = async () => {
+          const isFeatured = btn.dataset.featured === "true";
+          try {
+            const res    = await fetch(`/api/feedback/${btn.dataset.id}/feature`, {
+              method:  "PUT",
+              headers: { "Content-Type": "application/json" },
+              body:    JSON.stringify({ featured: !isFeatured }),
+            });
+            const result = await res.json();
+            if (result.success) {
+              const fb = feedbacks.find(x => x._id === btn.dataset.id);
+              if (fb) fb.featured = !isFeatured;
+              renderFeedbacks();
+            } else showToast(result.message,"error");
+          } catch { showToast("Error updating feedback.","error"); }
+        };
+      });
+
+      /* Delete */
+      wrap.querySelectorAll(".fb-del-btn").forEach(btn => {
+        btn.onclick = async () => {
+          if (!await showConfirm({title:"Confirm Action",message:"Delete this feedback?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
+          try {
+            const res    = await fetch(`/api/feedback/${btn.dataset.id}`, { method: "DELETE" });
+            const result = await res.json();
+            if (result.success) {
+              const idx = feedbacks.findIndex(x => x._id === btn.dataset.id);
+              if (idx !== -1) feedbacks.splice(idx, 1);
+              renderFeedbacks();
+            } else showToast(result.message,"error");
+          } catch { showToast("Error deleting feedback.","error"); }
+        };
+      });
+    }
+
+    /* Filter tab listeners */
+    content.querySelectorAll(".cal-type-btn[data-fb]").forEach(btn => {
+      btn.onclick = () => {
+        content.querySelectorAll(".cal-type-btn[data-fb]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeFilter = btn.dataset.fb;
+        renderFeedbacks();
+      };
+    });
+
+    renderFeedbacks();
+  } catch (err) {
+    console.error(err);
+    document.getElementById("feedbackListWrap").innerHTML = "<p>Error loading feedback.</p>";
+  }
 }

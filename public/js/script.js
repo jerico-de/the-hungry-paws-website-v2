@@ -445,4 +445,154 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.disabled = false; btn.textContent = "Submit Hotel Booking Request";
     }
   });
+
+  /* ── Load featured reviews on homepage ── */
+  async function loadFeaturedReviews() {
+  const grid = document.getElementById("featuredReviewsGrid");
+  const indicators = document.getElementById("testimonialIndicators");
+
+  if (!grid) return;
+
+  try {
+    const res  = await fetch("/api/feedback/featured");
+    const data = await res.json();
+
+    if (!data.success || !data.feedbacks?.length) {
+      grid.innerHTML = `
+        <div class="carousel-item active">
+          <p class="review-cards-empty">Be the first to leave a review! 🐾</p>
+        </div>`;
+      return;
+    }
+
+    // ✅ Slides
+    grid.innerHTML = data.feedbacks.map((f, index) => {
+      const stars = "★".repeat(f.rating) + "☆".repeat(5 - f.rating);
+
+      return `
+        <div class="carousel-item ${index === 0 ? "active" : ""}">
+          <div class="review-card" style="max-width:600px;margin:auto;">
+            <div class="review-card-stars">${stars}</div>
+            <div class="review-card-text">${f.comment}</div>
+            <div class="review-card-meta">${f.name || "Anonymous"}</div>
+            <div class="review-card-service">${f.serviceType || ""}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    // ✅ Indicators
+    if (indicators) {
+      indicators.innerHTML = data.feedbacks.map((_, i) => `
+        <button type="button"
+          data-bs-target="#testimonialsCarousel"
+          data-bs-slide-to="${i}"
+          class="${i === 0 ? "active" : ""}"
+          ${i === 0 ? 'aria-current="true"' : ""}
+          aria-label="Slide ${i + 1}">
+        </button>
+      `).join("");
+    }
+
+    // ✅ Force re-init (important for dynamic content)
+    const carouselElement = document.querySelector("#testimonialsCarousel");
+    if (carouselElement && typeof bootstrap !== "undefined") {
+      new bootstrap.Carousel(carouselElement);
+    }
+
+  } catch (_) {
+    grid.innerHTML = `
+      <div class="carousel-item active">
+        <p class="review-cards-empty">Reviews unavailable.</p>
+      </div>`;
+  }
+}
+
+loadFeaturedReviews();
+
+  /* ── Public Feedback Modal ── */
+  const pubModal = document.getElementById("publicFeedbackModal");
+  let pubRating = 0;
+  let pubService = "";
+
+  function openPubFeedback() {
+    if (!pubModal) return;
+    pubModal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+  function closePubFeedback() {
+    if (!pubModal) return;
+    pubModal.style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  document.getElementById("publicFeedbackBtn")?.addEventListener("click", openPubFeedback);
+  document.getElementById("pubFbClose")?.addEventListener("click", closePubFeedback);
+  document.getElementById("pubFbSuccessClose")?.addEventListener("click", closePubFeedback);
+  pubModal?.addEventListener("click", e => { if (e.target === pubModal) closePubFeedback(); });
+
+  /* Stars */
+  const pubStars = document.querySelectorAll("#pubStarRating .star");
+  pubStars.forEach(s => {
+    s.addEventListener("mouseenter", () => {
+      pubStars.forEach(x => x.classList.toggle("hover", Number(x.dataset.val) <= Number(s.dataset.val)));
+    });
+    s.addEventListener("mouseleave", () => {
+      pubStars.forEach(x => { x.classList.remove("hover"); x.classList.toggle("active", Number(x.dataset.val) <= pubRating); });
+    });
+    s.addEventListener("click", () => {
+      pubRating = Number(s.dataset.val);
+      pubStars.forEach(x => x.classList.toggle("active", Number(x.dataset.val) <= pubRating));
+    });
+  });
+
+  /* Service toggle */
+  document.querySelectorAll("#publicFeedbackModal .feedback-service-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#publicFeedbackModal .feedback-service-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      pubService = btn.dataset.svc;
+    });
+  });
+
+  /* Char count */
+  document.getElementById("pubFbComment")?.addEventListener("input", function () {
+    document.getElementById("pubFbCharCount").textContent = this.value.length;
+  });
+
+  /* Submit */
+  document.getElementById("pubFbSubmit")?.addEventListener("click", async () => {
+    const msg     = document.getElementById("pubFbMsg");
+    const comment = document.getElementById("pubFbComment")?.value.trim();
+    const name    = document.getElementById("pubFbName")?.value.trim();
+    msg.style.display = "none";
+
+    if (!pubRating) { msg.textContent = "Please select a star rating."; msg.style.display = "block"; return; }
+    if (!comment)   { msg.textContent = "Please write a comment."; msg.style.display = "block"; return; }
+
+    const btn = document.getElementById("pubFbSubmit");
+    btn.disabled = true; btn.textContent = "Submitting...";
+
+    try {
+      const res    = await fetch("/api/feedback", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ rating: pubRating, comment, name: name || "Anonymous", serviceType: pubService || "General" }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        document.getElementById("pubFbFormBody").style.display = "none";
+        document.getElementById("pubFbSuccess").style.display  = "block";
+      } else {
+        msg.textContent = result.message || "Error submitting.";
+        msg.style.display = "block";
+        btn.disabled = false; btn.textContent = "Submit Review";
+      }
+    } catch (_) {
+      msg.textContent = "Something went wrong.";
+      msg.style.display = "block";
+      btn.disabled = false; btn.textContent = "Submit Review";
+    }
+  });
+
 });

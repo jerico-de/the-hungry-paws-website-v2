@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
     <title>TheHungryPaws</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
@@ -10,6 +10,7 @@
       integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
       crossorigin="anonymous"
     />
+    <link href="https://fonts.googleapis.com/css2?family=Coiny&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
@@ -221,8 +222,8 @@
 
     <!-- SERVICES -->
     <div id="services">
+      <h2 class="services-header section-header">Our Services</h2>
       <div class="container">
-        <h2 class="services-header section-header">Our Services</h2>
 
         <div class="services-parent services-bg">
           <div class="services-text">
@@ -285,45 +286,90 @@
       </div>
     </div>
 
-    <!-- TESTIMONIALS -->
+    <!-- =====================
+         TESTIMONIALS
+    ===================== -->
     <div id="testimonials">
       <div class="container">
         <div class="testimonials-header">
           <h2 class="section-header">Testimonials</h2>
         </div>
-      
-          <div id="testimonialsCarousel" class="carousel slide">
-            <div class="carousel-inner">
-              <div class="carousel-item active">
-                <a href="#testimonial1"><img src="images/testimony1.JPG" class="d-block w-100" alt="Testimonial 1" /></a>
-              </div>
-              <div class="carousel-item">
-                <a href="#testimonial2"><img src="images/testimony2.JPG" class="d-block w-100" alt="Testimonial 2" /></a>
-              </div>
-              <div class="carousel-item">
-                <a href="#testimonial3"><img src="images/testimony3.JPG" class="d-block w-100" alt="Testimonial 3" /></a>
-              </div>
+ 
+        <!-- Carousel -->
+        <div id="testimonialsCarousel" class="carousel slide" style="margin-bottom:30px;">
+          <div class="carousel-inner" id="featuredReviewsGrid">
+            <div class="carousel-item active">
+              <p class="review-cards-empty">Loading reviews...</p>
             </div>
-            <div class="carousel-indicators">
-              <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-              <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-              <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-            </div>
-            <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next custom-carousel-btn" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Next</span>
-            </button>
           </div>
+          <div class="carousel-indicators" id="testimonialIndicators">
+          </div>
+          <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next custom-carousel-btn" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+ 
+        <!-- Feedback CTA -->
+        <div style="text-align:center;margin-top:30px;padding-bottom:10px;">
+          <p style="font-size:0.88rem;color:#888;margin-bottom:12px;">Had a great experience? Share it with us!</p>
+          <button id="publicFeedbackBtn" style="background:linear-gradient(135deg,#d44d7c,#e8739b);color:#fff;border:none;border-radius:30px;padding:12px 28px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 16px rgba(212,77,124,0.25);transition:transform .2s,box-shadow .2s;font-family:inherit;">
+            ⭐ Leave a Review
+          </button>
+        </div>
       </div>
     </div>
-
-    <div id="testimonial1" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony1.JPG" alt="Testimonial 1" /></div>
-    <div id="testimonial2" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony2.JPG" alt="Testimonial 2" /></div>
-    <div id="testimonial3" class="lightbox"><a href="#testimonials" class="close">&times;</a><img src="images/testimony3.JPG" alt="Testimonial 3" /></div>
+ 
+    <!-- PUBLIC FEEDBACK MODAL -->
+    <div id="publicFeedbackModal" style="display:none;position:fixed;inset:0;z-index:9002;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;padding:20px;">
+      <div class="feedback-modal">
+        <button class="feedback-modal-close" id="pubFbClose">&#x2715;</button>
+        <div class="feedback-modal-header">
+          <div class="feedback-modal-icon">⭐</div>
+          <h3>Leave Us a Review</h3>
+          <p>Your feedback helps us improve!</p>
+        </div>
+        <div id="pubFbFormBody">
+          <div style="text-align:center;margin-bottom:4px;">
+            <span style="font-size:0.82rem;font-weight:600;color:#888;">Your Rating *</span>
+          </div>
+          <div class="star-rating" id="pubStarRating">
+            <span class="star" data-val="1">★</span>
+            <span class="star" data-val="2">★</span>
+            <span class="star" data-val="3">★</span>
+            <span class="star" data-val="4">★</span>
+            <span class="star" data-val="5">★</span>
+          </div>
+          <div style="margin-bottom:12px;">
+            <span class="feedback-label">Your Name</span>
+            <input type="text" id="pubFbName" placeholder="Juan dela Cruz" style="width:100%;padding:10px 12px;border:2px solid #eee;border-radius:10px;font-size:0.92rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+          </div>
+          <div style="margin-bottom:10px;">
+            <span class="feedback-label">Service Type</span>
+            <div class="feedback-service-row">
+              <button type="button" class="feedback-service-btn" data-svc="Grooming">✂️ Grooming</button>
+              <button type="button" class="feedback-service-btn" data-svc="Pet Hotel">🏨 Pet Hotel</button>
+              <button type="button" class="feedback-service-btn" data-svc="General">🐾 General</button>
+            </div>
+          </div>
+          <span class="feedback-label">Your Comment *</span>
+          <textarea class="feedback-textarea" id="pubFbComment" maxlength="500" placeholder="Tell us about your experience..."></textarea>
+          <div style="text-align:right;font-size:0.75rem;color:#bbb;margin-top:3px;"><span id="pubFbCharCount">0</span>/500</div>
+          <p class="feedback-msg" id="pubFbMsg"></p>
+          <button class="feedback-submit-btn" id="pubFbSubmit">Submit Review</button>
+        </div>
+        <div class="feedback-success" id="pubFbSuccess">
+          <div class="feedback-success-icon">🎉</div>
+          <h4>Thank you for your review!</h4>
+          <p>It will be reviewed by our team and may be featured on this page.</p>
+          <button class="feedback-submit-btn" id="pubFbSuccessClose" style="margin-top:16px;">Close</button>
+        </div>
+      </div>
+    </div>
 
     <!-- CONTACT -->
     <section id="contact" class="contact-section py-5">
@@ -359,10 +405,7 @@
           <!-- Map + Info -->
           <div class="col-md-6">
             <div class="ratio ratio-4x3 rounded-3 shadow-sm mb-3">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.913851112695!2d121.03414827510182!3d14.631045477425054!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7c5d214123f%3A0x8f8e8a5f92eabcde!2s392%20Del%20Monte%20Ave%2C%20Quezon%20City%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1699259999999!5m2!1sen!2sph"
-                style="border:0;" allowfullscreen="" loading="lazy" title="TheHungryPaws Location">
-              </iframe>
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.3105448445394!2d120.99933307457346!3d14.63830517615344!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b79d068ff90f%3A0x6e5ecfe604108a34!2sThe%20Hungry%20Paws%20-%20Del%20Monte%20-%20Banawe%2C%20QC!5e0!3m2!1sen!2sph!4v1774832784252!5m2!1sen!2sph" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
             <p class="text-muted mb-1"><strong>Address:</strong> 392 Del Monte Ave, Quezon City, Metro Manila</p>
             <p class="text-muted mb-1"><strong>Phone:</strong> +63 912 345 6789</p>
@@ -631,7 +674,6 @@
       </div>
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
