@@ -1403,29 +1403,117 @@ function loadBookingsSection(defaultTab = "calendar") {
     return cell;
   }
 
+  /* ─────────────────────────────────────────
+     BUILD BOOKING CARD
+     Key change: vet card pills wired AFTER
+     innerHTML is set, using DOM queries on
+     the item element itself.
+  ───────────────────────────────────────── */
   function buildCard(b, isPending, listEl) {
-    const item     = document.createElement("div"); item.className="cal-booking-item";
-    const isGuest  = !!b.isGuest;
-    const guestBadge = isGuest ? `<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:8px;font-weight:700;letter-spacing:.03em;margin-left:4px;">GUEST</span>` : "";
-    const pH = b.pets.map((p)=>`<span class="cal-pet-chip"><img src="/images/default-pet.png" ${!isGuest&&p.photo?`data-s3key="${p.photo}"`:""}  alt="${p.name}" class="cal-pet-av ${!isGuest&&p.photo?"pet-photo":""}"/>${p.name}</span>`).join("");
-    const dH = b.type==="hotel"
-      ? `Check-in: ${new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} ${b.appointmentTime||""} &bull; Check-out: ${b.hotelCheckoutDate?new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"}):"N/A"} ${b.hotelCheckoutTime||""}`
-      : `Time: ${b.appointmentTime||"N/A"} &bull; ${Array.isArray(b.services)?b.services.join(", "):(b.services||"")}`;
-    const sb = isPending ? "" : `<span class="cal-status-badge cal-status-${b.status}">${b.status.toUpperCase()}</span>`;
+    const item    = document.createElement("div");
+    item.className = "cal-booking-item";
+
+    const isGuest    = !!b.isGuest;
+    const guestBadge = isGuest
+      ? `<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:8px;font-weight:700;letter-spacing:.03em;margin-left:4px;">GUEST</span>`
+      : "";
+
+    // Pet photo chips
+    const pH = b.pets.map((p) =>
+      `<span class="cal-pet-chip">
+        <img src="/images/default-pet.png"
+          ${!isGuest && p.photo ? `data-s3key="${p.photo}"` : ""}
+          alt="${p.name}"
+          class="cal-pet-av ${!isGuest && p.photo ? "pet-photo" : ""}"/>
+        ${p.name}
+      </span>`
+    ).join("");
+
+    // Vet card pills — collect pets that have a vetCard key
+    const vetCards = isGuest
+      ? []
+      : b.pets.filter(p => p.vetCard).map(p => ({ name: p.name, key: p.vetCard }));
+
+    const vetHTML = vetCards.length
+      ? `<div class="cal-bi-vetcards">
+          ${vetCards.map(v =>
+            `<button class="cal-vet-pill" data-key="${v.key}" type="button">💉 ${v.name}'s vet card</button>`
+          ).join("")}
+        </div>`
+      : "";
+
+    // Date / detail line
+    const dH = b.type === "hotel"
+      ? `Check-in: ${new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} ${b.appointmentTime||""} &bull; Check-out: ${b.hotelCheckoutDate ? new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"}) : "N/A"} ${b.hotelCheckoutTime||""}`
+      : `Time: ${b.appointmentTime||"N/A"} &bull; ${Array.isArray(b.services) ? b.services.join(", ") : (b.services||"")}`;
+
+    const sb = isPending
+      ? ""
+      : `<span class="cal-status-badge cal-status-${b.status}">${b.status.toUpperCase()}</span>`;
+
     const ac = isPending
-      ? `<div class="cal-bi-actions"><button class="cal-btn-approve" data-id="${b._id}" data-guest="${isGuest}">Approve</button><button class="cal-btn-reject" data-id="${b._id}" data-guest="${isGuest}">Reject</button></div>`
-      : `<div class="cal-bi-actions"><button class="cal-btn-edit" data-id="${b._id}" data-guest="${isGuest}">Move to Pending</button></div>`;
-    const groomerLine  = b.requestedGroomerName ? `<p class="cal-bi-detail" style="color:#d44d7c;">✂️ Requested: <strong>${b.requestedGroomerName}</strong></p>` : "";
-    const contactLine  = isGuest && b.phone ? `<p class="cal-bi-contact">${b.userEmail||""} · ${b.phone}</p>` : `<p class="cal-bi-contact">${b.userContact||""}</p>`;
-    item.innerHTML = `<div class="cal-bi-top"><div><p class="cal-bi-name" style="display:inline;">${b.userName||"Unknown"}</p>${guestBadge}<p class="cal-bi-email">${b.userEmail||""}</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="cal-type-pill ${b.type==="hotel"?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span>${sb}</div></div><div class="cal-bi-pets">${pH}</div><p class="cal-bi-detail">${dH}</p>${groomerLine}${contactLine}${ac}`;
+      ? `<div class="cal-bi-actions">
+          <button class="cal-btn-approve" data-id="${b._id}" data-guest="${isGuest}">Approve</button>
+          <button class="cal-btn-reject"  data-id="${b._id}" data-guest="${isGuest}">Reject</button>
+        </div>`
+      : `<div class="cal-bi-actions">
+          <button class="cal-btn-edit" data-id="${b._id}" data-guest="${isGuest}">Move to Pending</button>
+        </div>`;
+
+    const groomerLine = b.requestedGroomerName
+      ? `<p class="cal-bi-detail" style="color:#d44d7c;">✂️ Requested: <strong>${b.requestedGroomerName}</strong></p>`
+      : "";
+
+    const contactLine = isGuest && b.phone
+      ? `<p class="cal-bi-contact">${b.userEmail||""} · ${b.phone}</p>`
+      : `<p class="cal-bi-contact">${b.userContact||""}</p>`;
+
+    item.innerHTML = `
+      <div class="cal-bi-top">
+        <div>
+          <p class="cal-bi-name" style="display:inline;">${b.userName||"Unknown"}</p>${guestBadge}
+          <p class="cal-bi-email">${b.userEmail||""}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="cal-type-pill ${b.type==="hotel"?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span>
+          ${sb}
+        </div>
+      </div>
+      <div class="cal-bi-pets">${pH}</div>
+      ${vetHTML}
+      <p class="cal-bi-detail">${dH}</p>
+      ${groomerLine}
+      ${contactLine}
+      ${ac}
+    `;
+
     listEl.appendChild(item);
 
+    // ── Load signed URLs for pet photos ──
     if (!isGuest) {
-      item.querySelectorAll(".pet-photo[data-s3key]").forEach(async(img)=>{
-        const k=img.dataset.s3key; if(!k)return;
-        try{const r=await fetch(`/api/file?name=${encodeURIComponent(k)}`);const d=await r.json();if(d.success)img.src=d.url;}catch(_){}
+      item.querySelectorAll(".pet-photo[data-s3key]").forEach(async (img) => {
+        const k = img.dataset.s3key;
+        if (!k) return;
+        try {
+          const r = await fetch(`/api/file?name=${encodeURIComponent(k)}`);
+          const d = await r.json();
+          if (d.success) img.src = d.url;
+        } catch (_) {}
       });
     }
+
+    // ── Vet card pill click handlers ──
+    // Must be wired AFTER innerHTML is set and item is in the DOM
+    item.querySelectorAll(".cal-vet-pill").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (typeof showVetCardPreview === "function") {
+          showVetCardPreview(btn.dataset.key);
+        } else {
+          console.warn("showVetCardPreview not found — is upload.helper.js loaded?");
+        }
+      });
+    });
 
     const approveUrl = (id) => isGuest ? `/api/guest.bookings/${id}/approve` : `/api/admin/bookings/${id}/approve`;
     const rejectUrl  = (id) => isGuest ? `/api/guest.bookings/${id}/reject`  : `/api/admin/bookings/${id}/reject`;
@@ -1448,13 +1536,8 @@ function loadBookingsSection(defaultTab = "calendar") {
         try {
           const r  = await fetch(approveUrl(ab.dataset.id), { method: "PUT" });
           const rs = await r.json();
-          if (rs.success) {
-            showToast(rs.message, "success");
-            closeDrawer();
-            await fetchAll();
-          } else {
-            showToast(rs.message, "error");
-          }
+          if (rs.success) { showToast(rs.message, "success"); closeDrawer(); await fetchAll(); }
+          else showToast(rs.message, "error");
         } catch (e) { showToast("Error approving booking.", "error"); }
       };
     }
@@ -1471,13 +1554,8 @@ function loadBookingsSection(defaultTab = "calendar") {
               body:    JSON.stringify({ reason }),
             });
             const rs = await r.json();
-            if (rs.success) {
-              showToast(rs.message, "success");
-              closeDrawer();
-              await fetchAll();
-            } else {
-              showToast(rs.message, "error");
-            }
+            if (rs.success) { showToast(rs.message, "success"); closeDrawer(); await fetchAll(); }
+            else showToast(rs.message, "error");
           } catch (e) { showToast("Error rejecting booking.", "error"); }
         });
       };
@@ -1491,13 +1569,8 @@ function loadBookingsSection(defaultTab = "calendar") {
         try {
           const r  = await fetch(pendingUrl(eb.dataset.id), { method: "PUT", headers: { "Content-Type": "application/json" } });
           const rs = await r.json();
-          if (rs.success) {
-            showToast(rs.message, "success");
-            closeDrawer();
-            await fetchAll();
-          } else {
-            showToast(rs.message, "error");
-          }
+          if (rs.success) { showToast(rs.message, "success"); closeDrawer(); await fetchAll(); }
+          else showToast(rs.message, "error");
         } catch (e) { showToast("Error updating booking.", "error"); }
       };
     }
@@ -1549,7 +1622,7 @@ function loadBookingsSection(defaultTab = "calendar") {
       const hist  = document.getElementById("bookingViewHistory");
       const guest = document.getElementById("bookingViewGuest");
       cal.style.display = hist.style.display = guest.style.display = "none";
-      if (btn.dataset.view === "calendar")  cal.style.display   = "block";
+      if (btn.dataset.view === "calendar")       cal.style.display   = "block";
       else if (btn.dataset.view === "history") { hist.style.display  = "block"; loadBookingHistory(); }
       else if (btn.dataset.view === "guest")   { guest.style.display = "block"; loadGuestBookings(); }
     };
@@ -1876,7 +1949,7 @@ async function loadPayrollSection() {
       if (!data.success) { wrap.innerHTML = `<p>Error: ${data.message}</p>`; return; }
       if (!data.payroll.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No active employees found.</p>`; return; }
 
-      const fmt    = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
+      const fmt     = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
       const rowData = data.payroll.map(p => ({ ...p, manualOT: 0, manualCommission: 0 }));
 
       function calcNet(row) {
@@ -2519,8 +2592,8 @@ async function loadFeedbackSection() {
     function renderFeedbacks() {
       const wrap = document.getElementById("feedbackListWrap");
       let filtered = feedbacks;
-      if (activeFilter === "featured")      filtered = feedbacks.filter(f => f.featured);
-      else if (activeFilter !== "all")      filtered = feedbacks.filter(f => f.serviceType === activeFilter);
+      if (activeFilter === "featured")  filtered = feedbacks.filter(f => f.featured);
+      else if (activeFilter !== "all")  filtered = feedbacks.filter(f => f.serviceType === activeFilter);
 
       if (!filtered.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:32px 0;">No feedback found.</p>`; return; }
 

@@ -15,8 +15,9 @@ You can view the live website here:
 ## Features
 
 ### For All Users
-- View shop information, services, and available pet products.
+- View shop information, and services.
 - Sign up and log in securely.
+- Book appointments as guests and submit feedbacks.
 
 ### For Registered Users
 - Add pets with details like **breed, sex, and age**.
@@ -25,6 +26,7 @@ You can view the live website here:
 ### For Admins
 - Manage bookings: **accept or reject pending requests**.
 - View all user and pet information.
+- Manage messages and feedbacks.
 
 ---
 
@@ -56,6 +58,8 @@ You can view the live website here:
 - EJS templating
 - HTML, CSS, JavaScript
 - Render (for hosting)
+- GoogleAuth
+- AWS S3
 
 ---
 

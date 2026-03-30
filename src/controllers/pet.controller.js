@@ -30,6 +30,7 @@ async function addPet(req, res, next) {
       photo:             req.body.photo         || null,
       photoPosition:     req.body.photoPosition || null,
       photoZoom:         req.body.photoZoom     || null,
+      vetCard:           req.body.vetCard       || null,
       createdAt:         new Date(),
       updatedAt:         new Date(),
     });
@@ -56,6 +57,7 @@ async function updatePet(req, res, next) {
     if (req.body.photo         !== undefined) updateData.photo         = req.body.photo;
     if (req.body.photoPosition !== undefined) updateData.photoPosition = req.body.photoPosition;
     if (req.body.photoZoom     !== undefined) updateData.photoZoom     = req.body.photoZoom;
+    if (req.body.vetCard       !== undefined) updateData.vetCard       = req.body.vetCard;
 
     const db     = getDB();
     const result = await db.collection("pets").updateOne(

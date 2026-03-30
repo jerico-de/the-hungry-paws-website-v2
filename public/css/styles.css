@@ -1790,6 +1790,35 @@ select option:disabled { color: #bbb; background-color: #f5f5f5; }
 .photo-pos-row input[type="range"] { flex: 1; accent-color: #d44d7c; cursor: pointer; }
 
 /* ========================================
+   VET CARD
+======================================== */
+.cal-bi-vetcards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 2px;
+}
+.cal-vet-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1.5px solid #f9c0d2;
+  background: #fce7f0;
+  color: #9d174d;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  transition: background 0.15s, border-color 0.15s;
+}
+.cal-vet-pill:hover {
+  background: #f9c0d2;
+  border-color: #d44d7c;
+}
+
+/* ========================================
    BOOKING HISTORY ACTION BUTTONS
 ======================================== */
 .hist-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; margin: 2px 2px 2px 0; transition: opacity 0.15s; font-family: inherit; }
@@ -1943,7 +1972,7 @@ select option:disabled { color: #bbb; background-color: #f5f5f5; }
 }
 
 /* ═══════════════════════════════════════════════════
-   USER BOOKING CARDS  (.bk-card-*)
+   USER BOOKING CARDS 
 ═══════════════════════════════════════════════════ */
 .bk-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 12px; }
 
@@ -2087,8 +2116,7 @@ select option:disabled { color: #bbb; background-color: #f5f5f5; }
 .review-cards-empty  { text-align: center; color: #bbb; font-size: 0.9rem; padding: 30px 0; }
 
 /* ═══════════════════════════════════════════════════════
-   REDESIGNED BOOKING FORM  (.bk-fw-*)
-   No CSS custom properties — all values hardcoded
+  BOOKING FORM
 ═══════════════════════════════════════════════════════ */
 
 /* ── Outer wrapper ── */

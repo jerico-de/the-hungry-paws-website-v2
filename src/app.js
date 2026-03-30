@@ -33,9 +33,10 @@ app.use(
 
         scriptSrc: [
           "'self'",
-          "'unsafe-inline'",
           "https://cdn.jsdelivr.net",
         ],
+
+        scriptSrcAttr: ["'unsafe-inline'"],
 
         styleSrc: [
           "'self'",
@@ -54,22 +55,22 @@ app.use(
           "'self'",
           "data:",
           "https://*.amazonaws.com",
-          "https://www.google.com",
           "https://*.googleapis.com",
           "https://*.gstatic.com",
           "https://*.googleusercontent.com",
         ],
 
-        
         connectSrc: [
           "'self'",
           "https://cdn.jsdelivr.net",
+          "https://*.amazonaws.com",
         ],
 
         frameSrc: [
           "'self'",
           "https://www.google.com",
           "https://maps.google.com",
+          "https://*.amazonaws.com", 
         ],
       },
     },

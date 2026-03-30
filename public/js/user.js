@@ -341,8 +341,7 @@ function loadPets() {
     document.querySelectorAll(".view-vet-btn").forEach(link => {
       link.addEventListener("click", async e => {
         e.preventDefault();
-        try { window.open(await getSignedUrl(link.dataset.key),"_blank"); }
-        catch { showToast("Could not load vet card.","error"); }
+        showVetCardPreview(link.dataset.key);
       });
     });
   }).catch(() => { content.innerHTML=`<h2>My Pets</h2><p>Error loading pets.</p>`; });
@@ -590,8 +589,7 @@ async function showEditPetForm(pet, petId) {
   if (pet.vetCard) {
     document.getElementById("viewVetCardBtn")?.addEventListener("click", async e => {
       e.preventDefault();
-      try { window.open(await getSignedUrl(pet.vetCard),"_blank"); }
-      catch { showToast("Could not load vet card.","error"); }
+      showVetCardPreview(pet.vetCard);
     });
   }
   function setEditVetFile(file) {
