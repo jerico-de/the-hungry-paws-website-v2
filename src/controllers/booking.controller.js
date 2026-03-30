@@ -1,6 +1,7 @@
 const { ObjectId } = require("mongodb");
 const { getDB } = require("../config/database");
 const { ValidationError, NotFoundError } = require("../utils/errors");
+const { sendUserBookingReceived } = require("../utils/email");
 
 const ALL_SLOTS = [
   "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
@@ -24,9 +25,6 @@ function slotToDate(dateStr, timeStr) {
 
 /**
  * GET /api/bookings/available-slots?date=YYYY-MM-DD&type=grooming
- * Returns time slots that are:
- *   1. At least 3 hours from now (if the date is today)
- *   2. Not already taken by an approved booking on that date
  */
 async function getAvailableSlots(req, res, next) {
   try {
@@ -39,7 +37,6 @@ async function getAvailableSlots(req, res, next) {
     const now = new Date();
     const threeHoursFromNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
 
-    // Find all approved bookings on this date for this type
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -60,11 +57,9 @@ async function getAvailableSlots(req, res, next) {
     const isToday = selectedDate.getTime() === todayMidnight.getTime();
 
     const slots = ALL_SLOTS.map((slot) => {
-      // Taken by an approved booking
       if (takenSlots.has(slot)) {
         return { time: slot, available: false, reason: "booked" };
       }
-      // Too soon (today only)
       if (isToday) {
         const slotDate = slotToDate(date, slot);
         if (slotDate < threeHoursFromNow) {
@@ -110,11 +105,16 @@ async function getBookings(req, res, next) {
 }
 
 /**
- * Create booking — with server-side slot validation
+ * Create booking — with server-side slot validation + confirmation email
  */
 async function createBooking(req, res, next) {
   try {
-    const { pets, type, services, appointmentDate, appointmentTime, hotelCheckoutDate, hotelCheckoutTime, requestedGroomer } = req.body;
+    const {
+      pets, type, services,
+      appointmentDate, appointmentTime,
+      hotelCheckoutDate, hotelCheckoutTime,
+      requestedGroomer,
+    } = req.body;
     const userId = req.user?.id || req.session.user.id;
 
     if (!pets || !pets.length || !type || !appointmentDate || !appointmentTime) {
@@ -162,7 +162,7 @@ async function createBooking(req, res, next) {
       throw new ValidationError("This time slot is already booked. Please choose another time.");
     }
 
-    /* Resolve requested groomer name if provided */
+    // Resolve requested groomer name if provided
     let requestedGroomerName = null;
     if (requestedGroomer) {
       const groomer = await db.collection("employees").findOne(
@@ -172,23 +172,39 @@ async function createBooking(req, res, next) {
       requestedGroomerName = groomer?.name || null;
     }
 
-    await db.collection("bookings").insertOne({
-      userId: new ObjectId(userId),
+    const result = await db.collection("bookings").insertOne({
+      userId:               new ObjectId(userId),
       type,
-      pets: pets.map((id) => new ObjectId(id)),
-      services: services || null,
-      appointmentDate: new Date(appointmentDate),
+      pets:                 pets.map((id) => new ObjectId(id)),
+      services:             services || null,
+      appointmentDate:      new Date(appointmentDate),
       appointmentTime,
-      hotelCheckoutDate: hotelCheckoutDate ? new Date(hotelCheckoutDate) : null,
-      hotelCheckoutTime: hotelCheckoutTime || null,
-      requestedGroomerId:   requestedGroomer     ? new ObjectId(requestedGroomer) : null,
+      hotelCheckoutDate:    hotelCheckoutDate ? new Date(hotelCheckoutDate) : null,
+      hotelCheckoutTime:    hotelCheckoutTime || null,
+      requestedGroomerId:   requestedGroomer ? new ObjectId(requestedGroomer) : null,
       requestedGroomerName: requestedGroomerName,
-      status: "pending",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      status:               "pending",
+      createdAt:            new Date(),
+      updatedAt:            new Date(),
     });
 
-    res.json({ success: true, message: "Booking created successfully!" });
+    // Send "booking received" confirmation email — non-blocking
+    (async () => {
+      try {
+        const [insertedBooking, user, petDocs] = await Promise.all([
+          db.collection("bookings").findOne({ _id: result.insertedId }),
+          db.collection("users").findOne({ _id: new ObjectId(userId) }),
+          db.collection("pets").find({ _id: { $in: pets.map(id => new ObjectId(id)) } }).toArray(),
+        ]);
+        if (user && insertedBooking) {
+          await sendUserBookingReceived(insertedBooking, user, petDocs);
+        }
+      } catch (err) {
+        console.error("Email error (booking received):", err);
+      }
+    })();
+
+    res.json({ success: true, message: "Booking created successfully! A confirmation email has been sent to you." });
   } catch (err) {
     next(err);
   }
@@ -205,16 +221,16 @@ async function cancelBooking(req, res, next) {
 
     const result = await db.collection("bookings").updateOne(
       {
-        _id: new ObjectId(req.params.id),
+        _id:    new ObjectId(req.params.id),
         userId: new ObjectId(userId),
         status: { $in: ["pending", "approved"] },
       },
       {
         $set: {
-          status: "cancelled",
+          status:      "cancelled",
           cancelReason: reason || "No reason provided",
           cancelledAt: new Date(),
-          updatedAt: new Date(),
+          updatedAt:   new Date(),
         },
       },
     );
@@ -238,7 +254,7 @@ async function deleteBooking(req, res, next) {
     const db = getDB();
 
     const result = await db.collection("bookings").deleteOne({
-      _id: new ObjectId(req.params.id),
+      _id:    new ObjectId(req.params.id),
       userId: new ObjectId(userId),
     });
 
@@ -252,12 +268,8 @@ async function deleteBooking(req, res, next) {
   }
 }
 
-module.exports = { getBookings, getAvailableSlots, createBooking, cancelBooking, deleteBooking, getActiveGroomers };
-
 /* ─────────────────────────────────────────
    GET /api/bookings/groomers
-   Returns active groomer employees for the booking form
-   Only exposes name, role, shift — no sensitive data
 ───────────────────────────────────────── */
 async function getActiveGroomers(req, res, next) {
   try {
@@ -270,3 +282,5 @@ async function getActiveGroomers(req, res, next) {
     res.json({ success: true, groomers });
   } catch (err) { next(err); }
 }
+
+module.exports = { getBookings, getAvailableSlots, createBooking, cancelBooking, deleteBooking, getActiveGroomers };

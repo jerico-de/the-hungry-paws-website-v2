@@ -1,6 +1,10 @@
 const { ObjectId } = require("mongodb");
 const { getDB } = require("../config/database");
 const { NotFoundError, ValidationError } = require("../utils/errors");
+const {
+  sendUserBookingApproved,
+  sendUserBookingRejected,
+} = require("../utils/email");
 
 /* ─────────────────────────────────────────
    DASHBOARD STATS
@@ -90,12 +94,28 @@ async function approveBooking(req, res, next) {
   try {
     const adminId = req.user?.id || req.session.user.id;
     const db = getDB();
+
+    const booking = await db.collection("bookings").findOne({ _id: new ObjectId(req.params.id) });
+    if (!booking) throw new NotFoundError("Booking not found");
+
     const result = await db.collection("bookings").updateOne(
       { _id: new ObjectId(req.params.id) },
       { $set: { status:"approved", approvedBy:adminId, approvedAt:new Date(), updatedAt:new Date() } },
     );
     if (result.modifiedCount === 0) throw new NotFoundError("Booking not found");
-    res.json({ success:true, message:"Booking approved!" });
+
+    // Send approval email — non-blocking
+    (async () => {
+      try {
+        const [user, pets] = await Promise.all([
+          db.collection("users").findOne({ _id: booking.userId }),
+          db.collection("pets").find({ _id: { $in: booking.pets || [] } }).toArray(),
+        ]);
+        if (user) await sendUserBookingApproved(booking, user, pets);
+      } catch (err) { console.error("Email error (approve):", err); }
+    })();
+
+    res.json({ success: true, message: "Booking approved! A confirmation email has been sent to the customer." });
   } catch (err) { next(err); }
 }
 
@@ -104,12 +124,28 @@ async function rejectBooking(req, res, next) {
     const { reason } = req.body;
     const adminId = req.user?.id || req.session.user.id;
     const db = getDB();
+
+    const booking = await db.collection("bookings").findOne({ _id: new ObjectId(req.params.id) });
+    if (!booking) throw new NotFoundError("Booking not found");
+
     const result = await db.collection("bookings").updateOne(
       { _id: new ObjectId(req.params.id) },
       { $set: { status:"rejected", rejectedBy:adminId, rejectReason:reason||"No reason provided", rejectedAt:new Date(), updatedAt:new Date() } },
     );
     if (result.modifiedCount === 0) throw new NotFoundError("Booking not found");
-    res.json({ success:true, message:"Booking rejected!" });
+
+    // Send rejection email — non-blocking
+    (async () => {
+      try {
+        const [user, pets] = await Promise.all([
+          db.collection("users").findOne({ _id: booking.userId }),
+          db.collection("pets").find({ _id: { $in: booking.pets || [] } }).toArray(),
+        ]);
+        if (user) await sendUserBookingRejected(booking, user, pets, reason);
+      } catch (err) { console.error("Email error (reject):", err); }
+    })();
+
+    res.json({ success: true, message: "Booking rejected. A notification email has been sent to the customer." });
   } catch (err) { next(err); }
 }
 
@@ -135,12 +171,11 @@ async function setBookingOutcome(req, res, next) {
 
     const updates = {
       outcome,
-      outcomeNote:  outcomeNote || "",
-      outcomeAt:    new Date(),
-      updatedAt:    new Date(),
+      outcomeNote: outcomeNote || "",
+      outcomeAt:   new Date(),
+      updatedAt:   new Date(),
     };
 
-    // If completed and a groomer is specified, save who actually did the job
     if (outcome === "completed" && actualGroomerId) {
       const groomer = await db.collection("employees").findOne(
         { _id: new ObjectId(actualGroomerId) },
@@ -220,7 +255,7 @@ async function updateEmployee(req, res, next) {
     };
 
     if (password) {
-      const bcrypt  = require("bcrypt");
+      const bcrypt     = require("bcrypt");
       updates.password = await bcrypt.hash(password, 10);
     }
 
@@ -352,7 +387,6 @@ async function deleteLeave(req, res, next) {
   } catch (err) { next(err); }
 }
 
-
 /* ─────────────────────────────────────────
    ATTENDANCE — ADMIN SIDE
 ───────────────────────────────────────── */
@@ -415,7 +449,6 @@ function getPayrollPeriod(date = new Date()) {
   const y = date.getFullYear();
   const m = date.getMonth();
   const d = date.getDate();
-  // Period 1: 1–15, Period 2: 16–end of month
   if (d <= 15) {
     return { start: new Date(y, m, 1), end: new Date(y, m, 15, 23, 59, 59), label: `${y}-${String(m+1).padStart(2,"0")}-01 to ${y}-${String(m+1).padStart(2,"0")}-15` };
   } else {
@@ -475,10 +508,10 @@ async function releasePayroll(req, res, next) {
     const db = getDB();
 
     await db.collection("payrollHistory").insertOne({
-      period: { from: new Date(from), to: new Date(to), label: `${from} to ${to}` },
+      period:     { from: new Date(from), to: new Date(to), label: `${from} to ${to}` },
       releasedAt: new Date(),
       releasedBy: req.user?.id || req.session.user.id,
-      notes: notes || "",
+      notes:      notes || "",
     });
 
     res.json({ success: true, message: "Payroll released and recorded." });
@@ -493,13 +526,12 @@ async function getPayrollHistory(req, res, next) {
   } catch (err) { next(err); }
 }
 
-
 /* ─────────────────────────────────────────
    ADVANCE SALARY
 ───────────────────────────────────────── */
 async function getAdvances(req, res, next) {
   try {
-    const db = getDB();
+    const db       = getDB();
     const advances = await db.collection("advances").find({}).sort({ createdAt: -1 }).toArray();
     res.json({ success: true, advances });
   } catch (err) { next(err); }

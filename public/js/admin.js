@@ -100,7 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
   pollUnreadMessages();
   setInterval(pollUnreadMessages, 30000);
 
-  /* Logout confirmation — admin */
   document.getElementById("adminLogoutBtn")?.addEventListener("click", function(e) {
     e.preventDefault();
     const form = document.getElementById("adminLogoutForm");
@@ -441,19 +440,16 @@ async function loadEmployees() {
     <h2>Employees</h2>
     <button class="btn" id="addEmpBtn" style="margin-bottom:20px;">+ Add Employee</button>
 
-    <!-- Add/Edit Form -->
     <div id="empForm" style="display:none;margin-bottom:24px;">
       <div class="admin-form-box" style="max-width:600px;">
         <h3 id="empFormTitle" style="color:#d44d7c;margin-bottom:16px;">Add Employee</h3>
         <input type="hidden" id="empId" />
 
-        <!-- Form tabs -->
         <div class="ops-tabs" style="margin-bottom:16px;">
           <button class="ops-tab-btn active" data-tab="info">Info</button>
           <button class="ops-tab-btn" data-tab="payroll">Payroll</button>
         </div>
 
-        <!-- INFO TAB -->
         <div id="empTabInfo">
           <label class="admin-form-label">Full Name *
             <input type="text" id="empName" class="admin-form-input" placeholder="e.g. Maria Santos" />
@@ -497,7 +493,6 @@ async function loadEmployees() {
           </label>
         </div>
 
-        <!-- PAYROLL TAB -->
         <div id="empTabPayroll" style="display:none;">
           <p style="font-size:0.82rem;color:#888;margin-bottom:12px;">All amounts in Philippine Peso (₱)</p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -561,11 +556,9 @@ async function loadEmployees() {
       </div>
     </div>
 
-    <!-- Employee list -->
     <div id="empListWrap"><p>Loading employees...</p></div>
   `;
 
-  /* Form tab switching */
   document.querySelectorAll("#empForm .ops-tab-btn").forEach((btn) => {
     btn.onclick = () => {
       document.querySelectorAll("#empForm .ops-tab-btn").forEach((b) => b.classList.remove("active"));
@@ -575,7 +568,7 @@ async function loadEmployees() {
     };
   });
 
-  document.getElementById("addEmpBtn").onclick   = () => openEmpForm(null);
+  document.getElementById("addEmpBtn").onclick    = () => openEmpForm(null);
   document.getElementById("cancelEmpBtn").onclick = () => { document.getElementById("empForm").style.display = "none"; };
   document.getElementById("saveEmpBtn").onclick   = saveEmployee;
   await fetchAndRenderEmployees();
@@ -585,13 +578,11 @@ function openEmpForm(emp) {
   const form = document.getElementById("empForm");
   document.getElementById("empFormTitle").textContent = emp ? "Edit Employee" : "Add Employee";
 
-  /* Reset to info tab */
   document.querySelectorAll("#empForm .ops-tab-btn").forEach((b) => b.classList.remove("active"));
   document.querySelector("#empForm .ops-tab-btn[data-tab='info']").classList.add("active");
   document.getElementById("empTabInfo").style.display    = "block";
   document.getElementById("empTabPayroll").style.display = "none";
 
-  /* Info fields */
   document.getElementById("empId").value        = emp ? emp._id        : "";
   document.getElementById("empName").value      = emp ? emp.name       : "";
   document.getElementById("empRole").value      = emp ? emp.role       : "";
@@ -601,25 +592,24 @@ function openEmpForm(emp) {
   document.getElementById("empShift").value     = emp ? emp.shift      : "";
   document.getElementById("empDateHired").value = emp && emp.dateHired ? emp.dateHired.slice(0,10) : "";
   document.getElementById("empStatus").value    = emp ? emp.status     : "active";
-  document.getElementById("empPassword").value  = ""; // never pre-fill
+  document.getElementById("empPassword").value  = "";
 
-  /* Payroll fields */
   const p = emp?.payroll || {};
-  document.getElementById("empBasicPay").value      = p.basicPay      || "";
-  document.getElementById("empHourlyRate").value    = p.hourlyRate    || "";
-  document.getElementById("empOvertimeRate").value  = p.overtimeRate  || "";
-  document.getElementById("empCommissionRate").value= p.commissionRate|| "";
-  document.getElementById("empSSSNo").value         = p.sssNo         || "";
-  document.getElementById("empSSSAmt").value        = p.sssAmt        || "";
-  document.getElementById("empPhilHealthNo").value  = p.philHealthNo  || "";
-  document.getElementById("empPhilHealthAmt").value = p.philHealthAmt || "";
-  document.getElementById("empPagIbigNo").value     = p.pagIbigNo     || "";
-  document.getElementById("empPagIbigAmt").value    = p.pagIbigAmt    || "";
-  document.getElementById("empTIN").value           = p.tin           || "";
-  document.getElementById("empTax").value           = p.tax           || "";
-  document.getElementById("empBank").value          = p.bank          || "";
-  document.getElementById("empBankAcct").value      = p.bankAcct      || "";
-  document.getElementById("empPayrollNotes").value  = p.notes         || "";
+  document.getElementById("empBasicPay").value       = p.basicPay       || "";
+  document.getElementById("empHourlyRate").value     = p.hourlyRate     || "";
+  document.getElementById("empOvertimeRate").value   = p.overtimeRate   || "";
+  document.getElementById("empCommissionRate").value = p.commissionRate || "";
+  document.getElementById("empSSSNo").value          = p.sssNo          || "";
+  document.getElementById("empSSSAmt").value         = p.sssAmt         || "";
+  document.getElementById("empPhilHealthNo").value   = p.philHealthNo   || "";
+  document.getElementById("empPhilHealthAmt").value  = p.philHealthAmt  || "";
+  document.getElementById("empPagIbigNo").value      = p.pagIbigNo      || "";
+  document.getElementById("empPagIbigAmt").value     = p.pagIbigAmt     || "";
+  document.getElementById("empTIN").value            = p.tin            || "";
+  document.getElementById("empTax").value            = p.tax            || "";
+  document.getElementById("empBank").value           = p.bank           || "";
+  document.getElementById("empBankAcct").value       = p.bankAcct       || "";
+  document.getElementById("empPayrollNotes").value   = p.notes          || "";
 
   document.getElementById("empMsg").style.display = "none";
   form.style.display = "block";
@@ -692,8 +682,8 @@ async function fetchAndRenderEmployees() {
             <div class="emp-card-info">
               <p class="emp-card-name">${e.name}</p>
               <p class="emp-card-role">${e.role}</p>
-              ${e.email   ? `<p class="emp-card-meta">${e.email}</p>`   : ""}
-              ${e.contact ? `<p class="emp-card-meta">${e.contact}</p>` : ""}
+              ${e.email   ? `<p class="emp-card-meta">${e.email}</p>`    : ""}
+              ${e.contact ? `<p class="emp-card-meta">${e.contact}</p>`  : ""}
               ${e.shift   ? `<p class="emp-card-meta">🕐 ${e.shift}</p>` : ""}
               <span class="emp-status-badge" style="background:${STATUS_COLOR[e.status]||"#e9ecef"};color:${STATUS_TEXT[e.status]||"#333"};">
                 ${(e.status||"active").toUpperCase()}
@@ -706,10 +696,9 @@ async function fetchAndRenderEmployees() {
           </div>`).join("")}
       </div>`;
 
-    /* Click card → detail view */
     wrap.querySelectorAll(".emp-card-clickable").forEach((card) => {
       card.onclick = (ev) => {
-        if (ev.target.closest("button")) return; // don't open detail on button click
+        if (ev.target.closest("button")) return;
         const emp = data.employees.find((e) => e._id === card.dataset.id);
         if (emp) openEmpDetail(emp);
       };
@@ -733,7 +722,6 @@ async function fetchAndRenderEmployees() {
   } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading employees.</p>"; }
 }
 
-/* ── Employee Detail Modal ── */
 function openEmpDetail(emp) {
   document.getElementById("empDetailModal")?.remove();
 
@@ -743,7 +731,7 @@ function openEmpDetail(emp) {
   const st = STATUS_TEXT[emp.status]  || "#333";
   const p  = emp.payroll || {};
 
-  const fmt  = (v) => v ? `₱${parseFloat(v).toLocaleString("en-PH", {minimumFractionDigits:2})}` : "—";
+  const fmt   = (v) => v ? `₱${parseFloat(v).toLocaleString("en-PH", {minimumFractionDigits:2})}` : "—";
   const hired = emp.dateHired ? new Date(emp.dateHired).toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"}) : "—";
 
   const modal = document.createElement("div");
@@ -761,127 +749,53 @@ function openEmpDetail(emp) {
         </div>
         <button class="stat-modal-close" id="empDetailClose">&#x2715;</button>
       </div>
-
-      <!-- Detail tabs -->
       <div class="ops-tabs" style="padding:12px 20px 0;border-bottom:1px solid #f0e0e8;">
         <button class="ops-tab-btn active" data-dtab="info">Info</button>
         <button class="ops-tab-btn" data-dtab="payroll">Payroll</button>
       </div>
-
       <div class="stat-modal-body" style="padding:20px;">
-
-        <!-- INFO TAB -->
         <div id="dtabInfo">
           <div class="profile-info-grid">
-            <div class="profile-info-item">
-              <span class="profile-info-label">Status</span>
-              <span class="emp-status-badge" style="background:${sc};color:${st};">${(emp.status||"active").toUpperCase()}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Email</span>
-              <span class="profile-info-value">${emp.email || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Contact</span>
-              <span class="profile-info-value">${emp.contact || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Address</span>
-              <span class="profile-info-value">${emp.address || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Shift</span>
-              <span class="profile-info-value">${emp.shift || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Date Hired</span>
-              <span class="profile-info-value">${hired}</span>
-            </div>
+            <div class="profile-info-item"><span class="profile-info-label">Status</span><span class="emp-status-badge" style="background:${sc};color:${st};">${(emp.status||"active").toUpperCase()}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Email</span><span class="profile-info-value">${emp.email || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Contact</span><span class="profile-info-value">${emp.contact || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Address</span><span class="profile-info-value">${emp.address || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Shift</span><span class="profile-info-value">${emp.shift || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Date Hired</span><span class="profile-info-value">${hired}</span></div>
           </div>
           <div style="margin-top:16px;display:flex;gap:10px;">
             <button class="btn" id="empDetailEditBtn">Edit Info</button>
           </div>
         </div>
-
-        <!-- PAYROLL TAB -->
         <div id="dtabPayroll" style="display:none;">
           <p style="font-weight:700;color:#d44d7c;margin-bottom:10px;">Compensation</p>
           <div class="profile-info-grid">
-            <div class="profile-info-item">
-              <span class="profile-info-label">Basic Pay (monthly)</span>
-              <span class="profile-info-value">${fmt(p.basicPay)}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Hourly Rate</span>
-              <span class="profile-info-value">${fmt(p.hourlyRate)}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Overtime Rate</span>
-              <span class="profile-info-value">${fmt(p.overtimeRate)}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Commission Rate</span>
-              <span class="profile-info-value">${p.commissionRate ? p.commissionRate + "%" : "—"}</span>
-            </div>
+            <div class="profile-info-item"><span class="profile-info-label">Basic Pay (monthly)</span><span class="profile-info-value">${fmt(p.basicPay)}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Hourly Rate</span><span class="profile-info-value">${fmt(p.hourlyRate)}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Overtime Rate</span><span class="profile-info-value">${fmt(p.overtimeRate)}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Commission Rate</span><span class="profile-info-value">${p.commissionRate ? p.commissionRate + "%" : "—"}</span></div>
           </div>
-
           <p style="font-weight:700;color:#d44d7c;margin:16px 0 10px;">Government Benefits</p>
           <div class="profile-info-grid">
-            <div class="profile-info-item">
-              <span class="profile-info-label">SSS No.</span>
-              <span class="profile-info-value">${p.sssNo || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">SSS Contribution</span>
-              <span class="profile-info-value">${fmt(p.sssAmt)}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">PhilHealth No.</span>
-              <span class="profile-info-value">${p.philHealthNo || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">PhilHealth Contribution</span>
-              <span class="profile-info-value">${fmt(p.philHealthAmt)}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Pag-IBIG No.</span>
-              <span class="profile-info-value">${p.pagIbigNo || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Pag-IBIG Contribution</span>
-              <span class="profile-info-value">${fmt(p.pagIbigAmt)}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">TIN</span>
-              <span class="profile-info-value">${p.tin || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Withholding Tax</span>
-              <span class="profile-info-value">${fmt(p.tax)}</span>
-            </div>
+            <div class="profile-info-item"><span class="profile-info-label">SSS No.</span><span class="profile-info-value">${p.sssNo || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">SSS Contribution</span><span class="profile-info-value">${fmt(p.sssAmt)}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">PhilHealth No.</span><span class="profile-info-value">${p.philHealthNo || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">PhilHealth Contribution</span><span class="profile-info-value">${fmt(p.philHealthAmt)}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Pag-IBIG No.</span><span class="profile-info-value">${p.pagIbigNo || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Pag-IBIG Contribution</span><span class="profile-info-value">${fmt(p.pagIbigAmt)}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">TIN</span><span class="profile-info-value">${p.tin || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Withholding Tax</span><span class="profile-info-value">${fmt(p.tax)}</span></div>
           </div>
-
           <p style="font-weight:700;color:#d44d7c;margin:16px 0 10px;">Bank / Wallet</p>
           <div class="profile-info-grid">
-            <div class="profile-info-item">
-              <span class="profile-info-label">Bank / Wallet</span>
-              <span class="profile-info-value">${p.bank || "—"}</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="profile-info-label">Account Number</span>
-              <span class="profile-info-value">${p.bankAcct || "—"}</span>
-            </div>
-            ${p.notes ? `<div class="profile-info-item" style="grid-column:1/-1;">
-              <span class="profile-info-label">Notes</span>
-              <span class="profile-info-value">${p.notes}</span>
-            </div>` : ""}
+            <div class="profile-info-item"><span class="profile-info-label">Bank / Wallet</span><span class="profile-info-value">${p.bank || "—"}</span></div>
+            <div class="profile-info-item"><span class="profile-info-label">Account Number</span><span class="profile-info-value">${p.bankAcct || "—"}</span></div>
+            ${p.notes ? `<div class="profile-info-item" style="grid-column:1/-1;"><span class="profile-info-label">Notes</span><span class="profile-info-value">${p.notes}</span></div>` : ""}
           </div>
-
           <div style="margin-top:16px;">
             <button class="btn" id="empDetailPayrollEditBtn">Edit Payroll</button>
           </div>
         </div>
-
       </div>
     </div>
   `;
@@ -893,7 +807,6 @@ function openEmpDetail(emp) {
   document.getElementById("empDetailClose").onclick = close;
   modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
 
-  /* Detail tab switching */
   modal.querySelectorAll(".ops-tab-btn[data-dtab]").forEach((btn) => {
     btn.onclick = () => {
       modal.querySelectorAll(".ops-tab-btn[data-dtab]").forEach((b) => b.classList.remove("active"));
@@ -907,7 +820,6 @@ function openEmpDetail(emp) {
   document.getElementById("empDetailPayrollEditBtn").onclick = () => {
     close();
     openEmpForm(emp);
-    // Switch to payroll tab after form opens
     setTimeout(() => {
       const btn = document.querySelector("#empForm .ops-tab-btn[data-tab='payroll']");
       if (btn) btn.click();
@@ -916,13 +828,10 @@ function openEmpDetail(emp) {
 }
 
 /* ===============================
-   4. ON DUTY — full page
+   4. ON DUTY
 ================================ */
 async function loadDutySection() {
-  content.innerHTML = `
-    <h2>Groomer on Duty</h2>
-    <div id="dutyPageContent"><p>Loading...</p></div>
-  `;
+  content.innerHTML = `<h2>Groomer on Duty</h2><div id="dutyPageContent"><p>Loading...</p></div>`;
   await renderDutyPage();
 }
 
@@ -938,11 +847,10 @@ async function renderDutyPage() {
     const empData  = await empRes.json();
     const dutyData = await dutyRes.json();
 
-    const groomers  = (empData.employees  || []).filter((e) => e.status === "active");
-    const allDuty   = (dutyData.duty      || []);
-    const today     = new Date().toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    const groomers = (empData.employees  || []).filter((e) => e.status === "active");
+    const allDuty  = (dutyData.duty      || []);
+    const today    = new Date().toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
 
-    // Group duty by date for display
     const grouped = {};
     allDuty.forEach((d) => {
       const key = new Date(d.date).toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"});
@@ -952,8 +860,6 @@ async function renderDutyPage() {
 
     wrap.innerHTML = `
       <div class="duty-page-layout">
-
-        <!-- LEFT: Add assignment form -->
         <div class="duty-form-panel">
           <div class="ops-section-card">
             <h3 class="ops-card-title">Assign Groomer on Duty</h3>
@@ -974,8 +880,6 @@ async function renderDutyPage() {
             </div>
           </div>
         </div>
-
-        <!-- RIGHT: Schedule list -->
         <div class="duty-list-panel">
           <div class="ops-section-card">
             <div class="ops-header-row">
@@ -984,7 +888,6 @@ async function renderDutyPage() {
                 <p class="ops-section-sub">Today: ${today}</p>
               </div>
             </div>
-
             ${Object.keys(grouped).length === 0
               ? `<p class="cal-empty" style="padding:28px 0;">No duty assignments yet.</p>`
               : Object.entries(grouped).map(([dateLabel, entries]) => `
@@ -1002,7 +905,6 @@ async function renderDutyPage() {
                   </div>`).join("")}
           </div>
         </div>
-
       </div>
     `;
 
@@ -1038,13 +940,10 @@ async function renderDutyPage() {
 }
 
 /* ===============================
-   5. LEAVE REQUESTS — full page
+   5. LEAVE REQUESTS
 ================================ */
 async function loadLeaveSection() {
-  content.innerHTML = `
-    <h2>Leave Requests</h2>
-    <div id="leavePageContent"><p>Loading...</p></div>
-  `;
+  content.innerHTML = `<h2>Leave Requests</h2><div id="leavePageContent"><p>Loading...</p></div>`;
   await renderLeavePage();
 }
 
@@ -1053,8 +952,8 @@ async function renderLeavePage() {
   if (!wrap) return;
 
   try {
-    const res  = await fetch("/api/admin/operations/leave");
-    const data = await res.json();
+    const res    = await fetch("/api/admin/operations/leave");
+    const data   = await res.json();
     const leaves = data.leaves || [];
 
     const STATUS_STYLE = {
@@ -1063,13 +962,10 @@ async function renderLeavePage() {
       rejected: { bg:"#f8d7da", color:"#721c24" },
     };
 
-    // Summary counts
     const counts = { pending:0, approved:0, rejected:0 };
     leaves.forEach((l) => { if (counts[l.status] !== undefined) counts[l.status]++; });
 
     wrap.innerHTML = `
-
-      <!-- Summary badges -->
       <div class="leave-summary-row">
         <div class="leave-summary-badge" style="background:#fff3cd;border-color:#fcd34d;">
           <span class="leave-summary-num" style="color:#92400e;">${counts.pending}</span>
@@ -1086,7 +982,6 @@ async function renderLeavePage() {
         <button class="btn" id="fileLeaveBtn" style="margin-left:auto;">+ File Leave</button>
       </div>
 
-      <!-- File Leave Form -->
       <div id="leaveForm" style="display:none;margin-bottom:24px;">
         <div class="admin-form-box" style="max-width:520px;">
           <h3 style="color:#d44d7c;margin-bottom:16px;">File Leave Request</h3>
@@ -1096,12 +991,8 @@ async function renderLeavePage() {
             </select>
           </label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <label class="admin-form-label">From *
-              <input type="date" id="leaveFrom" class="admin-form-input" />
-            </label>
-            <label class="admin-form-label">To *
-              <input type="date" id="leaveTo" class="admin-form-input" />
-            </label>
+            <label class="admin-form-label">From *<input type="date" id="leaveFrom" class="admin-form-input" /></label>
+            <label class="admin-form-label">To *<input type="date" id="leaveTo" class="admin-form-input" /></label>
           </div>
           <label class="admin-form-label">Leave Type
             <select id="leaveType" class="admin-form-input">
@@ -1121,25 +1012,13 @@ async function renderLeavePage() {
         </div>
       </div>
 
-      <!-- Leave table -->
       <div class="ops-section-card" style="margin-top:0;">
         <h3 class="ops-card-title" style="margin-bottom:16px;">All Leave Requests</h3>
         ${leaves.length === 0
           ? `<p class="cal-empty" style="padding:28px 0;">No leave requests on file.</p>`
           : `<div class="leave-table-wrap">
               <table class="leave-table">
-                <thead>
-                  <tr>
-                    <th>Employee</th>
-                    <th>Type</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Days</th>
-                    <th>Reason</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
                   ${leaves.map((l) => {
                     const s    = STATUS_STYLE[l.status] || STATUS_STYLE.pending;
@@ -1154,11 +1033,7 @@ async function renderLeavePage() {
                         <td>${to.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}</td>
                         <td style="text-align:center;">${days}</td>
                         <td style="max-width:180px;word-break:break-word;">${l.reason||"—"}</td>
-                        <td>
-                          <span class="leave-status-badge" style="background:${s.bg};color:${s.color};">
-                            ${(l.status||"pending").toUpperCase()}
-                          </span>
-                        </td>
+                        <td><span class="leave-status-badge" style="background:${s.bg};color:${s.color};">${(l.status||"pending").toUpperCase()}</span></td>
                         <td style="white-space:nowrap;">
                           ${l.status === "pending" ? `
                             <button class="leave-approve-btn" data-id="${l._id}">Approve</button>
@@ -1173,7 +1048,6 @@ async function renderLeavePage() {
       </div>
     `;
 
-    /* File leave button — load employee list on open */
     document.getElementById("fileLeaveBtn").onclick = async () => {
       const form = document.getElementById("leaveForm");
       form.style.display = "block";
@@ -1187,9 +1061,7 @@ async function renderLeavePage() {
       } catch(_) {}
     };
 
-    document.getElementById("cancelLeaveBtn").onclick = () => {
-      document.getElementById("leaveForm").style.display = "none";
-    };
+    document.getElementById("cancelLeaveBtn").onclick = () => { document.getElementById("leaveForm").style.display = "none"; };
 
     document.getElementById("saveLeaveBtn").onclick = async () => {
       const body = {
@@ -1199,7 +1071,7 @@ async function renderLeavePage() {
         leaveType:  document.getElementById("leaveType").value,
         reason:     document.getElementById("leaveReason").value.trim(),
       };
-      if (!body.employeeId || !body.fromDate || !body.toDate) { showToast("Employee and dates are required."); return; }
+      if (!body.employeeId || !body.fromDate || !body.toDate) { showToast("Employee and dates are required.","warning"); return; }
       try {
         const res    = await fetch("/api/admin/operations/leave", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
         const result = await res.json();
@@ -1213,7 +1085,7 @@ async function renderLeavePage() {
         try {
           const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}/approve`, { method:"PUT" });
           const result = await res.json();
-          if (result.success) await renderLeavePage();
+          if (result.success) { showToast(result.message,"success"); await renderLeavePage(); }
           else showToast(result.message,"error");
         } catch (err) { showToast("Error approving leave.","error"); }
       };
@@ -1225,7 +1097,7 @@ async function renderLeavePage() {
         try {
           const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}/reject`, { method:"PUT" });
           const result = await res.json();
-          if (result.success) await renderLeavePage();
+          if (result.success) { showToast(result.message,"success"); await renderLeavePage(); }
           else showToast(result.message,"error");
         } catch (err) { showToast("Error rejecting leave.","error"); }
       };
@@ -1237,7 +1109,7 @@ async function renderLeavePage() {
         try {
           const res = await fetch(`/api/admin/operations/leave/${btn.dataset.id}`, { method:"DELETE" });
           const result = await res.json();
-          if (result.success) await renderLeavePage();
+          if (result.success) { showToast(result.message,"success"); await renderLeavePage(); }
           else showToast(result.message,"error");
         } catch (err) { showToast("Error deleting leave.","error"); }
       };
@@ -1298,13 +1170,23 @@ function loadMessagesSection() {
       messagesContent.innerHTML = html;
       document.querySelectorAll(".markReadBtn").forEach((btn) => {
         btn.onclick = async () => {
-          try { const res = await fetch(`/api/contact/${btn.dataset.id}/read`,{method:"PUT"}); const r = await res.json(); if(r.success){loadMessages(status);pollUnreadMessages();}else showToast(r.message,"error"); } catch(err){showToast("Error");}
+          try {
+            const res = await fetch(`/api/contact/${btn.dataset.id}/read`,{method:"PUT"});
+            const r   = await res.json();
+            if (r.success) { loadMessages(status); pollUnreadMessages(); }
+            else showToast(r.message,"error");
+          } catch(err) { showToast("Error","error"); }
         };
       });
       document.querySelectorAll(".deleteMessageBtn").forEach((btn) => {
         btn.onclick = async () => {
           if (!await showConfirm({title:"Confirm Action",message:"Delete this message?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
-          try { const res = await fetch(`/api/contact/${btn.dataset.id}`,{method:"DELETE"}); const r = await res.json(); if(r.success){showToast(r.message,"error");loadMessages(status);pollUnreadMessages();}else showToast(r.message,"error"); } catch(err){showToast("Error");}
+          try {
+            const res = await fetch(`/api/contact/${btn.dataset.id}`,{method:"DELETE"});
+            const r   = await res.json();
+            if (r.success) { showToast("Message deleted.","success"); loadMessages(status); pollUnreadMessages(); }
+            else showToast(r.message,"error");
+          } catch(err) { showToast("Error","error"); }
         };
       });
     } catch (err) { messagesContent.innerHTML = "<p>Error loading messages.</p>"; }
@@ -1320,7 +1202,7 @@ function loadMessagesSection() {
 ================================ */
 async function pollUnreadMessages() {
   try {
-    const res = await fetch("/api/contact/unread-count");
+    const res  = await fetch("/api/contact/unread-count");
     const data = await res.json();
     if (data.success && data.count > 0) {
       const link = document.querySelector('[data-section="messages"]');
@@ -1362,7 +1244,8 @@ function showRejectModal(bookingId, onConfirm) {
   modal.querySelectorAll(".reject-preset-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       modal.querySelectorAll(".reject-preset-btn").forEach((b)=>b.classList.remove("selected"));
-      btn.classList.add("selected"); ta.value = btn.dataset.reason !== "Other" ? btn.dataset.reason : "";
+      btn.classList.add("selected");
+      ta.value = btn.dataset.reason !== "Other" ? btn.dataset.reason : "";
       if (btn.dataset.reason === "Other") ta.focus();
     });
   });
@@ -1377,15 +1260,11 @@ function showRejectModal(bookingId, onConfirm) {
 function loadBookingsSection(defaultTab = "calendar") {
   content.innerHTML = `
     <h2>Manage Bookings</h2>
-
-    <!-- Top-level view tabs -->
     <div class="ops-tabs" style="margin-bottom:20px;">
       <button class="ops-tab-btn ${defaultTab === "calendar" ? "active" : ""}" data-view="calendar">&#128197; Calendar</button>
       <button class="ops-tab-btn ${defaultTab === "history"  ? "active" : ""}" data-view="history">&#128203; Booking History</button>
       <button class="ops-tab-btn ${defaultTab === "guest"    ? "active" : ""}" data-view="guest">&#128100; Guest Bookings</button>
     </div>
-
-    <!-- Calendar view -->
     <div id="bookingViewCalendar" style="display:block;">
     <div class="cal-layout">
       <div class="cal-main">
@@ -1430,9 +1309,7 @@ function loadBookingsSection(defaultTab = "calendar") {
       <p class="cal-side-date" id="calDrawerDate" style="padding:8px 16px;font-size:12px;color:#999;"></p>
       <div class="cal-side-list" id="calDrawerList" style="max-height:60vh;overflow-y:auto;"></div>
     </div>
-    </div><!-- /bookingViewCalendar -->
-
-    <!-- History view -->
+    </div>
     <div id="bookingViewHistory" style="display:none;"></div>
     <div id="bookingViewGuest"   style="display:none;"></div>
   `;
@@ -1455,7 +1332,6 @@ function loadBookingsSection(defaultTab = "calendar") {
         } catch(err){ console.error(err); }
       }
     }
-    /* Also load guest bookings (grooming + hotel) */
     try {
       const gRes  = await fetch("/api/guest.bookings?status=all");
       const gData = await gRes.json();
@@ -1477,7 +1353,7 @@ function loadBookingsSection(defaultTab = "calendar") {
     } catch(err){ console.error("Guest booking calendar fetch error:", err); }
 
     allBookings = results; renderCal(); updateBadge();
-    if (selDate) { window.innerWidth<=768?openDrawer(selDate):populateSidePanel(selDate); }
+    if (selDate) { window.innerWidth<=768 ? openDrawer(selDate) : populateSidePanel(selDate); }
   }
 
   function getFor(date) {
@@ -1527,29 +1403,106 @@ function loadBookingsSection(defaultTab = "calendar") {
     return cell;
   }
 
-  function buildCard(b,isPending,listEl) {
-    const item=document.createElement("div"); item.className="cal-booking-item";
-    const isGuest = !!b.isGuest;
+  function buildCard(b, isPending, listEl) {
+    const item     = document.createElement("div"); item.className="cal-booking-item";
+    const isGuest  = !!b.isGuest;
     const guestBadge = isGuest ? `<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:8px;font-weight:700;letter-spacing:.03em;margin-left:4px;">GUEST</span>` : "";
-    const pH=b.pets.map((p)=>`<span class="cal-pet-chip"><img src="/images/default-pet.png" ${!isGuest&&p.photo?`data-s3key="${p.photo}"`:""}  alt="${p.name}" class="cal-pet-av ${!isGuest&&p.photo?"pet-photo":""}"/>${p.name}</span>`).join("");
-    const dH=b.type==="hotel"?`Check-in: ${new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} ${b.appointmentTime||""} &bull; Check-out: ${b.hotelCheckoutDate?new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"}):"N/A"} ${b.hotelCheckoutTime||""}`:`Time: ${b.appointmentTime||"N/A"} &bull; ${Array.isArray(b.services)?b.services.join(", "):(b.services||"")}`;
-    const sb=isPending?"":`<span class="cal-status-badge cal-status-${b.status}">${b.status.toUpperCase()}</span>`;
-    const ac=isPending?`<div class="cal-bi-actions"><button class="cal-btn-approve" data-id="${b._id}" data-guest="${isGuest}">Approve</button><button class="cal-btn-reject" data-id="${b._id}" data-guest="${isGuest}">Reject</button></div>`:`<div class="cal-bi-actions"><button class="cal-btn-edit" data-id="${b._id}" data-guest="${isGuest}">Move to Pending</button></div>`;
-    const groomerLine=b.requestedGroomerName?`<p class="cal-bi-detail" style="color:#d44d7c;">✂️ Requested: <strong>${b.requestedGroomerName}</strong></p>`:"";
-    const contactLine=isGuest&&b.phone?`<p class="cal-bi-contact">${b.userEmail||""} · ${b.phone}</p>`:`<p class="cal-bi-contact">${b.userContact||""}</p>`;
-    item.innerHTML=`<div class="cal-bi-top"><div><p class="cal-bi-name" style="display:inline;">${b.userName||"Unknown"}</p>${guestBadge}<p class="cal-bi-email">${b.userEmail||""}</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="cal-type-pill ${b.type==="hotel"?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span>${sb}</div></div><div class="cal-bi-pets">${pH}</div><p class="cal-bi-detail">${dH}</p>${groomerLine}${contactLine}${ac}`;
+    const pH = b.pets.map((p)=>`<span class="cal-pet-chip"><img src="/images/default-pet.png" ${!isGuest&&p.photo?`data-s3key="${p.photo}"`:""}  alt="${p.name}" class="cal-pet-av ${!isGuest&&p.photo?"pet-photo":""}"/>${p.name}</span>`).join("");
+    const dH = b.type==="hotel"
+      ? `Check-in: ${new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} ${b.appointmentTime||""} &bull; Check-out: ${b.hotelCheckoutDate?new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"}):"N/A"} ${b.hotelCheckoutTime||""}`
+      : `Time: ${b.appointmentTime||"N/A"} &bull; ${Array.isArray(b.services)?b.services.join(", "):(b.services||"")}`;
+    const sb = isPending ? "" : `<span class="cal-status-badge cal-status-${b.status}">${b.status.toUpperCase()}</span>`;
+    const ac = isPending
+      ? `<div class="cal-bi-actions"><button class="cal-btn-approve" data-id="${b._id}" data-guest="${isGuest}">Approve</button><button class="cal-btn-reject" data-id="${b._id}" data-guest="${isGuest}">Reject</button></div>`
+      : `<div class="cal-bi-actions"><button class="cal-btn-edit" data-id="${b._id}" data-guest="${isGuest}">Move to Pending</button></div>`;
+    const groomerLine  = b.requestedGroomerName ? `<p class="cal-bi-detail" style="color:#d44d7c;">✂️ Requested: <strong>${b.requestedGroomerName}</strong></p>` : "";
+    const contactLine  = isGuest && b.phone ? `<p class="cal-bi-contact">${b.userEmail||""} · ${b.phone}</p>` : `<p class="cal-bi-contact">${b.userContact||""}</p>`;
+    item.innerHTML = `<div class="cal-bi-top"><div><p class="cal-bi-name" style="display:inline;">${b.userName||"Unknown"}</p>${guestBadge}<p class="cal-bi-email">${b.userEmail||""}</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="cal-type-pill ${b.type==="hotel"?"cal-pill-hotel":"cal-pill-grooming"}">${b.type}</span>${sb}</div></div><div class="cal-bi-pets">${pH}</div><p class="cal-bi-detail">${dH}</p>${groomerLine}${contactLine}${ac}`;
     listEl.appendChild(item);
-    if(!isGuest){ item.querySelectorAll(".pet-photo[data-s3key]").forEach(async(img)=>{const k=img.dataset.s3key;if(!k)return;try{const r=await fetch(`/api/file?name=${encodeURIComponent(k)}`);const d=await r.json();if(d.success)img.src=d.url;}catch(_){}}); }
-    const approveUrl=(id)=>isGuest?`/api/guest.bookings/${id}/approve`:`/api/admin/bookings/${id}/approve`;
-    const rejectUrl =(id)=>isGuest?`/api/guest.bookings/${id}/reject` :`/api/admin/bookings/${id}/reject`;
-    const pendingUrl=(id)=>isGuest?`/api/guest.bookings/${id}/pending`:`/api/admin/bookings/${id}/pending`;
-    const ab=item.querySelector(".cal-btn-approve");
-    if(ab){ab.onclick = async ()=>{if(!confirm(`Approve this booking?${isGuest?" An email will be sent to the guest.":""}`))return;try{const r=await fetch(approveUrl(ab.dataset.id),{method:"PUT"});const rs=await r.json();if(rs.success){closeDrawer();await fetchAll();}else showToast(rs.message,"error");}catch(e){showToast("Error approving booking.","error");}};}
-    const rb=item.querySelector(".cal-btn-reject");
-    if(rb){rb.onclick=()=>{showRejectModal(rb.dataset.id,async(reason)=>{try{const r=await fetch(rejectUrl(rb.dataset.id),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({reason})});const rs=await r.json();if(rs.success){closeDrawer();await fetchAll();}else showToast(rs.message,"error");}catch(e){showToast("Error rejecting booking.","error")}});};}
-    const eb=item.querySelector(".cal-btn-edit");
-    if(eb){eb.onclick = async ()=>{if(!confirm("Move this booking back to pending?"))return;try{const r=await fetch(pendingUrl(eb.dataset.id),{method:"PUT",headers:{"Content-Type":"application/json"}});const rs=await r.json();if(rs.success){closeDrawer();await fetchAll();}else showToast(rs.message,"error");}catch(e){showToast("Error updating booking.","error");}};}
+
+    if (!isGuest) {
+      item.querySelectorAll(".pet-photo[data-s3key]").forEach(async(img)=>{
+        const k=img.dataset.s3key; if(!k)return;
+        try{const r=await fetch(`/api/file?name=${encodeURIComponent(k)}`);const d=await r.json();if(d.success)img.src=d.url;}catch(_){}
+      });
+    }
+
+    const approveUrl = (id) => isGuest ? `/api/guest.bookings/${id}/approve` : `/api/admin/bookings/${id}/approve`;
+    const rejectUrl  = (id) => isGuest ? `/api/guest.bookings/${id}/reject`  : `/api/admin/bookings/${id}/reject`;
+    const pendingUrl = (id) => isGuest ? `/api/guest.bookings/${id}/pending` : `/api/admin/bookings/${id}/pending`;
+
+    // ── APPROVE button ──
+    const ab = item.querySelector(".cal-btn-approve");
+    if (ab) {
+      ab.onclick = async () => {
+        const emailNote = isGuest
+          ? "A confirmation email will be sent to the guest."
+          : "A confirmation email will be sent to the customer.";
+        const confirmed = await showConfirm({
+          title:       "Approve Booking?",
+          message:     emailNote,
+          confirmText: "Yes, Approve",
+          cancelText:  "Cancel",
+        });
+        if (!confirmed) return;
+        try {
+          const r  = await fetch(approveUrl(ab.dataset.id), { method: "PUT" });
+          const rs = await r.json();
+          if (rs.success) {
+            showToast(rs.message, "success");
+            closeDrawer();
+            await fetchAll();
+          } else {
+            showToast(rs.message, "error");
+          }
+        } catch (e) { showToast("Error approving booking.", "error"); }
+      };
+    }
+
+    // ── REJECT button ──
+    const rb = item.querySelector(".cal-btn-reject");
+    if (rb) {
+      rb.onclick = () => {
+        showRejectModal(rb.dataset.id, async (reason) => {
+          try {
+            const r  = await fetch(rejectUrl(rb.dataset.id), {
+              method:  "PUT",
+              headers: { "Content-Type": "application/json" },
+              body:    JSON.stringify({ reason }),
+            });
+            const rs = await r.json();
+            if (rs.success) {
+              showToast(rs.message, "success");
+              closeDrawer();
+              await fetchAll();
+            } else {
+              showToast(rs.message, "error");
+            }
+          } catch (e) { showToast("Error rejecting booking.", "error"); }
+        });
+      };
+    }
+
+    // ── MOVE TO PENDING button ──
+    const eb = item.querySelector(".cal-btn-edit");
+    if (eb) {
+      eb.onclick = async () => {
+        if (!await showConfirm({title:"Move to Pending?",message:"Move this booking back to pending?",confirmText:"Yes",cancelText:"Cancel",danger:false})) return;
+        try {
+          const r  = await fetch(pendingUrl(eb.dataset.id), { method: "PUT", headers: { "Content-Type": "application/json" } });
+          const rs = await r.json();
+          if (rs.success) {
+            showToast(rs.message, "success");
+            closeDrawer();
+            await fetchAll();
+          } else {
+            showToast(rs.message, "error");
+          }
+        } catch (e) { showToast("Error updating booking.", "error"); }
+      };
+    }
   }
+
   function populateSidePanel(date) {
     const sd=document.getElementById("calSideDate"),sl=document.getElementById("calSideList"),st=document.getElementById("calSideTitle");
     sd.textContent=date.toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
@@ -1579,16 +1532,15 @@ function loadBookingsSection(defaultTab = "calendar") {
     if(ov)ov.classList.remove("active");if(dr)dr.classList.remove("active");document.body.style.overflow="";
   }
 
-  document.getElementById("calDrawerClose").onclick=closeDrawer;
-  document.getElementById("calDrawerOverlay").onclick=closeDrawer;
-  function updateBadge(){document.getElementById("calBadge").textContent=allBookings.filter((b)=>b.status==="pending").length;}
+  document.getElementById("calDrawerClose").onclick  = closeDrawer;
+  document.getElementById("calDrawerOverlay").onclick = closeDrawer;
+  function updateBadge(){ document.getElementById("calBadge").textContent=allBookings.filter((b)=>b.status==="pending").length; }
   document.getElementById("calPrev").onclick=()=>{mo--;if(mo<0){mo=11;yr--;}renderCal();};
   document.getElementById("calNext").onclick=()=>{mo++;if(mo>11){mo=0;yr++;}renderCal();};
   document.querySelectorAll(".cal-type-btn").forEach((btn)=>{btn.onclick=()=>{document.querySelectorAll(".cal-type-btn").forEach((b)=>b.classList.remove("active"));btn.classList.add("active");activeType=btn.dataset.type;fetchAll();};});
   window.addEventListener("resize",()=>renderCal());
   fetchAll();
 
-  /* ── View tab switching (Calendar / History) ── */
   document.querySelectorAll(".ops-tab-btn[data-view]").forEach((btn) => {
     btn.onclick = () => {
       document.querySelectorAll(".ops-tab-btn[data-view]").forEach((b) => b.classList.remove("active"));
@@ -1596,16 +1548,13 @@ function loadBookingsSection(defaultTab = "calendar") {
       const cal   = document.getElementById("bookingViewCalendar");
       const hist  = document.getElementById("bookingViewHistory");
       const guest = document.getElementById("bookingViewGuest");
-      cal.style.display   = "none";
-      hist.style.display  = "none";
-      guest.style.display = "none";
-      if (btn.dataset.view === "calendar") { cal.style.display  = "block"; }
-      else if (btn.dataset.view === "history") { hist.style.display = "block"; loadBookingHistory(); }
+      cal.style.display = hist.style.display = guest.style.display = "none";
+      if (btn.dataset.view === "calendar")  cal.style.display   = "block";
+      else if (btn.dataset.view === "history") { hist.style.display  = "block"; loadBookingHistory(); }
       else if (btn.dataset.view === "guest")   { guest.style.display = "block"; loadGuestBookings(); }
     };
   });
 
-  /* If defaultTab is history, load it now */
   if (defaultTab === "history") {
     document.getElementById("bookingViewCalendar").style.display = "none";
     document.getElementById("bookingViewHistory").style.display  = "block";
@@ -1627,7 +1576,6 @@ async function loadBookingHistory() {
   wrap.innerHTML = "<p>Loading history...</p>";
 
   try {
-    /* Fetch all approved bookings for both types */
     const [grRes, htRes] = await Promise.all([
       fetch("/api/admin/bookings?type=grooming&status=approved"),
       fetch("/api/admin/bookings?type=hotel&status=approved"),
@@ -1640,13 +1588,12 @@ async function loadBookingHistory() {
     ].sort((a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate));
 
     const OUTCOME_STYLE = {
-      completed:   { bg:"#d1fae5", color:"#065f46", label:"Completed"      },
-      "no-show":   { bg:"#fee2e2", color:"#991b1b", label:"No Show"        },
-      "cancelled": { bg:"#f3f4f6", color:"#374151", label:"Cancelled"      },
-      rescheduled: { bg:"#dbeafe", color:"#1e40af", label:"Rescheduled"    },
+      completed:   { bg:"#d1fae5", color:"#065f46", label:"Completed"   },
+      "no-show":   { bg:"#fee2e2", color:"#991b1b", label:"No Show"     },
+      "cancelled": { bg:"#f3f4f6", color:"#374151", label:"Cancelled"   },
+      rescheduled: { bg:"#dbeafe", color:"#1e40af", label:"Rescheduled" },
     };
 
-    /* Filter controls */
     wrap.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
         <div class="cal-type-tabs" style="margin:0;">
@@ -1673,11 +1620,9 @@ async function loadBookingHistory() {
 
       const filtered = bookings.filter((b) => {
         const typeMatch    = activeHType === "all" || b.type === activeHType;
-        const outcomeMatch = activeHOutcome === "all"
-          ? true
-          : activeHOutcome === "none"
-            ? !b.outcome
-            : b.outcome === activeHOutcome;
+        const outcomeMatch = activeHOutcome === "all" ? true
+          : activeHOutcome === "none" ? !b.outcome
+          : b.outcome === activeHOutcome;
         return typeMatch && outcomeMatch;
       });
 
@@ -1691,29 +1636,19 @@ async function loadBookingHistory() {
           <table class="leave-table">
             <thead>
               <tr>
-                <th>Customer</th>
-                <th>Pets</th>
-                <th>Type</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Services</th>
-                <th>Outcome</th>
-                <th>Actions</th>
+                <th>Customer</th><th>Pets</th><th>Type</th><th>Date</th>
+                <th>Time</th><th>Services</th><th>Outcome</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
               ${filtered.map((b) => {
-                const isHotel   = b.type === "hotel";
-                const dateStr   = new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
-                const coStr     = isHotel && b.hotelCheckoutDate
-                  ? ` → ${new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})}`
-                  : "";
-                const petsStr   = Array.isArray(b.pets) ? b.pets.map((p) => p.name||p).join(", ") : "—";
-                const svcStr    = !isHotel && b.services
-                  ? (Array.isArray(b.services) ? b.services.join(", ") : b.services)
-                  : isHotel ? "Pet Hotel" : "—";
-                const oc        = b.outcome;
-                const ocStyle   = oc ? (OUTCOME_STYLE[oc] || { bg:"#e9ecef", color:"#333", label:oc }) : null;
+                const isHotel = b.type === "hotel";
+                const dateStr = new Date(b.appointmentDate).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
+                const coStr   = isHotel && b.hotelCheckoutDate ? ` → ${new Date(b.hotelCheckoutDate).toLocaleDateString("en-PH",{month:"short",day:"numeric"})}` : "";
+                const petsStr = Array.isArray(b.pets) ? b.pets.map((p) => p.name||p).join(", ") : "—";
+                const svcStr  = !isHotel && b.services ? (Array.isArray(b.services) ? b.services.join(", ") : b.services) : isHotel ? "Pet Hotel" : "—";
+                const oc      = b.outcome;
+                const ocStyle = oc ? (OUTCOME_STYLE[oc] || { bg:"#e9ecef", color:"#333", label:oc }) : null;
                 return `
                   <tr data-id="${b._id}">
                     <td>
@@ -1726,9 +1661,7 @@ async function loadBookingHistory() {
                     <td>${b.appointmentTime||"—"}</td>
                     <td style="max-width:140px;word-break:break-word;">${svcStr}${b.requestedGroomerName?`<br><span style="font-size:0.75rem;color:#d44d7c;">✂️ ${b.requestedGroomerName}</span>`:""}</td>
                     <td>
-                      ${oc
-                        ? `<span class="leave-status-badge" style="background:${ocStyle.bg};color:${ocStyle.color};">${ocStyle.label}</span>`
-                        : `<span style="color:#aaa;font-size:0.8rem;">—</span>`}
+                      ${oc ? `<span class="leave-status-badge" style="background:${ocStyle.bg};color:${ocStyle.color};">${ocStyle.label}</span>` : `<span style="color:#aaa;font-size:0.8rem;">—</span>`}
                       ${b.outcomeNote ? `<p style="font-size:0.75rem;color:#888;margin:2px 0 0;">${b.outcomeNote}</p>` : ""}
                     </td>
                     <td style="white-space:nowrap;">
@@ -1746,7 +1679,6 @@ async function loadBookingHistory() {
         </div>
       `;
 
-      /* Outcome buttons */
       const setOutcome = async (id, outcome, groomerId = null, note = "") => {
         try {
           const res    = await fetch(`/api/admin/bookings/${id}/outcome`, {
@@ -1756,11 +1688,12 @@ async function loadBookingHistory() {
           });
           const result = await res.json();
           if (result.success) {
+            showToast(result.message, "success");
             const b = bookings.find((x) => x._id === id);
             if (b) { b.outcome = outcome; b.outcomeNote = note; }
             renderHistory();
-          } else showToast(result.message,"error");
-        } catch (err) { showToast("Error updating outcome.","error"); }
+          } else showToast(result.message, "error");
+        } catch (err) { showToast("Error updating outcome.", "error"); }
       };
 
       list.querySelectorAll(".hist-complete").forEach((btn) => {
@@ -1772,38 +1705,33 @@ async function loadBookingHistory() {
       list.querySelectorAll(".hist-noshow").forEach((btn) => {
         btn.onclick = async () => {
           const note = prompt("Optional note (e.g. called but no answer):", "") ?? "";
-          setOutcome(btn.dataset.id, "no-show", note);
+          setOutcome(btn.dataset.id, "no-show", null, note);
         };
       });
       list.querySelectorAll(".hist-cancel").forEach((btn) => {
         btn.onclick = async () => {
           const note = prompt("Cancellation reason (optional):", "") ?? "";
-          setOutcome(btn.dataset.id, "cancelled", note);
+          setOutcome(btn.dataset.id, "cancelled", null, note);
         };
       });
       list.querySelectorAll(".hist-resched").forEach((btn) => {
         btn.onclick = async () => {
           const note = prompt("New date or note:", "") ?? "";
-          setOutcome(btn.dataset.id, "rescheduled", note);
+          setOutcome(btn.dataset.id, "rescheduled", null, note);
         };
       });
     }
 
-    /* Filter tab listeners */
     wrap.querySelectorAll(".cal-type-btn[data-htype]").forEach((btn) => {
       btn.onclick = () => {
         wrap.querySelectorAll(".cal-type-btn[data-htype]").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        activeHType = btn.dataset.htype;
-        renderHistory();
+        btn.classList.add("active"); activeHType = btn.dataset.htype; renderHistory();
       };
     });
     wrap.querySelectorAll(".cal-type-btn[data-houtcome]").forEach((btn) => {
       btn.onclick = () => {
         wrap.querySelectorAll(".cal-type-btn[data-houtcome]").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        activeHOutcome = btn.dataset.houtcome;
-        renderHistory();
+        btn.classList.add("active"); activeHOutcome = btn.dataset.houtcome; renderHistory();
       };
     });
 
@@ -1817,10 +1745,6 @@ async function loadBookingHistory() {
 
 /* ═══════════════════════════════════════
    PAYROLL SECTION
-   - Semi-monthly (1–15 and 16–end of month)
-   - Admin manually inputs OT hours + commission per employee
-   - Advance salary tracked and deducted from next period
-   - Deductions: SSS, PhilHealth, Pag-IBIG, withholding tax
 ═══════════════════════════════════════ */
 async function loadPayrollSection() {
   content.innerHTML = `<h2>Payroll</h2><p>Loading...</p>`;
@@ -1834,7 +1758,7 @@ async function loadPayrollSection() {
     ];
   }
 
-  const now      = new Date();
+  const now       = new Date();
   const curPeriod = now.getDate() <= 15
     ? getPeriods(now.getFullYear(), now.getMonth())[0]
     : getPeriods(now.getFullYear(), now.getMonth())[1];
@@ -1850,20 +1774,16 @@ async function loadPayrollSection() {
 
   content.innerHTML = `
     <h2>Payroll</h2>
-
     <div class="ops-tabs" style="margin-bottom:20px;">
       <button class="ops-tab-btn active" data-ptab="payslips">📋 Payslips</button>
       <button class="ops-tab-btn" data-ptab="attendance">🕐 Attendance</button>
       <button class="ops-tab-btn" data-ptab="advances">💵 Advances</button>
       <button class="ops-tab-btn" data-ptab="history">📂 Release History</button>
     </div>
-
-    <!-- PAYSLIPS TAB -->
     <div id="ptabPayslips">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
         <label class="admin-form-label" style="margin:0;flex-direction:row;align-items:center;gap:8px;">
-          Period:
-          <select id="periodSelect" class="admin-form-input" style="width:auto;min-width:240px;">${periodOptions}</select>
+          Period: <select id="periodSelect" class="admin-form-input" style="width:auto;min-width:240px;">${periodOptions}</select>
         </label>
         <button class="btn" id="loadPayslipsBtn">Load</button>
         <button class="btn" id="releasePayrollBtn" style="background:#065f46;">✅ Mark as Released</button>
@@ -1874,8 +1794,6 @@ async function loadPayrollSection() {
       </p>
       <div id="payslipList"><p style="color:#aaa;">Select a period and click Load.</p></div>
     </div>
-
-    <!-- ATTENDANCE TAB -->
     <div id="ptabAttendance" style="display:none;">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
         <label class="admin-form-label" style="margin:0;flex-direction:row;align-items:center;gap:8px;">
@@ -1888,17 +1806,13 @@ async function loadPayrollSection() {
       </div>
       <div id="attendanceList"><p style="color:#aaa;">Select a date range and click Load.</p></div>
     </div>
-
-    <!-- ADVANCES TAB -->
     <div id="ptabAdvances" style="display:none;">
       <div style="margin-bottom:20px;">
         <div class="ops-section-card" style="max-width:480px;margin-bottom:20px;">
           <h3 class="ops-card-title">Give Advance Salary</h3>
           <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
             <label class="admin-form-label">Employee
-              <select id="advEmployee" class="admin-form-input">
-                <option value="">Loading employees...</option>
-              </select>
+              <select id="advEmployee" class="admin-form-input"><option value="">Loading employees...</option></select>
             </label>
             <label class="admin-form-label">Amount ₱
               <input type="number" id="advAmount" class="admin-form-input" placeholder="0.00" min="0" step="0.01" />
@@ -1913,21 +1827,17 @@ async function loadPayrollSection() {
             <p id="advMsg" class="admin-form-msg"></p>
           </div>
         </div>
-
         <div class="ops-section-card">
           <h3 class="ops-card-title" style="margin-bottom:12px;">Advance History</h3>
           <div id="advanceList"><p>Loading...</p></div>
         </div>
       </div>
     </div>
-
-    <!-- HISTORY TAB -->
     <div id="ptabHistory" style="display:none;">
       <div id="payrollHistoryList"><p>Loading...</p></div>
     </div>
   `;
 
-  /* ── Tab switching ── */
   document.querySelectorAll(".ops-tab-btn[data-ptab]").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".ops-tab-btn[data-ptab]").forEach(b => b.classList.remove("active"));
@@ -1936,52 +1846,38 @@ async function loadPayrollSection() {
         const el = document.getElementById(`ptab${t}`);
         if (el) el.style.display = btn.dataset.ptab === t.toLowerCase() ? "block" : "none";
       });
-      if (btn.dataset.ptab === "history")   loadReleaseHistory();
-      if (btn.dataset.ptab === "advances")  initAdvancesTab();
+      if (btn.dataset.ptab === "history")  loadReleaseHistory();
+      if (btn.dataset.ptab === "advances") initAdvancesTab();
     };
   });
 
-  /* ── Load payslips ── */
-  document.getElementById("loadPayslipsBtn").onclick = loadPayslips;
+  document.getElementById("loadPayslipsBtn").onclick  = loadPayslips;
+  document.getElementById("loadAttendanceBtn").onclick = loadAttendanceView;
   loadPayslips();
 
-  /* ── Release payroll ── */
   document.getElementById("releasePayrollBtn").onclick = async () => {
     const [from, to] = document.getElementById("periodSelect").value.split("|");
     if (!await showConfirm({title:"Release Payroll?",message:"Mark this payroll period as released? This will be recorded in history.",confirmText:"Yes, Release",cancelText:"Cancel",danger:false})) return;
     try {
       const res    = await fetch("/api/admin/payroll/release", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ from, to }) });
       const result = await res.json();
-      if (result.success) showToast("Payroll released and recorded!");
+      if (result.success) showToast("Payroll released and recorded!", "success");
       else showToast(result.message,"error");
     } catch { showToast("Error releasing payroll.","error"); }
   };
 
-  /* ── Attendance tab ── */
-  document.getElementById("loadAttendanceBtn").onclick = loadAttendanceView;
-
-  /* ─────────────────────────────
-     PAYSLIPS LOADER
-  ───────────────────────────── */
   async function loadPayslips() {
     const wrap = document.getElementById("payslipList");
     const [from, to] = document.getElementById("periodSelect").value.split("|");
     wrap.innerHTML = "<p>Loading...</p>";
-
     try {
       const res  = await fetch(`/api/admin/payroll?from=${from}&to=${to}`);
       const data = await res.json();
       if (!data.success) { wrap.innerHTML = `<p>Error: ${data.message}</p>`; return; }
       if (!data.payroll.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No active employees found.</p>`; return; }
 
-      const fmt = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
-
-      /* Store mutable OT/commission per row */
-      const rowData = data.payroll.map(p => ({
-        ...p,
-        manualOT:         0,
-        manualCommission: 0,
-      }));
+      const fmt    = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
+      const rowData = data.payroll.map(p => ({ ...p, manualOT: 0, manualCommission: 0 }));
 
       function calcNet(row) {
         const p          = row.payroll || {};
@@ -1997,7 +1893,6 @@ async function loadPayrollSection() {
 
       function renderTable() {
         const totalNet = rowData.reduce((s, row) => s + calcNet(row).net, 0);
-
         wrap.innerHTML = `
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
             <p style="font-size:0.85rem;color:#888;">Period: <strong>${from} to ${to}</strong> &bull; ${rowData.length} employees</p>
@@ -2007,17 +1902,11 @@ async function loadPayrollSection() {
             <table class="leave-table">
               <thead>
                 <tr>
-                  <th>Employee</th>
-                  <th>Days Present</th>
-                  <th>Semi-Basic</th>
+                  <th>Employee</th><th>Days Present</th><th>Semi-Basic</th>
                   <th>OT Hours <span style="font-size:0.7rem;font-weight:400;">(edit)</span></th>
                   <th>OT Pay</th>
                   <th>Commission ₱ <span style="font-size:0.7rem;font-weight:400;">(edit)</span></th>
-                  <th>Gross</th>
-                  <th>Deductions</th>
-                  <th>Advance</th>
-                  <th>Net Pay</th>
-                  <th></th>
+                  <th>Gross</th><th>Deductions</th><th>Advance</th><th>Net Pay</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -2025,99 +1914,60 @@ async function loadPayrollSection() {
                   const c = calcNet(row);
                   return `
                     <tr>
-                      <td>
-                        <strong>${row.employee.name}</strong>
-                        <p style="font-size:0.75rem;color:#888;margin:0;">${row.employee.role}</p>
-                      </td>
+                      <td><strong>${row.employee.name}</strong><p style="font-size:0.75rem;color:#888;margin:0;">${row.employee.role}</p></td>
                       <td style="text-align:center;">${row.attendance.daysPresent}</td>
                       <td>${fmt(c.semiBasic)}</td>
-                      <td>
-                        <input type="number" class="admin-form-input ot-input" data-idx="${i}"
-                          value="${row.manualOT}" min="0" step="0.5"
-                          style="width:70px;padding:4px 6px;font-size:0.85rem;" />
-                      </td>
+                      <td><input type="number" class="admin-form-input ot-input" data-idx="${i}" value="${row.manualOT}" min="0" step="0.5" style="width:70px;padding:4px 6px;font-size:0.85rem;" /></td>
                       <td>${fmt(c.otPay)}</td>
-                      <td>
-                        <input type="number" class="admin-form-input comm-input" data-idx="${i}"
-                          value="${row.manualCommission}" min="0" step="0.01"
-                          style="width:90px;padding:4px 6px;font-size:0.85rem;" />
-                      </td>
+                      <td><input type="number" class="admin-form-input comm-input" data-idx="${i}" value="${row.manualCommission}" min="0" step="0.01" style="width:90px;padding:4px 6px;font-size:0.85rem;" /></td>
                       <td style="font-weight:600;">${fmt(c.gross)}</td>
                       <td style="color:#721c24;">${fmt(c.deductions)}</td>
                       <td style="color:#856404;">${c.advance > 0 ? fmt(c.advance) : "—"}</td>
                       <td style="font-weight:700;color:${c.net >= 0 ? "#065f46" : "#991b1b"};">${fmt(c.net)}</td>
-                      <td>
-                        <button class="hist-btn hist-complete payslip-btn" data-idx="${i}">Slip</button>
-                      </td>
+                      <td><button class="hist-btn hist-complete payslip-btn" data-idx="${i}">Slip</button></td>
                     </tr>`;
                 }).join("")}
               </tbody>
             </table>
           </div>`;
-
-        /* OT input listeners */
         wrap.querySelectorAll(".ot-input").forEach(inp => {
-          inp.onchange = () => {
-            rowData[inp.dataset.idx].manualOT = parseFloat(inp.value) || 0;
-            renderTable();
-          };
+          inp.onchange = () => { rowData[inp.dataset.idx].manualOT = parseFloat(inp.value) || 0; renderTable(); };
         });
-
-        /* Commission input listeners */
         wrap.querySelectorAll(".comm-input").forEach(inp => {
-          inp.onchange = () => {
-            rowData[inp.dataset.idx].manualCommission = parseFloat(inp.value) || 0;
-            renderTable();
-          };
+          inp.onchange = () => { rowData[inp.dataset.idx].manualCommission = parseFloat(inp.value) || 0; renderTable(); };
         });
-
-        /* Payslip detail buttons */
         wrap.querySelectorAll(".payslip-btn").forEach(btn => {
-          btn.onclick = () => {
-            const row = rowData[btn.dataset.idx];
-            const c   = calcNet(row);
-            openPayslipModal(row, c, from, to);
-          };
+          btn.onclick = () => { const row = rowData[btn.dataset.idx]; openPayslipModal(row, calcNet(row), from, to); };
         });
       }
-
       renderTable();
-
     } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading payslips.</p>"; }
   }
 
-  /* ─────────────────────────────
-     ATTENDANCE VIEW
-  ───────────────────────────── */
   async function loadAttendanceView() {
     const wrap = document.getElementById("attendanceList");
     const from = document.getElementById("attFrom").value;
     const to   = document.getElementById("attTo").value;
     if (!from || !to) { showToast("Please select both dates.","warning"); return; }
     wrap.innerHTML = "<p>Loading...</p>";
-
     try {
       const res  = await fetch(`/api/admin/attendance?from=${from}&to=${to}`);
       const data = await res.json();
       if (!data.success) { wrap.innerHTML = `<p>Error: ${data.message}</p>`; return; }
       if (!data.records.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No records found.</p>`; return; }
-
       wrap.innerHTML = `
         <div class="leave-table-wrap">
           <table class="leave-table">
-            <thead>
-              <tr><th>Employee</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Hours</th><th>OT</th><th>Note</th><th></th></tr>
-            </thead>
+            <thead><tr><th>Employee</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Hours</th><th>OT</th><th>Note</th><th></th></tr></thead>
             <tbody>
               ${data.records.map(r => {
-                const date    = new Date(r.date).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
-                const tIn     = r.timeIn  ? new Date(r.timeIn).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "—";
-                const tOut    = r.timeOut ? new Date(r.timeOut).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "—";
+                const date = new Date(r.date).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
+                const tIn  = r.timeIn  ? new Date(r.timeIn).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "—";
+                const tOut = r.timeOut ? new Date(r.timeOut).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "—";
                 return `
                   <tr>
                     <td><strong>${r.employeeName||"—"}</strong></td>
-                    <td>${date}</td>
-                    <td>${tIn}</td>
+                    <td>${date}</td><td>${tIn}</td>
                     <td style="${!r.timeOut?"color:#d44d7c;font-weight:600;":""}">${tOut}${!r.timeOut?" (active)":""}</td>
                     <td style="text-align:center;">${r.hoursWorked!=null?r.hoursWorked+"h":"—"}</td>
                     <td style="text-align:center;">${r.overtimeHours>0?r.overtimeHours+"h":"—"}</td>
@@ -2131,7 +1981,6 @@ async function loadPayrollSection() {
             </tbody>
           </table>
         </div>`;
-
       wrap.querySelectorAll(".att-adj").forEach(btn => {
         btn.onclick = () => openAdjustModal(btn.dataset.id, btn.dataset.ti, btn.dataset.to, from, to, loadAttendanceView);
       });
@@ -2146,11 +1995,7 @@ async function loadPayrollSection() {
     } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading attendance.</p>"; }
   }
 
-  /* ─────────────────────────────
-     ADVANCES TAB
-  ───────────────────────────── */
   async function initAdvancesTab() {
-    /* Populate employee dropdown */
     try {
       const res  = await fetch("/api/admin/employees");
       const data = await res.json();
@@ -2160,34 +2005,23 @@ async function loadPayrollSection() {
           (data.employees||[]).map(e => `<option value="${e._id}">${e.name} — ${e.role}</option>`).join("");
       }
     } catch (_) {}
-
     loadAdvanceList();
-
     document.getElementById("giveAdvanceBtn").onclick = async () => {
       const msg    = document.getElementById("advMsg");
       const empId  = document.getElementById("advEmployee").value;
       const amount = parseFloat(document.getElementById("advAmount").value);
       const period = document.getElementById("advPeriod").value;
       const note   = document.getElementById("advNote").value.trim();
-
-      if (!empId || !amount || !period) {
-        msg.textContent = "Employee, amount, and period are required.";
-        msg.style.display = "block"; return;
-      }
-
+      if (!empId || !amount || !period) { msg.textContent = "Employee, amount, and period are required."; msg.style.display = "block"; return; }
       const [from, to] = period.split("|");
       try {
-        const res    = await fetch("/api/admin/payroll/advance", {
-          method:  "POST",
-          headers: {"Content-Type":"application/json"},
-          body:    JSON.stringify({ employeeId: empId, amount, periodFrom: from, periodTo: to, note }),
-        });
+        const res    = await fetch("/api/admin/payroll/advance", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ employeeId: empId, amount, periodFrom: from, periodTo: to, note }) });
         const result = await res.json();
         if (result.success) {
           document.getElementById("advAmount").value = "";
           document.getElementById("advNote").value   = "";
           msg.style.display = "none";
-          showToast("Advance salary recorded.");
+          showToast("Advance salary recorded.", "success");
           loadAdvanceList();
         } else { msg.textContent = result.message; msg.style.display = "block"; }
       } catch { msg.textContent = "Error recording advance."; msg.style.display = "block"; }
@@ -2201,7 +2035,7 @@ async function loadPayrollSection() {
       const res  = await fetch("/api/admin/payroll/advances");
       const data = await res.json();
       if (!data.advances.length) { wrap.innerHTML = `<p style="color:#aaa;">No advances recorded yet.</p>`; return; }
-      const fmt  = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
+      const fmt = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
       wrap.innerHTML = `
         <div class="leave-table-wrap">
           <table class="leave-table">
@@ -2211,21 +2045,18 @@ async function loadPayrollSection() {
                 <tr>
                   <td><strong>${a.employeeName||"—"}</strong></td>
                   <td style="font-weight:600;color:#856404;">${fmt(a.amount)}</td>
-                  <td>${a.periodFrom ? a.periodFrom.slice(0,10) : "—"} to ${a.periodTo ? a.periodTo.slice(0,10) : "—"}</td>
+                  <td>${a.periodFrom?a.periodFrom.slice(0,10):"—"} to ${a.periodTo?a.periodTo.slice(0,10):"—"}</td>
                   <td style="font-size:0.8rem;color:#888;">${a.note||"—"}</td>
                   <td>
                     <span class="leave-status-badge" style="background:${a.deducted?"#d4edda":"#fff3cd"};color:${a.deducted?"#155724":"#856404"};">
                       ${a.deducted?"Deducted":"Pending"}
                     </span>
                   </td>
-                  <td>
-                    ${!a.deducted ? `<button class="hist-btn hist-cancel adv-del-btn" data-id="${a._id}">Remove</button>` : ""}
-                  </td>
+                  <td>${!a.deducted?`<button class="hist-btn hist-cancel adv-del-btn" data-id="${a._id}">Remove</button>`:""}</td>
                 </tr>`).join("")}
             </tbody>
           </table>
         </div>`;
-
       wrap.querySelectorAll(".adv-del-btn").forEach(btn => {
         btn.onclick = async () => {
           if (!await showConfirm({title:"Confirm Action",message:"Remove this advance record?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
@@ -2237,9 +2068,6 @@ async function loadPayrollSection() {
     } catch { wrap.innerHTML = "<p>Error loading advances.</p>"; }
   }
 
-  /* ─────────────────────────────
-     RELEASE HISTORY
-  ───────────────────────────── */
   async function loadReleaseHistory() {
     const wrap = document.getElementById("payrollHistoryList");
     if (!wrap) return;
@@ -2266,12 +2094,9 @@ async function loadPayrollSection() {
   }
 }
 
-/* ── Payslip Detail Modal ── */
-/* ── Groomer Picker Modal (shown when marking booking as Done) ── */
+/* ── Groomer Picker Modal ── */
 async function openGroomerPickerModal(bookingId, booking, setOutcomeFn) {
   document.getElementById("groomerPickerModal")?.remove();
-
-  // Fetch active groomers
   let groomers = [];
   try {
     const res  = await fetch("/api/admin/employees");
@@ -2282,13 +2107,10 @@ async function openGroomerPickerModal(bookingId, booking, setOutcomeFn) {
   const requestedId   = booking?.requestedGroomerId   || null;
   const requestedName = booking?.requestedGroomerName || null;
 
-  // Build groomer options — put requested first if present
   let options = `<option value="">— No specific groomer —</option>`;
-  if (requestedName) {
-    options += `<option value="${requestedId}" selected>✂️ ${requestedName} (requested)</option>`;
-  }
+  if (requestedName) options += `<option value="${requestedId}" selected>✂️ ${requestedName} (requested)</option>`;
   groomers.forEach(g => {
-    if (g._id === requestedId) return; // already added
+    if (g._id === requestedId) return;
     options += `<option value="${g._id}">${g.name} — ${g.role}</option>`;
   });
 
@@ -2302,22 +2124,13 @@ async function openGroomerPickerModal(bookingId, booking, setOutcomeFn) {
         <button class="stat-modal-close" id="groomerPickerClose">&#x2715;</button>
       </div>
       <div class="stat-modal-body" style="padding:20px;display:flex;flex-direction:column;gap:16px;">
-
-        ${requestedName ? `
-          <div style="background:#fce7f0;border:1px solid #f9c0d2;border-radius:8px;padding:10px 14px;font-size:0.88rem;">
-            <strong>Requested groomer:</strong> ${requestedName}
-          </div>` : ""}
-
+        ${requestedName ? `<div style="background:#fce7f0;border:1px solid #f9c0d2;border-radius:8px;padding:10px 14px;font-size:0.88rem;"><strong>Requested groomer:</strong> ${requestedName}</div>` : ""}
         <label class="admin-form-label">Who actually groomed the pet(s)?
-          <select id="actualGroomerSelect" class="admin-form-input">
-            ${options}
-          </select>
+          <select id="actualGroomerSelect" class="admin-form-input">${options}</select>
         </label>
-
         <label class="admin-form-label">Note (optional)
           <input type="text" id="completionNote" class="admin-form-input" placeholder="e.g. Completed on time" />
         </label>
-
         <div style="display:flex;gap:10px;">
           <button class="btn" id="confirmDoneBtn" style="background:linear-gradient(135deg,#059669,#10b981);flex:1;">Confirm Done</button>
           <button class="btn" id="cancelDoneBtn" style="background:#6c757d;">Cancel</button>
@@ -2327,12 +2140,10 @@ async function openGroomerPickerModal(bookingId, booking, setOutcomeFn) {
 
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
-
   const close = () => { modal.remove(); document.body.style.overflow = ""; };
   document.getElementById("groomerPickerClose").onclick = close;
   document.getElementById("cancelDoneBtn").onclick      = close;
   modal.addEventListener("click", e => { if (e.target === modal) close(); });
-
   document.getElementById("confirmDoneBtn").onclick = async () => {
     const groomerId = document.getElementById("actualGroomerSelect").value || null;
     const note      = document.getElementById("completionNote").value.trim();
@@ -2341,6 +2152,7 @@ async function openGroomerPickerModal(bookingId, booking, setOutcomeFn) {
   };
 }
 
+/* ── Payslip Detail Modal ── */
 function openPayslipModal(row, c, from, to) {
   document.getElementById("payslipModal")?.remove();
   const fmt = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
@@ -2358,13 +2170,11 @@ function openPayslipModal(row, c, from, to) {
         <button class="stat-modal-close" id="payslipClose">&#x2715;</button>
       </div>
       <div class="stat-modal-body" style="padding:20px;">
-
         <p style="font-weight:700;color:#444;margin-bottom:8px;">Attendance</p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
           <div class="profile-info-item"><span class="profile-info-label">Days Present</span><span class="profile-info-value">${row.attendance.daysPresent}</span></div>
           <div class="profile-info-item"><span class="profile-info-label">Total Hours Logged</span><span class="profile-info-value">${row.attendance.totalHours}h</span></div>
         </div>
-
         <p style="font-weight:700;color:#444;margin-bottom:8px;">Earnings</p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
           <div class="profile-info-item"><span class="profile-info-label">Semi-Monthly Basic</span><span class="profile-info-value">${fmt(c.semiBasic)}</span></div>
@@ -2376,7 +2186,6 @@ function openPayslipModal(row, c, from, to) {
             <span class="profile-info-value" style="font-weight:700;font-size:1.05rem;">${fmt(c.gross)}</span>
           </div>
         </div>
-
         <p style="font-weight:700;color:#444;margin-bottom:8px;">Deductions</p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
           <div class="profile-info-item"><span class="profile-info-label">SSS</span><span class="profile-info-value">${fmt((p.sssAmt||0)/2)}</span></div>
@@ -2389,16 +2198,13 @@ function openPayslipModal(row, c, from, to) {
             <span class="profile-info-value" style="color:#721c24;font-weight:700;">${fmt(c.deductions + c.advance)}</span>
           </div>
         </div>
-
         <div style="background:${c.net>=0?"#d1fae5":"#fee2e2"};border:1px solid ${c.net>=0?"#6ee7b7":"#fca5a5"};border-radius:10px;padding:16px;text-align:center;">
           <p style="margin:0;font-size:0.85rem;color:${c.net>=0?"#065f46":"#991b1b"};">Net Pay</p>
           <p style="margin:4px 0 0;font-size:1.7rem;font-weight:700;color:${c.net>=0?"#065f46":"#991b1b"};">${fmt(c.net)}</p>
           ${c.net < 0 ? `<p style="font-size:0.78rem;color:#991b1b;margin:4px 0 0;">Advance exceeds net — carry over balance.</p>` : ""}
         </div>
-
       </div>
     </div>`;
-
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
   const close = () => { modal.remove(); document.body.style.overflow = ""; };
@@ -2433,13 +2239,11 @@ function openAdjustModal(id, timeIn, timeOut, from, to, reloadFn) {
         <p id="adjMsg" style="font-size:0.85rem;color:#d44d7c;display:none;"></p>
       </div>
     </div>`;
-
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
   const close = () => { modal.remove(); document.body.style.overflow = ""; };
   document.getElementById("adjustClose").onclick = close;
   modal.addEventListener("click", e => { if (e.target === modal) close(); });
-
   document.getElementById("adjSaveBtn").onclick = async () => {
     const msg = document.getElementById("adjMsg");
     try {
@@ -2496,7 +2300,7 @@ async function loadGuestBookings() {
     let activeFilter = "all";
 
     function renderGuest() {
-      const list = document.getElementById("guestBookingList");
+      const list     = document.getElementById("guestBookingList");
       const filtered = activeFilter === "all" ? bookings : bookings.filter(b => b.status === activeFilter);
 
       if (!filtered.length) {
@@ -2509,14 +2313,8 @@ async function loadGuestBookings() {
           <table class="leave-table">
             <thead>
               <tr>
-                <th>Owner</th>
-                <th>Pet</th>
-                <th>Services</th>
-                <th>Date & Time</th>
-                <th>Groomer Req.</th>
-                <th>Submitted</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Owner</th><th>Pet</th><th>Services</th><th>Date & Time</th>
+                <th>Groomer Req.</th><th>Submitted</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -2542,9 +2340,7 @@ async function loadGuestBookings() {
                     <td style="font-size:0.82rem;">${b.requestedGroomerName || "—"}</td>
                     <td style="font-size:0.8rem;color:#888;">${subDate}</td>
                     <td>
-                      <span class="leave-status-badge" style="background:${s.bg};color:${s.color};">
-                        ${b.status.toUpperCase()}
-                      </span>
+                      <span class="leave-status-badge" style="background:${s.bg};color:${s.color};">${b.status.toUpperCase()}</span>
                       ${b.rejectReason ? `<p style="font-size:0.72rem;color:#888;margin:2px 0 0;">${b.rejectReason}</p>` : ""}
                     </td>
                     <td style="white-space:nowrap;">
@@ -2552,9 +2348,9 @@ async function loadGuestBookings() {
                       ${b.status === "pending" ? `
                         <button class="hist-btn hist-complete guest-approve-btn" data-id="${b._id}">✅ Approve</button>
                         <button class="hist-btn hist-noshow guest-reject-btn" data-id="${b._id}">❌ Reject</button>
-                      ` : b.status !== "pending" ? `
+                      ` : `
                         <button class="hist-btn hist-cancel guest-pending-btn" data-id="${b._id}">↩ Pending</button>
-                      ` : ""}
+                      `}
                     </td>
                   </tr>`;
               }).join("")}
@@ -2562,7 +2358,6 @@ async function loadGuestBookings() {
           </table>
         </div>`;
 
-      /* Detail view */
       list.querySelectorAll(".guest-detail-btn").forEach(btn => {
         btn.onclick = () => {
           const b = bookings.find(x => x._id === btn.dataset.id);
@@ -2570,24 +2365,29 @@ async function loadGuestBookings() {
         };
       });
 
-      /* Approve */
+      // ── Guest Approve ──
       list.querySelectorAll(".guest-approve-btn").forEach(btn => {
         btn.onclick = async () => {
           const b = bookings.find(x => x._id === btn.dataset.id);
-          if (!confirm(`Approve booking for ${b?.ownerName}? An email will be sent to ${b?.email}.`)) return;
+          const confirmed = await showConfirm({
+            title:       "Approve Guest Booking?",
+            message:     `A confirmation email will be sent to ${b?.email}.`,
+            confirmText: "Yes, Approve",
+            cancelText:  "Cancel",
+          });
+          if (!confirmed) return;
           try {
             const res    = await fetch(`/api/guest.bookings/${btn.dataset.id}/approve`, { method:"PUT" });
             const result = await res.json();
-            if (result.success) { showToast(result.message,"error"); loadGuestBookings(); }
-            else showToast(result.message,"error");
-          } catch { showToast("Error approving booking.","error"); }
+            if (result.success) { showToast(result.message, "success"); loadGuestBookings(); }
+            else showToast(result.message, "error");
+          } catch { showToast("Error approving booking.", "error"); }
         };
       });
 
-      /* Reject */
+      // ── Guest Reject ──
       list.querySelectorAll(".guest-reject-btn").forEach(btn => {
         btn.onclick = () => {
-          const b = bookings.find(x => x._id === btn.dataset.id);
           showRejectModal(btn.dataset.id, async (reason) => {
             try {
               const res    = await fetch(`/api/guest.bookings/${btn.dataset.id}/reject`, {
@@ -2596,28 +2396,27 @@ async function loadGuestBookings() {
                 body:    JSON.stringify({ reason }),
               });
               const result = await res.json();
-              if (result.success) { showToast(result.message,"error"); loadGuestBookings(); }
-              else showToast(result.message,"error");
-            } catch { showToast("Error rejecting booking.","error"); }
+              if (result.success) { showToast(result.message, "success"); loadGuestBookings(); }
+              else showToast(result.message, "error");
+            } catch { showToast("Error rejecting booking.", "error"); }
           });
         };
       });
 
-      /* Revert to pending */
+      // ── Guest Revert to Pending ──
       list.querySelectorAll(".guest-pending-btn").forEach(btn => {
         btn.onclick = async () => {
           if (!await showConfirm({title:"Confirm Action",message:"Move this booking back to pending?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
           try {
             const res    = await fetch(`/api/guest.bookings/${btn.dataset.id}/pending`, { method:"PUT" });
             const result = await res.json();
-            if (result.success) loadGuestBookings();
-            else showToast(result.message,"error");
-          } catch { showToast("Error updating booking.","error"); }
+            if (result.success) { showToast(result.message, "success"); loadGuestBookings(); }
+            else showToast(result.message, "error");
+          } catch { showToast("Error updating booking.", "error"); }
         };
       });
     }
 
-    /* Filter tabs */
     wrap.querySelectorAll(".cal-type-btn[data-gs]").forEach(btn => {
       btn.onclick = () => {
         wrap.querySelectorAll(".cal-type-btn[data-gs]").forEach(b => b.classList.remove("active"));
@@ -2638,8 +2437,8 @@ async function loadGuestBookings() {
 /* ── Guest Detail Modal ── */
 function openGuestDetailModal(b) {
   document.getElementById("guestDetailModal")?.remove();
-  const svcs = Array.isArray(b.services) ? b.services.join(", ") : b.services;
-  const date = new Date(b.appointmentDate).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  const svcs   = Array.isArray(b.services) ? b.services.join(", ") : b.services;
+  const date   = new Date(b.appointmentDate).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
   const rabies = b.lastAntiRabiesShot ? new Date(b.lastAntiRabiesShot).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}) : "Not provided";
 
   const STATUS_STYLE = { pending:{bg:"#fff3cd",color:"#856404"}, approved:{bg:"#d4edda",color:"#155724"}, rejected:{bg:"#f8d7da",color:"#721c24"} };
@@ -2658,14 +2457,12 @@ function openGuestDetailModal(b) {
         <button class="stat-modal-close" id="guestDetailClose">&#x2715;</button>
       </div>
       <div class="stat-modal-body" style="padding:20px;">
-
         <p style="font-weight:700;color:#444;margin-bottom:8px;">Owner</p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
           <div class="profile-info-item"><span class="profile-info-label">Name</span><span class="profile-info-value">${b.ownerName}</span></div>
           <div class="profile-info-item"><span class="profile-info-label">Email</span><span class="profile-info-value">${b.email}</span></div>
           <div class="profile-info-item"><span class="profile-info-label">Phone</span><span class="profile-info-value">${b.phone}</span></div>
         </div>
-
         <p style="font-weight:700;color:#444;margin-bottom:8px;">Pet</p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
           <div class="profile-info-item"><span class="profile-info-label">Name</span><span class="profile-info-value">${b.petName}</span></div>
@@ -2674,7 +2471,6 @@ function openGuestDetailModal(b) {
           <div class="profile-info-item"><span class="profile-info-label">Age</span><span class="profile-info-value">${b.age || "—"}</span></div>
           <div class="profile-info-item"><span class="profile-info-label">Last Anti-Rabies</span><span class="profile-info-value">${rabies}</span></div>
         </div>
-
         <p style="font-weight:700;color:#444;margin-bottom:8px;">Appointment</p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
           <div class="profile-info-item"><span class="profile-info-label">Date</span><span class="profile-info-value">${date}</span></div>
@@ -2682,7 +2478,6 @@ function openGuestDetailModal(b) {
           <div class="profile-info-item" style="grid-column:1/-1;"><span class="profile-info-label">Services</span><span class="profile-info-value">${svcs}</span></div>
           <div class="profile-info-item"><span class="profile-info-label">Requested Groomer</span><span class="profile-info-value">${b.requestedGroomerName || "No preference"}</span></div>
         </div>
-
         ${b.rejectReason ? `<div style="background:#fee2e2;border-radius:8px;padding:12px;font-size:0.85rem;"><strong>Rejection reason:</strong> ${b.rejectReason}</div>` : ""}
       </div>
     </div>`;
@@ -2700,8 +2495,6 @@ function openGuestDetailModal(b) {
 async function loadFeedbackSection() {
   content.innerHTML = `
     <h2>Customer Feedback</h2>
-
-    <!-- Filter tabs -->
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
       <div class="cal-type-tabs" style="margin:0;">
         <button class="cal-type-btn active" data-fb="all">All</button>
@@ -2726,19 +2519,15 @@ async function loadFeedbackSection() {
     function renderFeedbacks() {
       const wrap = document.getElementById("feedbackListWrap");
       let filtered = feedbacks;
-      if (activeFilter === "featured")  filtered = feedbacks.filter(f => f.featured);
-      else if (activeFilter !== "all")  filtered = feedbacks.filter(f => f.serviceType === activeFilter);
+      if (activeFilter === "featured")      filtered = feedbacks.filter(f => f.featured);
+      else if (activeFilter !== "all")      filtered = feedbacks.filter(f => f.serviceType === activeFilter);
 
-      if (!filtered.length) {
-        wrap.innerHTML = `<p class="cal-empty" style="padding:32px 0;">No feedback found.</p>`;
-        return;
-      }
+      if (!filtered.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:32px 0;">No feedback found.</p>`; return; }
 
       const rows = filtered.map(f => {
         const stars     = "★".repeat(f.rating) + "☆".repeat(5 - f.rating);
         const starColor = f.rating >= 4 ? "#f59e0b" : f.rating === 3 ? "#fb923c" : "#ef4444";
         const date      = new Date(f.createdAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
-        const featured  = f.featured;
         return `
           <tr>
             <td>
@@ -2753,8 +2542,8 @@ async function loadFeedbackSection() {
             <td style="max-width:280px;font-size:0.85rem;color:#444;font-style:italic;">"${f.comment}"</td>
             <td style="font-size:0.78rem;color:#888;">${date}</td>
             <td style="white-space:nowrap;">
-              <button class="fb-feature-btn ${featured ? "on" : "off"}" data-id="${f._id}" data-featured="${featured}">
-                ${featured ? "★ Featured" : "☆ Feature"}
+              <button class="fb-feature-btn ${f.featured ? "on" : "off"}" data-id="${f._id}" data-featured="${f.featured}">
+                ${f.featured ? "★ Featured" : "☆ Feature"}
               </button>
               <button class="hist-btn hist-cancel fb-del-btn" data-id="${f._id}" style="margin-left:4px;">Delete</button>
             </td>
@@ -2768,20 +2557,12 @@ async function loadFeedbackSection() {
         <div class="leave-table-wrap">
           <table class="leave-table">
             <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Rating</th>
-                <th>Service</th>
-                <th>Comment</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
+              <tr><th>Customer</th><th>Rating</th><th>Service</th><th>Comment</th><th>Date</th><th>Actions</th></tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
         </div>`;
 
-      /* Feature toggle */
       wrap.querySelectorAll(".fb-feature-btn").forEach(btn => {
         btn.onclick = async () => {
           const isFeatured = btn.dataset.featured === "true";
@@ -2796,12 +2577,11 @@ async function loadFeedbackSection() {
               const fb = feedbacks.find(x => x._id === btn.dataset.id);
               if (fb) fb.featured = !isFeatured;
               renderFeedbacks();
-            } else showToast(result.message,"error");
-          } catch { showToast("Error updating feedback.","error"); }
+            } else showToast(result.message, "error");
+          } catch { showToast("Error updating feedback.", "error"); }
         };
       });
 
-      /* Delete */
       wrap.querySelectorAll(".fb-del-btn").forEach(btn => {
         btn.onclick = async () => {
           if (!await showConfirm({title:"Confirm Action",message:"Delete this feedback?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
@@ -2812,13 +2592,13 @@ async function loadFeedbackSection() {
               const idx = feedbacks.findIndex(x => x._id === btn.dataset.id);
               if (idx !== -1) feedbacks.splice(idx, 1);
               renderFeedbacks();
-            } else showToast(result.message,"error");
-          } catch { showToast("Error deleting feedback.","error"); }
+              showToast("Feedback deleted.", "success");
+            } else showToast(result.message, "error");
+          } catch { showToast("Error deleting feedback.", "error"); }
         };
       });
     }
 
-    /* Filter tab listeners */
     content.querySelectorAll(".cal-type-btn[data-fb]").forEach(btn => {
       btn.onclick = () => {
         content.querySelectorAll(".cal-type-btn[data-fb]").forEach(b => b.classList.remove("active"));
