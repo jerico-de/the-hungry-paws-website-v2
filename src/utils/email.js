@@ -2,7 +2,7 @@
 const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = "The Hungry Paws <onboarding@resend.dev>"; // replace with your domain later
+const FROM = "The Hungry Paws <onboarding@resend.dev>"; 
 
 async function safeSend({ to, subject, html }) {
   try {
