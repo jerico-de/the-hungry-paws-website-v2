@@ -1,16 +1,34 @@
 // @ts-nocheck
-const { Resend } = require("resend");
-const resend = new Resend(process.env.RESEND_API_KEY);
+const nodemailer = require("nodemailer");
 
-const FROM = "The Hungry Paws <onboarding@resend.dev>"; 
+let _transporter = null;
 
-async function safeSend({ to, subject, html }) {
+function getTransporter() {
+  if (_transporter) return _transporter;
+
+  _transporter = nodemailer.createTransport({
+    host:   process.env.EMAIL_HOST || "smtp.gmail.com",
+    port:   Number(process.env.EMAIL_PORT) || 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  return _transporter;
+}
+
+const FROM = () => `"The Hungry Paws" <${process.env.EMAIL_USER}>`;
+
+async function safeSend(mailOptions) {
   try {
-    await resend.emails.send({ from: FROM, to, subject, html });
-    console.log(`✅ Email sent → ${to} | ${subject}`);
+    const transport = getTransporter();
+    await transport.sendMail(mailOptions);
+    console.log(`✅ Email sent → ${mailOptions.to} | ${mailOptions.subject}`);
     return { success: true };
   } catch (err) {
-    console.error(`❌ Email failed → ${to} | ${subject}`, err.message);
+    console.error(`❌ Email failed → ${mailOptions.to} | ${mailOptions.subject}`, err.message);
     return { success: false, error: err.message };
   }
 }
