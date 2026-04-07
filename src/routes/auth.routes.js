@@ -65,12 +65,20 @@ router.post("/set-password", async (req, res) => {
     if (!check.valid)
       return res.status(400).json({ success: false, message: check.message });
 
-    if (!req.session.user)
+    // ✅ Use JWT token instead of session
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if (!token)
       return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const { verifyToken } = require("../utils/jwt");
+    const decoded = verifyToken(token);
+    if (!decoded)
+      return res.status(401).json({ success: false, message: "Invalid or expired token" });
 
     const db = getDB();
     await db.collection("users").updateOne(
-      { _id: new ObjectId(req.session.user.id) },
+      { _id: new ObjectId(decoded.id) },
       { $set: { password: await bcrypt.hash(password, 10), needsPassword: false, updatedAt: new Date() } }
     );
 
