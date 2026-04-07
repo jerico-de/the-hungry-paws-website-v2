@@ -1,34 +1,34 @@
 // @ts-nocheck
-const nodemailer = require("nodemailer");
+const fetch = require("node-fetch"); // or use built-in fetch if Node 18+
 
-let _transporter = null;
+const FROM_EMAIL = process.env.EMAIL_USER;
+const FROM_NAME  = "The Hungry Paws";
 
-function getTransporter() {
-  if (_transporter) return _transporter;
-
-  _transporter = nodemailer.createTransport({
-    host:   process.env.EMAIL_HOST || "smtp.gmail.com",
-    port:   Number(process.env.EMAIL_PORT) || 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  return _transporter;
-}
-
-const FROM = () => `"The Hungry Paws" <${process.env.EMAIL_USER}>`;
-
-async function safeSend(mailOptions) {
+async function safeSend({ to, subject, html }) {
   try {
-    const transport = getTransporter();
-    await transport.sendMail(mailOptions);
-    console.log(`✅ Email sent → ${mailOptions.to} | ${mailOptions.subject}`);
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        sender:   { name: FROM_NAME, email: FROM_EMAIL },
+        to:       [{ email: to }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(JSON.stringify(err));
+    }
+
+    console.log(`✅ Email sent → ${to} | ${subject}`);
     return { success: true };
   } catch (err) {
-    console.error(`❌ Email failed → ${mailOptions.to} | ${mailOptions.subject}`, err.message);
+    console.error(`❌ Email failed → ${to} | ${subject}`, err.message);
     return { success: false, error: err.message };
   }
 }
