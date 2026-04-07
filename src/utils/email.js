@@ -2,7 +2,7 @@
 const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = "The Hungry Paws <noreply@hungrypaws.com>";
+const FROM = "The Hungry Paws <onboarding@resend.dev>"; // replace with your domain later
 
 async function safeSend({ to, subject, html }) {
   try {
@@ -21,7 +21,6 @@ async function safeSend({ to, subject, html }) {
 async function sendVerificationEmail(email, token, fullName) {
   const verificationUrl = `${process.env.BASE_URL}/api/auth/verify-email/${token}`;
   return safeSend({
-    from:    FROM(),
     to:      email,
     subject: "Verify Your Email - The Hungry Paws",
     html: `
@@ -52,7 +51,6 @@ async function sendVerificationEmail(email, token, fullName) {
 async function sendPasswordResetEmail(email, token, fullName) {
   const resetUrl = `${process.env.BASE_URL}/reset-password.html?token=${token}`;
   return safeSend({
-    from:    FROM(),
     to:      email,
     subject: "Reset Your Password - The Hungry Paws",
     html: `
@@ -82,7 +80,6 @@ async function sendPasswordResetEmail(email, token, fullName) {
 ═══════════════════════════════════════════ */
 async function sendPasswordChangedEmail(email, fullName) {
   return safeSend({
-    from:    FROM(),
     to:      email,
     subject: "Password Changed Successfully - The Hungry Paws",
     html: `
@@ -107,7 +104,6 @@ async function sendUserBookingReceived(booking, user, pets) {
   const petNames = pets.map(p => p.name).join(", ");
   const isHotel  = booking.type === "hotel";
   return safeSend({
-    from:    FROM(),
     to:      user.email,
     subject: "📋 Booking Request Received - The Hungry Paws",
     html: `
@@ -144,7 +140,6 @@ async function sendUserBookingApproved(booking, user, pets) {
   const petNames = pets.map(p => p.name).join(", ");
   const isHotel  = booking.type === "hotel";
   return safeSend({
-    from:    FROM(),
     to:      user.email,
     subject: "✅ Booking Approved - The Hungry Paws",
     html: `
@@ -181,7 +176,6 @@ async function sendUserBookingApproved(booking, user, pets) {
 async function sendUserBookingRejected(booking, user, pets, reason) {
   const petNames = pets.map(p => p.name).join(", ");
   return safeSend({
-    from:    FROM(),
     to:      user.email,
     subject: "❌ Booking Update - The Hungry Paws",
     html: `
@@ -205,7 +199,6 @@ async function sendUserBookingRejected(booking, user, pets, reason) {
 ═══════════════════════════════════════════ */
 async function sendGuestBookingReceived(booking) {
   return safeSend({
-    from:    FROM(),
     to:      booking.email,
     subject: "📋 Booking Request Received - The Hungry Paws",
     html: `
@@ -239,7 +232,6 @@ async function sendGuestBookingReceived(booking) {
 ═══════════════════════════════════════════ */
 async function sendGuestBookingApproved(booking) {
   return safeSend({
-    from:    FROM(),
     to:      booking.email,
     subject: "✅ Booking Approved - The Hungry Paws",
     html: `
@@ -274,7 +266,6 @@ async function sendGuestBookingApproved(booking) {
 ═══════════════════════════════════════════ */
 async function sendGuestBookingRejected(booking, reason) {
   return safeSend({
-    from:    FROM(),
     to:      booking.email,
     subject: "❌ Booking Update - The Hungry Paws",
     html: `
