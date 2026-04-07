@@ -1,6 +1,4 @@
 // @ts-nocheck
-const fetch = require("node-fetch"); // or use built-in fetch if Node 18+
-
 const FROM_EMAIL = process.env.EMAIL_USER;
 const FROM_NAME  = "The Hungry Paws";
 
