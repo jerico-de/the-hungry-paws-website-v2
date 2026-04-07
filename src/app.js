@@ -33,7 +33,7 @@ app.use(
 
         scriptSrc: [
           "'self'",
-          "unsafe-inline",
+          "'unsafe-inline'",
           "https://cdn.jsdelivr.net",
         ],
 
