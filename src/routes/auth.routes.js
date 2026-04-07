@@ -65,7 +65,7 @@ router.post("/set-password", async (req, res) => {
     if (!check.valid)
       return res.status(400).json({ success: false, message: check.message });
 
-    // ✅ Use JWT token instead of session
+    // Use JWT token instead of session
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
     if (!token)
