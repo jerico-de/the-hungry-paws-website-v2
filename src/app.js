@@ -59,6 +59,7 @@ app.use(
           "https://*.googleapis.com",
           "https://*.gstatic.com",
           "https://*.googleusercontent.com",
+          "https://www.google.com",
         ],
 
         connectSrc: [

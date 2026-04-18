@@ -75,11 +75,11 @@ async function changePassword(req, res, next) {
     const { currentPassword, newPassword, confirmNewPassword } = req.body;
     const userId = req.user?.id || req.session.user.id;
 
-    if (!currentPassword || !newPassword || !confirmNewPassword) {
+    if (!currentPassword || !newPassword) {
       throw new ValidationError("All fields are required");
     }
 
-    if (newPassword !== confirmNewPassword) {
+    if (confirmNewPassword && newPassword !== confirmNewPassword) {
       throw new ValidationError("New passwords do not match");
     }
 

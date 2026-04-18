@@ -1821,21 +1821,29 @@ async function loadBookingHistory() {
 ═══════════════════════════════════════ */
 async function loadPayrollSection() {
   content.innerHTML = `<h2>Payroll</h2><p>Loading...</p>`;
-
+ 
   function getPeriods(year, month) {
     const lastDay = new Date(year, month + 1, 0).getDate();
     const pad = (n) => String(n).padStart(2, "0");
     return [
-      { label: `${year}-${pad(month+1)}-01 to ${year}-${pad(month+1)}-15`, from: `${year}-${pad(month+1)}-01`, to: `${year}-${pad(month+1)}-15` },
-      { label: `${year}-${pad(month+1)}-16 to ${year}-${pad(month+1)}-${lastDay}`, from: `${year}-${pad(month+1)}-16`, to: `${year}-${pad(month+1)}-${lastDay}` },
+      {
+        label: `${year}-${pad(month+1)}-01 to ${year}-${pad(month+1)}-15`,
+        from:  `${year}-${pad(month+1)}-01`,
+        to:    `${year}-${pad(month+1)}-15`,
+      },
+      {
+        label: `${year}-${pad(month+1)}-16 to ${year}-${pad(month+1)}-${lastDay}`,
+        from:  `${year}-${pad(month+1)}-16`,
+        to:    `${year}-${pad(month+1)}-${lastDay}`,
+      },
     ];
   }
-
+ 
   const now       = new Date();
   const curPeriod = now.getDate() <= 15
     ? getPeriods(now.getFullYear(), now.getMonth())[0]
     : getPeriods(now.getFullYear(), now.getMonth())[1];
-
+ 
   let periodOptions = "";
   for (let i = 0; i < 6; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -1844,7 +1852,7 @@ async function loadPayrollSection() {
       periodOptions += `<option value="${p.from}|${p.to}"${sel}>${p.label}</option>`;
     });
   }
-
+ 
   content.innerHTML = `
     <h2>Payroll</h2>
     <div class="ops-tabs" style="margin-bottom:20px;">
@@ -1853,20 +1861,30 @@ async function loadPayrollSection() {
       <button class="ops-tab-btn" data-ptab="advances">💵 Advances</button>
       <button class="ops-tab-btn" data-ptab="history">📂 Release History</button>
     </div>
+ 
     <div id="ptabPayslips">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
         <label class="admin-form-label" style="margin:0;flex-direction:row;align-items:center;gap:8px;">
-          Period: <select id="periodSelect" class="admin-form-input" style="width:auto;min-width:240px;">${periodOptions}</select>
+          Period:
+          <select id="periodSelect" class="admin-form-input" style="width:auto;min-width:240px;">${periodOptions}</select>
         </label>
         <button class="btn" id="loadPayslipsBtn">Load</button>
         <button class="btn" id="releasePayrollBtn" style="background:#065f46;">✅ Mark as Released</button>
       </div>
-      <p style="font-size:0.82rem;color:#888;margin:-12px 0 16px;">
-        OT hours and commission can be entered per employee before releasing payroll.
-        Advance salary already given this period will be automatically deducted.
+ 
+      <!-- Benefits info banner -->
+      <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:0.82rem;color:#1e40af;">
+        <strong>ℹ️ Benefit Deduction Rates</strong> &nbsp;(auto-computed when not manually set in employee payroll info)<br/>
+        <span style="opacity:0.85;">SSS: 4.5% of MSC (₱135–₱1,350/mo) &nbsp;·&nbsp; PhilHealth: 2.5% of basic (₱200–₱1,800/mo) &nbsp;·&nbsp; Pag-IBIG: 2% of basic (max ₱100/mo) &nbsp;·&nbsp; Tax: manual only</span>
+      </div>
+ 
+      <p style="font-size:0.82rem;color:#888;margin-bottom:16px;">
+        Edit individual payslips to correct hours, rates, or deductions before releasing.
+        Advance salary already given this period is automatically deducted.
       </p>
       <div id="payslipList"><p style="color:#aaa;">Select a period and click Load.</p></div>
     </div>
+ 
     <div id="ptabAttendance" style="display:none;">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
         <label class="admin-form-label" style="margin:0;flex-direction:row;align-items:center;gap:8px;">
@@ -1879,6 +1897,7 @@ async function loadPayrollSection() {
       </div>
       <div id="attendanceList"><p style="color:#aaa;">Select a date range and click Load.</p></div>
     </div>
+ 
     <div id="ptabAdvances" style="display:none;">
       <div style="margin-bottom:20px;">
         <div class="ops-section-card" style="max-width:480px;margin-bottom:20px;">
@@ -1906,11 +1925,13 @@ async function loadPayrollSection() {
         </div>
       </div>
     </div>
+ 
     <div id="ptabHistory" style="display:none;">
       <div id="payrollHistoryList"><p>Loading...</p></div>
     </div>
   `;
-
+ 
+  /* ── Tab switching ── */
   document.querySelectorAll(".ops-tab-btn[data-ptab]").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".ops-tab-btn[data-ptab]").forEach(b => b.classList.remove("active"));
@@ -1923,130 +1944,333 @@ async function loadPayrollSection() {
       if (btn.dataset.ptab === "advances") initAdvancesTab();
     };
   });
-
-  document.getElementById("loadPayslipsBtn").onclick  = loadPayslips;
-  document.getElementById("loadAttendanceBtn").onclick = loadAttendanceView;
+ 
+  document.getElementById("loadPayslipsBtn").onclick   = loadPayslips;
+  document.getElementById("loadAttendanceBtn").onclick  = loadAttendanceView;
   loadPayslips();
-
+ 
   document.getElementById("releasePayrollBtn").onclick = async () => {
     const [from, to] = document.getElementById("periodSelect").value.split("|");
-    if (!await showConfirm({title:"Release Payroll?",message:"Mark this payroll period as released? This will be recorded in history.",confirmText:"Yes, Release",cancelText:"Cancel",danger:false})) return;
+    if (!await showConfirm({
+      title:       "Release Payroll?",
+      message:     "Mark this payroll period as released? This will be recorded in history.",
+      confirmText: "Yes, Release",
+      cancelText:  "Cancel",
+    })) return;
     try {
-      const res    = await fetch("/api/admin/payroll/release", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ from, to }) });
+      const res    = await fetch("/api/admin/payroll/release", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ from, to }),
+      });
       const result = await res.json();
       if (result.success) showToast("Payroll released and recorded!", "success");
-      else showToast(result.message,"error");
-    } catch { showToast("Error releasing payroll.","error"); }
+      else showToast(result.message, "error");
+    } catch { showToast("Error releasing payroll.", "error"); }
   };
 
+ /* ── PAYSLIPS ── */
   async function loadPayslips() {
     const wrap = document.getElementById("payslipList");
     const [from, to] = document.getElementById("periodSelect").value.split("|");
     wrap.innerHTML = "<p>Loading...</p>";
+ 
     try {
       const res  = await fetch(`/api/admin/payroll?from=${from}&to=${to}`);
       const data = await res.json();
       if (!data.success) { wrap.innerHTML = `<p>Error: ${data.message}</p>`; return; }
-      if (!data.payroll.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No active employees found.</p>`; return; }
-
-      const fmt     = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
-      const rowData = data.payroll.map(p => ({ ...p, manualOT: 0, manualCommission: 0 }));
+      if (!data.payroll.length) {
+        wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No active employees found.</p>`;
+        return;
+      }
+ 
+      const fmt     = (v) => `₱${(v || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+      // Attach edit overrides & OT/commission fields to each row
+      const rowData = data.payroll.map(p => ({
+        ...p,
+        manualOT:         0,
+        manualCommission: 0,
+      }));
 
       function calcNet(row) {
         const p          = row.payroll || {};
-        const semiBasic  = parseFloat(p.basicPay || 0) / 2;
-        const otPay      = row.manualOT * parseFloat(p.overtimeRate || 0);
-        const commission = row.manualCommission;
-        const gross      = semiBasic + otPay + commission;
-        const deductions = (parseFloat(p.sssAmt||0) + parseFloat(p.philHealthAmt||0) + parseFloat(p.pagIbigAmt||0) + parseFloat(p.tax||0)) / 2;
+        const hourlyRate = parseFloat(p.hourlyRate || 0);
+        const basicPay   = parseFloat(p.basicPay   || 0);
+        const otRate     = parseFloat(p.overtimeRate || 0);
+      
+        // Override with edit-slip values if present
+        const effectiveHourly  = row._editHourlyRate  !== undefined ? parseFloat(row._editHourlyRate  || 0) : hourlyRate;
+        const effectiveBasic   = row._editBasicPay    !== undefined ? parseFloat(row._editBasicPay    || 0) : basicPay;
+        const effectiveOTRate  = row._editOTRate      !== undefined ? parseFloat(row._editOTRate      || 0) : otRate;
+        const effectiveHours   = row._editHours       !== undefined ? parseFloat(row._editHours       || 0) : (row.attendance.totalHours || 0);
+        const effectiveOT      = row._editOT          !== undefined ? parseFloat(row._editOT          || 0) : (row.manualOT || 0);
+        const effectiveComm    = row._editCommission  !== undefined ? parseFloat(row._editCommission  || 0) : (row.manualCommission || 0);
+      
+        const basePay   = effectiveHourly > 0
+          ? effectiveHourly * effectiveHours
+          : effectiveBasic / 2;
+      
+        const otPay     = effectiveOT * effectiveOTRate;
+        const gross     = basePay + otPay + effectiveComm;
+      
+        // Benefits using effective basic
+        const effMonthly  = effectiveHourly > 0
+          ? effectiveHourly * effectiveHours * 2   // approximate monthly from hours
+          : effectiveBasic;
+      
+        const benefits = calcBenefits(effMonthly, p);
+      
+        // Allow benefit overrides from edit slip
+        const sssSemi      = row._editSSS      !== undefined ? parseFloat(row._editSSS      || 0) : benefits.sssSemi;
+        const philSemi     = row._editPhil     !== undefined ? parseFloat(row._editPhil     || 0) : benefits.philSemi;
+        const pagIbigSemi  = row._editPagIbig  !== undefined ? parseFloat(row._editPagIbig  || 0) : benefits.pagIbigSemi;
+        const taxSemi      = row._editTax      !== undefined ? parseFloat(row._editTax      || 0) : benefits.taxSemi;
+      
+        const deductions = sssSemi + philSemi + pagIbigSemi + taxSemi;
         const advance    = parseFloat(row.advance || 0);
         const net        = gross - deductions - advance;
-        return { semiBasic, otPay, commission, gross, deductions, advance, net };
+      
+        return {
+          basePay:       parseFloat(basePay.toFixed(2)),
+          otPay:         parseFloat(otPay.toFixed(2)),
+          commission:    parseFloat(effectiveComm.toFixed(2)),
+          gross:         parseFloat(gross.toFixed(2)),
+          sssSemi, philSemi, pagIbigSemi, taxSemi,
+          deductions:    parseFloat(deductions.toFixed(2)),
+          advance:       parseFloat(advance.toFixed(2)),
+          net:           parseFloat(net.toFixed(2)),
+          hourlyBased:   effectiveHourly > 0,
+          effectiveHours,
+          effectiveOT,
+          effectiveHourly,
+          effectiveBasic,
+          effectiveOTRate,
+          benefits,       // full breakdown for display
+        };
+      }
+
+      function calcBenefits(monthlyBasic, savedPayroll) {
+        const p = savedPayroll || {};
+      
+        // ── SSS ──
+        // Use saved amount if set, else compute from table
+        let sssMonthly;
+        if (parseFloat(p.sssAmt || 0) > 0) {
+          sssMonthly = parseFloat(p.sssAmt);
+        } else {
+          // Employee share: 4.5% of MSC, min ₱135, max ₱1,350
+          const msc = Math.min(Math.max(monthlyBasic, 3000), 30000);
+          sssMonthly = parseFloat((msc * 0.045).toFixed(2));
+          sssMonthly = Math.max(135, Math.min(sssMonthly, 1350));
+        }
+      
+        // ── PhilHealth ──
+        let philMonthly;
+        if (parseFloat(p.philHealthAmt || 0) > 0) {
+          philMonthly = parseFloat(p.philHealthAmt);
+        } else {
+          // 2.5% employee share, min ₱200/mo, max ₱1,800/mo
+          philMonthly = parseFloat((monthlyBasic * 0.025).toFixed(2));
+          philMonthly = Math.max(200, Math.min(philMonthly, 1800));
+        }
+      
+        // ── Pag-IBIG ──
+        let pagIbigMonthly;
+        if (parseFloat(p.pagIbigAmt || 0) > 0) {
+          pagIbigMonthly = parseFloat(p.pagIbigAmt);
+        } else {
+          // 2% of basic, max ₱100/mo
+          pagIbigMonthly = parseFloat(Math.min(monthlyBasic * 0.02, 100).toFixed(2));
+        }
+      
+        // ── Withholding Tax ──
+        // Use saved amount only — too complex to auto-compute accurately
+        const taxMonthly = parseFloat(p.tax || 0);
+      
+        return {
+          sssMonthly,
+          philMonthly,
+          pagIbigMonthly,
+          taxMonthly,
+          // Semi-monthly shares (÷ 2)
+          sssSemi:      parseFloat((sssMonthly   / 2).toFixed(2)),
+          philSemi:     parseFloat((philMonthly  / 2).toFixed(2)),
+          pagIbigSemi:  parseFloat((pagIbigMonthly / 2).toFixed(2)),
+          taxSemi:      parseFloat((taxMonthly   / 2).toFixed(2)),
+          totalMonthly: parseFloat((sssMonthly + philMonthly + pagIbigMonthly + taxMonthly).toFixed(2)),
+          totalSemi:    parseFloat(((sssMonthly + philMonthly + pagIbigMonthly + taxMonthly) / 2).toFixed(2)),
+          // Flags so UI can show "computed" vs "manual"
+          sssIsManual:      parseFloat(p.sssAmt      || 0) > 0,
+          philIsManual:     parseFloat(p.philHealthAmt || 0) > 0,
+          pagIbigIsManual:  parseFloat(p.pagIbigAmt  || 0) > 0,
+          taxIsManual:      parseFloat(p.tax         || 0) > 0,
+        };
       }
 
       function renderTable() {
         const totalNet = rowData.reduce((s, row) => s + calcNet(row).net, 0);
+ 
         wrap.innerHTML = `
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-            <p style="font-size:0.85rem;color:#888;">Period: <strong>${from} to ${to}</strong> &bull; ${rowData.length} employees</p>
+            <p style="font-size:0.85rem;color:#888;">
+              Period: <strong>${from} to ${to}</strong> &bull; ${rowData.length} employees
+            </p>
             <p style="font-weight:700;color:#d44d7c;">Total Net Payroll: ${fmt(totalNet)}</p>
           </div>
+ 
           <div class="leave-table-wrap">
             <table class="leave-table">
               <thead>
                 <tr>
-                  <th>Employee</th><th>Days Present</th><th>Semi-Basic</th>
-                  <th>OT Hours <span style="font-size:0.7rem;font-weight:400;">(edit)</span></th>
+                  <th>Employee</th>
+                  <th>Hours</th>
+                  <th>Base Pay</th>
+                  <th>OT Hrs <small style="font-weight:400;">(edit)</small></th>
                   <th>OT Pay</th>
-                  <th>Commission ₱ <span style="font-size:0.7rem;font-weight:400;">(edit)</span></th>
-                  <th>Gross</th><th>Deductions</th><th>Advance</th><th>Net Pay</th><th></th>
+                  <th>Commission ₱ <small style="font-weight:400;">(edit)</small></th>
+                  <th>Gross</th>
+                  <th>Deductions</th>
+                  <th>Advance</th>
+                  <th style="color:#065f46;">Net Pay</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 ${rowData.map((row, i) => {
                   const c = calcNet(row);
+                  const isEdited = Object.keys(row).some(k => k.startsWith("_edit"));
                   return `
-                    <tr>
-                      <td><strong>${row.employee.name}</strong><p style="font-size:0.75rem;color:#888;margin:0;">${row.employee.role}</p></td>
-                      <td style="text-align:center;">${row.attendance.daysPresent}</td>
-                      <td>${fmt(c.semiBasic)}</td>
-                      <td><input type="number" class="admin-form-input ot-input" data-idx="${i}" value="${row.manualOT}" min="0" step="0.5" style="width:70px;padding:4px 6px;font-size:0.85rem;" /></td>
+                    <tr ${isEdited ? 'style="background:#fffbeb;"' : ""}>
+                      <td>
+                        <strong>${row.employee.name}</strong>
+                        <p style="font-size:0.75rem;color:#888;margin:0;">${row.employee.role}</p>
+                        ${isEdited ? `<span style="font-size:0.7rem;background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:8px;">✏️ edited</span>` : ""}
+                      </td>
+                      <td style="text-align:center;">
+                        ${c.effectiveHours}h
+                        <p style="font-size:0.72rem;color:#888;margin:0;">${row.attendance.daysPresent}d</p>
+                      </td>
+                      <td>
+                        ${fmt(c.basePay)}
+                        <p style="font-size:0.72rem;color:#888;margin:0;">${c.hourlyBased ? "hourly" : "semi-basic"}</p>
+                      </td>
+                      <td>
+                        <input type="number" class="admin-form-input ot-input" data-idx="${i}"
+                          value="${c.effectiveOT}" min="0" step="0.5"
+                          style="width:68px;padding:4px 6px;font-size:0.85rem;" />
+                      </td>
                       <td>${fmt(c.otPay)}</td>
-                      <td><input type="number" class="admin-form-input comm-input" data-idx="${i}" value="${row.manualCommission}" min="0" step="0.01" style="width:90px;padding:4px 6px;font-size:0.85rem;" /></td>
+                      <td>
+                        <input type="number" class="admin-form-input comm-input" data-idx="${i}"
+                          value="${c.commission}" min="0" step="0.01"
+                          style="width:88px;padding:4px 6px;font-size:0.85rem;" />
+                      </td>
                       <td style="font-weight:600;">${fmt(c.gross)}</td>
-                      <td style="color:#721c24;">${fmt(c.deductions)}</td>
+                      <td style="color:#721c24;">
+                        ${fmt(c.deductions)}
+                        <p style="font-size:0.7rem;color:#aaa;margin:0;">+adv ${c.advance > 0 ? fmt(c.advance) : "—"}</p>
+                      </td>
                       <td style="color:#856404;">${c.advance > 0 ? fmt(c.advance) : "—"}</td>
-                      <td style="font-weight:700;color:${c.net >= 0 ? "#065f46" : "#991b1b"};">${fmt(c.net)}</td>
-                      <td><button class="hist-btn hist-complete payslip-btn" data-idx="${i}">Slip</button></td>
+                      <td style="font-weight:700;color:${c.net >= 0 ? "#065f46" : "#991b1b"};">
+                        ${fmt(c.net)}
+                      </td>
+                      <td style="white-space:nowrap;">
+                        <button class="hist-btn hist-resched edit-slip-btn" data-idx="${i}"
+                          style="margin-bottom:3px;display:block;">✏️ Edit</button>
+                        <button class="hist-btn hist-complete payslip-btn" data-idx="${i}"
+                          style="display:block;">🖨️ Slip</button>
+                      </td>
                     </tr>`;
                 }).join("")}
               </tbody>
             </table>
           </div>`;
+ 
+        /* OT input handlers */
         wrap.querySelectorAll(".ot-input").forEach(inp => {
-          inp.onchange = () => { rowData[inp.dataset.idx].manualOT = parseFloat(inp.value) || 0; renderTable(); };
+          inp.onchange = () => {
+            rowData[inp.dataset.idx].manualOT = parseFloat(inp.value) || 0;
+            renderTable();
+          };
         });
+        /* Commission input handlers */
         wrap.querySelectorAll(".comm-input").forEach(inp => {
-          inp.onchange = () => { rowData[inp.dataset.idx].manualCommission = parseFloat(inp.value) || 0; renderTable(); };
+          inp.onchange = () => {
+            rowData[inp.dataset.idx].manualCommission = parseFloat(inp.value) || 0;
+            renderTable();
+          };
         });
+        /* Edit slip */
+        wrap.querySelectorAll(".edit-slip-btn").forEach(btn => {
+          btn.onclick = () => {
+            const row = rowData[btn.dataset.idx];
+            openEditSlipModal(row, calcNet(row), (overrides) => {
+              // Apply overrides back to rowData
+              Object.assign(rowData[btn.dataset.idx], overrides);
+              renderTable();
+            });
+          };
+        });
+        /* View payslip */
         wrap.querySelectorAll(".payslip-btn").forEach(btn => {
-          btn.onclick = () => { const row = rowData[btn.dataset.idx]; openPayslipModal(row, calcNet(row), from, to); };
+          btn.onclick = () => {
+            const row = rowData[btn.dataset.idx];
+            openPayslipModal(row, calcNet(row), from, to);
+          };
         });
       }
+ 
       renderTable();
-    } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading payslips.</p>"; }
+    } catch (err) {
+      console.error(err);
+      wrap.innerHTML = "<p>Error loading payslips.</p>";
+    }
   }
 
   async function loadAttendanceView() {
     const wrap = document.getElementById("attendanceList");
     const from = document.getElementById("attFrom").value;
     const to   = document.getElementById("attTo").value;
-    if (!from || !to) { showToast("Please select both dates.","warning"); return; }
+    if (!from || !to) { showToast("Please select both dates.", "warning"); return; }
     wrap.innerHTML = "<p>Loading...</p>";
     try {
       const res  = await fetch(`/api/admin/attendance?from=${from}&to=${to}`);
       const data = await res.json();
       if (!data.success) { wrap.innerHTML = `<p>Error: ${data.message}</p>`; return; }
-      if (!data.records.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No records found.</p>`; return; }
+      if (!data.records.length) {
+        wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No records found.</p>`;
+        return;
+      }
       wrap.innerHTML = `
         <div class="leave-table-wrap">
           <table class="leave-table">
-            <thead><tr><th>Employee</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Hours</th><th>OT</th><th>Note</th><th></th></tr></thead>
+            <thead>
+              <tr>
+                <th>Employee</th><th>Date</th><th>Time In</th>
+                <th>Time Out</th><th>Hours</th><th>OT</th><th>Note</th><th></th>
+              </tr>
+            </thead>
             <tbody>
               ${data.records.map(r => {
-                const date = new Date(r.date).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});
-                const tIn  = r.timeIn  ? new Date(r.timeIn).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "—";
-                const tOut = r.timeOut ? new Date(r.timeOut).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "—";
+                const date = new Date(r.date).toLocaleDateString("en-PH", { month:"short", day:"numeric", year:"numeric" });
+                const tIn  = r.timeIn  ? new Date(r.timeIn).toLocaleTimeString("en-PH",  { hour:"2-digit", minute:"2-digit" }) : "—";
+                const tOut = r.timeOut ? new Date(r.timeOut).toLocaleTimeString("en-PH", { hour:"2-digit", minute:"2-digit" }) : "—";
                 return `
                   <tr>
-                    <td><strong>${r.employeeName||"—"}</strong></td>
-                    <td>${date}</td><td>${tIn}</td>
-                    <td style="${!r.timeOut?"color:#d44d7c;font-weight:600;":""}">${tOut}${!r.timeOut?" (active)":""}</td>
-                    <td style="text-align:center;">${r.hoursWorked!=null?r.hoursWorked+"h":"—"}</td>
-                    <td style="text-align:center;">${r.overtimeHours>0?r.overtimeHours+"h":"—"}</td>
-                    <td style="font-size:0.78rem;color:#888;">${r.adminNote||""}</td>
+                    <td><strong>${r.employeeName || "—"}</strong></td>
+                    <td>${date}</td>
+                    <td>${tIn}</td>
+                    <td style="${!r.timeOut ? "color:#d44d7c;font-weight:600;" : ""}">
+                      ${tOut}${!r.timeOut ? " (active)" : ""}
+                    </td>
+                    <td style="text-align:center;">${r.hoursWorked != null ? r.hoursWorked + "h" : "—"}</td>
+                    <td style="text-align:center;">${r.overtimeHours > 0 ? r.overtimeHours + "h" : "—"}</td>
+                    <td style="font-size:0.78rem;color:#888;">${r.adminNote || ""}</td>
                     <td style="white-space:nowrap;">
-                      <button class="hist-btn hist-resched att-adj" data-id="${r._id}" data-ti="${r.timeIn||""}" data-to="${r.timeOut||""}">Adjust</button>
+                      <button class="hist-btn hist-resched att-adj"
+                        data-id="${r._id}"
+                        data-ti="${r.timeIn  || ""}"
+                        data-to="${r.timeOut || ""}">Adjust</button>
                       <button class="hist-btn hist-cancel att-del" data-id="${r._id}">Delete</button>
                     </td>
                   </tr>`;
@@ -2054,15 +2278,17 @@ async function loadPayrollSection() {
             </tbody>
           </table>
         </div>`;
+ 
       wrap.querySelectorAll(".att-adj").forEach(btn => {
         btn.onclick = () => openAdjustModal(btn.dataset.id, btn.dataset.ti, btn.dataset.to, from, to, loadAttendanceView);
       });
       wrap.querySelectorAll(".att-del").forEach(btn => {
         btn.onclick = async () => {
-          if (!await showConfirm({title:"Confirm Action",message:"Delete this attendance record?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
+          if (!await showConfirm({ title:"Confirm Action", message:"Delete this attendance record?", confirmText:"Yes", cancelText:"Cancel", danger:true })) return;
           const res = await fetch(`/api/admin/attendance/${btn.dataset.id}`, { method:"DELETE" });
           const r   = await res.json();
-          if (r.success) loadAttendanceView(); else showToast(r.message,"error");
+          if (r.success) loadAttendanceView();
+          else showToast(r.message, "error");
         };
       });
     } catch (err) { console.error(err); wrap.innerHTML = "<p>Error loading attendance.</p>"; }
@@ -2075,20 +2301,29 @@ async function loadPayrollSection() {
       const sel  = document.getElementById("advEmployee");
       if (sel) {
         sel.innerHTML = `<option value="">Select employee</option>` +
-          (data.employees||[]).map(e => `<option value="${e._id}">${e.name} — ${e.role}</option>`).join("");
+          (data.employees || []).map(e => `<option value="${e._id}">${e.name} — ${e.role}</option>`).join("");
       }
     } catch (_) {}
     loadAdvanceList();
+ 
     document.getElementById("giveAdvanceBtn").onclick = async () => {
       const msg    = document.getElementById("advMsg");
       const empId  = document.getElementById("advEmployee").value;
       const amount = parseFloat(document.getElementById("advAmount").value);
       const period = document.getElementById("advPeriod").value;
       const note   = document.getElementById("advNote").value.trim();
-      if (!empId || !amount || !period) { msg.textContent = "Employee, amount, and period are required."; msg.style.display = "block"; return; }
+      if (!empId || !amount || !period) {
+        msg.textContent = "Employee, amount, and period are required.";
+        msg.style.display = "block";
+        return;
+      }
       const [from, to] = period.split("|");
       try {
-        const res    = await fetch("/api/admin/payroll/advance", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ employeeId: empId, amount, periodFrom: from, periodTo: to, note }) });
+        const res    = await fetch("/api/admin/payroll/advance", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ employeeId: empId, amount, periodFrom: from, periodTo: to, note }),
+        });
         const result = await res.json();
         if (result.success) {
           document.getElementById("advAmount").value = "";
@@ -2107,35 +2342,47 @@ async function loadPayrollSection() {
     try {
       const res  = await fetch("/api/admin/payroll/advances");
       const data = await res.json();
-      if (!data.advances.length) { wrap.innerHTML = `<p style="color:#aaa;">No advances recorded yet.</p>`; return; }
-      const fmt = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
+      if (!data.advances.length) {
+        wrap.innerHTML = `<p style="color:#aaa;">No advances recorded yet.</p>`;
+        return;
+      }
+      const fmt = (v) => `₱${(v || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
       wrap.innerHTML = `
         <div class="leave-table-wrap">
           <table class="leave-table">
-            <thead><tr><th>Employee</th><th>Amount</th><th>Deduct from Period</th><th>Note</th><th>Status</th><th></th></tr></thead>
+            <thead>
+              <tr><th>Employee</th><th>Amount</th><th>Deduct from Period</th><th>Note</th><th>Status</th><th></th></tr>
+            </thead>
             <tbody>
               ${data.advances.map(a => `
                 <tr>
-                  <td><strong>${a.employeeName||"—"}</strong></td>
+                  <td><strong>${a.employeeName || "—"}</strong></td>
                   <td style="font-weight:600;color:#856404;">${fmt(a.amount)}</td>
-                  <td>${a.periodFrom?a.periodFrom.slice(0,10):"—"} to ${a.periodTo?a.periodTo.slice(0,10):"—"}</td>
-                  <td style="font-size:0.8rem;color:#888;">${a.note||"—"}</td>
+                  <td>${a.periodFrom ? a.periodFrom.slice(0,10) : "—"} to ${a.periodTo ? a.periodTo.slice(0,10) : "—"}</td>
+                  <td style="font-size:0.8rem;color:#888;">${a.note || "—"}</td>
                   <td>
-                    <span class="leave-status-badge" style="background:${a.deducted?"#d4edda":"#fff3cd"};color:${a.deducted?"#155724":"#856404"};">
-                      ${a.deducted?"Deducted":"Pending"}
+                    <span class="leave-status-badge"
+                      style="background:${a.deducted ? "#d4edda" : "#fff3cd"};color:${a.deducted ? "#155724" : "#856404"};">
+                      ${a.deducted ? "Deducted" : "Pending"}
                     </span>
                   </td>
-                  <td>${!a.deducted?`<button class="hist-btn hist-cancel adv-del-btn" data-id="${a._id}">Remove</button>`:""}</td>
+                  <td>
+                    ${!a.deducted
+                      ? `<button class="hist-btn hist-cancel adv-del-btn" data-id="${a._id}">Remove</button>`
+                      : ""}
+                  </td>
                 </tr>`).join("")}
             </tbody>
           </table>
         </div>`;
+ 
       wrap.querySelectorAll(".adv-del-btn").forEach(btn => {
         btn.onclick = async () => {
-          if (!await showConfirm({title:"Confirm Action",message:"Remove this advance record?",confirmText:"Yes",cancelText:"Cancel",danger:true})) return;
+          if (!await showConfirm({ title:"Confirm Action", message:"Remove this advance record?", confirmText:"Yes", cancelText:"Cancel", danger:true })) return;
           const res = await fetch(`/api/admin/payroll/advance/${btn.dataset.id}`, { method:"DELETE" });
           const r   = await res.json();
-          if (r.success) loadAdvanceList(); else showToast(r.message,"error");
+          if (r.success) loadAdvanceList();
+          else showToast(r.message, "error");
         };
       });
     } catch { wrap.innerHTML = "<p>Error loading advances.</p>"; }
@@ -2148,7 +2395,10 @@ async function loadPayrollSection() {
     try {
       const res  = await fetch("/api/admin/payroll/history");
       const data = await res.json();
-      if (!data.history.length) { wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No payroll releases recorded yet.</p>`; return; }
+      if (!data.history.length) {
+        wrap.innerHTML = `<p class="cal-empty" style="padding:28px 0;">No payroll releases recorded yet.</p>`;
+        return;
+      }
       wrap.innerHTML = `
         <div class="leave-table-wrap">
           <table class="leave-table">
@@ -2157,14 +2407,218 @@ async function loadPayrollSection() {
               ${data.history.map(h => `
                 <tr>
                   <td><strong>${h.period.label}</strong></td>
-                  <td>${new Date(h.releasedAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"})}</td>
-                  <td style="color:#888;">${h.notes||"—"}</td>
+                  <td>${new Date(h.releasedAt).toLocaleDateString("en-PH", { month:"short", day:"numeric", year:"numeric", hour:"2-digit", minute:"2-digit" })}</td>
+                  <td style="color:#888;">${h.notes || "—"}</td>
                 </tr>`).join("")}
             </tbody>
           </table>
         </div>`;
     } catch { wrap.innerHTML = "<p>Error loading history.</p>"; }
   }
+}
+
+//----- Edit Slip Modal ----- //
+function openEditSlipModal(row, c, onSave) {
+  document.getElementById("editSlipModal")?.remove();
+ 
+  const fmt = (v) => (v || 0).toFixed(2);
+  const p   = row.payroll || {};
+  const b   = c.benefits;
+ 
+  const modal = document.createElement("div");
+  modal.id    = "editSlipModal";
+  modal.className = "stat-modal-overlay";
+ 
+  modal.innerHTML = `
+    <div class="stat-modal" style="max-width:560px;width:96%;max-height:92vh;overflow-y:auto;">
+      <div class="stat-modal-header" style="border-bottom-color:#fcd34d;position:sticky;top:0;background:#fff;z-index:2;">
+        <div>
+          <h3 class="stat-modal-title" style="color:#92400e;">✏️ Edit Payslip — ${row.employee.name}</h3>
+          <p style="font-size:0.8rem;color:#888;margin:2px 0 0;">${row.employee.role} &nbsp;·&nbsp; All changes apply to this payslip only</p>
+        </div>
+        <button class="stat-modal-close" id="editSlipClose">&#x2715;</button>
+      </div>
+ 
+      <div class="stat-modal-body" style="padding:20px;">
+ 
+        <!-- ── Time & Pay ── -->
+        <p style="font-weight:700;color:#444;margin-bottom:10px;font-size:0.9rem;">
+          ⏱️ Time &amp; Pay
+          <span style="font-size:0.75rem;font-weight:400;color:#aaa;margin-left:6px;">
+            (leave blank to keep computed values)
+          </span>
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+          <label class="admin-form-label">Total Hours Worked
+            <input type="number" id="es_hours" class="admin-form-input"
+              value="${fmt(c.effectiveHours)}" min="0" step="0.5"
+              placeholder="${fmt(c.effectiveHours)}" />
+            <span style="font-size:0.72rem;color:#aaa;">From attendance: ${row.attendance.totalHours}h</span>
+          </label>
+          <label class="admin-form-label">Overtime Hours
+            <input type="number" id="es_ot" class="admin-form-input"
+              value="${fmt(c.effectiveOT)}" min="0" step="0.5" />
+          </label>
+          <label class="admin-form-label">Hourly Rate ₱
+            <input type="number" id="es_hourlyRate" class="admin-form-input"
+              value="${fmt(c.effectiveHourly || p.hourlyRate || 0)}" min="0" step="0.01" />
+            <span style="font-size:0.72rem;color:#aaa;">0 = use semi-monthly basic</span>
+          </label>
+          <label class="admin-form-label">Semi-Monthly Basic ₱
+            <input type="number" id="es_basicPay" class="admin-form-input"
+              value="${fmt(c.effectiveBasic || p.basicPay || 0)}" min="0" step="0.01" />
+            <span style="font-size:0.72rem;color:#aaa;">Used only if hourly rate = 0</span>
+          </label>
+          <label class="admin-form-label">Overtime Rate ₱/hr
+            <input type="number" id="es_otRate" class="admin-form-input"
+              value="${fmt(c.effectiveOTRate || p.overtimeRate || 0)}" min="0" step="0.01" />
+          </label>
+          <label class="admin-form-label">Commission ₱
+            <input type="number" id="es_commission" class="admin-form-input"
+              value="${fmt(c.commission)}" min="0" step="0.01" />
+          </label>
+        </div>
+ 
+        <!-- ── Government Benefits ── -->
+        <p style="font-weight:700;color:#444;margin-bottom:6px;font-size:0.9rem;">🏛️ Government Benefit Deductions (Semi-Monthly)</p>
+        <p style="font-size:0.78rem;color:#888;margin-bottom:10px;">
+          Editing here overrides the computed/manual amounts <em>for this payslip only</em>.
+          A <span style="background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:4px;font-size:0.72rem;">computed</span> tag means the value was auto-calculated from standard rates.
+        </p>
+ 
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+          <label class="admin-form-label">
+            SSS Contribution ₱
+            ${!b.sssIsManual ? `<span style="background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:4px;font-size:0.7rem;margin-left:4px;">computed</span>` : ""}
+            <input type="number" id="es_sss" class="admin-form-input"
+              value="${fmt(c.sssSemi)}" min="0" step="0.01" />
+            <span style="font-size:0.72rem;color:#aaa;">Monthly: ₱${(c.sssSemi * 2).toFixed(2)}</span>
+          </label>
+          <label class="admin-form-label">
+            PhilHealth Contribution ₱
+            ${!b.philIsManual ? `<span style="background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:4px;font-size:0.7rem;margin-left:4px;">computed</span>` : ""}
+            <input type="number" id="es_phil" class="admin-form-input"
+              value="${fmt(c.philSemi)}" min="0" step="0.01" />
+            <span style="font-size:0.72rem;color:#aaa;">Monthly: ₱${(c.philSemi * 2).toFixed(2)}</span>
+          </label>
+          <label class="admin-form-label">
+            Pag-IBIG Contribution ₱
+            ${!b.pagIbigIsManual ? `<span style="background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:4px;font-size:0.7rem;margin-left:4px;">computed</span>` : ""}
+            <input type="number" id="es_pagibig" class="admin-form-input"
+              value="${fmt(c.pagIbigSemi)}" min="0" step="0.01" />
+            <span style="font-size:0.72rem;color:#aaa;">Monthly: ₱${(c.pagIbigSemi * 2).toFixed(2)}</span>
+          </label>
+          <label class="admin-form-label">
+            Withholding Tax ₱
+            ${!b.taxIsManual ? `<span style="background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:4px;font-size:0.7rem;margin-left:4px;">not set</span>` : ""}
+            <input type="number" id="es_tax" class="admin-form-input"
+              value="${fmt(c.taxSemi)}" min="0" step="0.01" />
+            <span style="font-size:0.72rem;color:#aaa;">Monthly: ₱${(c.taxSemi * 2).toFixed(2)}</span>
+          </label>
+        </div>
+ 
+        <!-- ── Live preview ── -->
+        <div id="esPreview" style="background:#f8f9fa;border:1px solid #e0e0e0;border-radius:10px;padding:14px;margin-bottom:16px;">
+          <p style="font-weight:700;color:#555;font-size:0.85rem;margin-bottom:8px;">📊 Live Preview</p>
+          <div id="esPreviewContent" style="font-size:0.85rem;"></div>
+        </div>
+ 
+        <!-- ── Actions ── -->
+        <div style="display:flex;gap:10px;">
+          <button class="btn" id="esConfirmBtn" style="flex:1;background:linear-gradient(135deg,#d44d7c,#e8739b);">
+            ✅ Apply to Payslip
+          </button>
+          <button class="btn" id="esResetBtn" style="background:#6c757d;">↺ Reset</button>
+          <button class="btn" id="esCancelBtn" style="background:#6c757d;">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+ 
+  document.body.appendChild(modal);
+  document.body.style.overflow = "hidden";
+ 
+  const close = () => { modal.remove(); document.body.style.overflow = ""; };
+  document.getElementById("editSlipClose").onclick = close;
+  document.getElementById("esCancelBtn").onclick   = close;
+  modal.addEventListener("click", e => { if (e.target === modal) close(); });
+ 
+  /* ── Live preview updater ── */
+  const fmt2 = (v) => `₱${(v || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+ 
+  function updatePreview() {
+    const draftRow = {
+      ...row,
+      _editHours:      parseFloat(document.getElementById("es_hours").value)     || 0,
+      _editOT:         parseFloat(document.getElementById("es_ot").value)         || 0,
+      _editHourlyRate: parseFloat(document.getElementById("es_hourlyRate").value) || 0,
+      _editBasicPay:   parseFloat(document.getElementById("es_basicPay").value)   || 0,
+      _editOTRate:     parseFloat(document.getElementById("es_otRate").value)      || 0,
+      _editCommission: parseFloat(document.getElementById("es_commission").value)  || 0,
+      _editSSS:        parseFloat(document.getElementById("es_sss").value)         || 0,
+      _editPhil:       parseFloat(document.getElementById("es_phil").value)        || 0,
+      _editPagIbig:    parseFloat(document.getElementById("es_pagibig").value)     || 0,
+      _editTax:        parseFloat(document.getElementById("es_tax").value)         || 0,
+    };
+    const dc = calcNet(draftRow);
+    const netColor = dc.net >= 0 ? "#065f46" : "#991b1b";
+ 
+    document.getElementById("esPreviewContent").innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 14px;">
+        <div><span style="color:#888;">Base Pay</span><br/><strong>${fmt2(dc.basePay)}</strong> <small style="color:#aaa;">${dc.hourlyBased ? "hourly" : "semi-basic"}</small></div>
+        <div><span style="color:#888;">OT Pay</span><br/><strong>${fmt2(dc.otPay)}</strong></div>
+        <div><span style="color:#888;">Commission</span><br/><strong>${fmt2(dc.commission)}</strong></div>
+        <div style="grid-column:1/-1;border-top:1px solid #ddd;padding-top:6px;margin-top:2px;">
+          <span style="color:#888;">Gross</span> <strong style="font-size:1rem;">${fmt2(dc.gross)}</strong>
+          &nbsp;−&nbsp; <span style="color:#888;">Deductions</span> <strong style="color:#721c24;">${fmt2(dc.deductions)}</strong>
+          ${dc.advance > 0 ? `&nbsp;−&nbsp; <span style="color:#888;">Advance</span> <strong style="color:#856404;">${fmt2(dc.advance)}</strong>` : ""}
+          &nbsp;=&nbsp; <strong style="color:${netColor};font-size:1.05rem;">${fmt2(dc.net)}</strong>
+        </div>
+      </div>`;
+  }
+ 
+  /* Attach live preview listeners */
+  ["es_hours","es_ot","es_hourlyRate","es_basicPay","es_otRate","es_commission",
+   "es_sss","es_phil","es_pagibig","es_tax"].forEach(id => {
+    document.getElementById(id)?.addEventListener("input", updatePreview);
+  });
+  updatePreview();
+ 
+  /* Reset to original computed values */
+  document.getElementById("esResetBtn").onclick = () => {
+    document.getElementById("es_hours").value      = fmt(c.effectiveHours);
+    document.getElementById("es_ot").value         = fmt(c.effectiveOT);
+    document.getElementById("es_hourlyRate").value = fmt(c.effectiveHourly || p.hourlyRate || 0);
+    document.getElementById("es_basicPay").value   = fmt(c.effectiveBasic  || p.basicPay  || 0);
+    document.getElementById("es_otRate").value     = fmt(c.effectiveOTRate || p.overtimeRate || 0);
+    document.getElementById("es_commission").value = fmt(c.commission);
+    document.getElementById("es_sss").value        = fmt(c.sssSemi);
+    document.getElementById("es_phil").value       = fmt(c.philSemi);
+    document.getElementById("es_pagibig").value    = fmt(c.pagIbigSemi);
+    document.getElementById("es_tax").value        = fmt(c.taxSemi);
+    updatePreview();
+  };
+ 
+  /* Confirm */
+  document.getElementById("esConfirmBtn").onclick = () => {
+    const overrides = {
+      _editHours:      parseFloat(document.getElementById("es_hours").value)     || 0,
+      _editOT:         parseFloat(document.getElementById("es_ot").value)         || 0,
+      _editHourlyRate: parseFloat(document.getElementById("es_hourlyRate").value) || 0,
+      _editBasicPay:   parseFloat(document.getElementById("es_basicPay").value)   || 0,
+      _editOTRate:     parseFloat(document.getElementById("es_otRate").value)      || 0,
+      _editCommission: parseFloat(document.getElementById("es_commission").value)  || 0,
+      _editSSS:        parseFloat(document.getElementById("es_sss").value)         || 0,
+      _editPhil:       parseFloat(document.getElementById("es_phil").value)        || 0,
+      _editPagIbig:    parseFloat(document.getElementById("es_pagibig").value)     || 0,
+      _editTax:        parseFloat(document.getElementById("es_tax").value)         || 0,
+      // Keep OT / commission fields in sync so table inputs aren't stale
+      manualOT:        parseFloat(document.getElementById("es_ot").value)          || 0,
+      manualCommission:parseFloat(document.getElementById("es_commission").value)  || 0,
+    };
+    close();
+    onSave(overrides);
+    showToast("Payslip edits applied. Click 🖨️ Slip to preview.", "success");
+  };
 }
 
 /* ── Groomer Picker Modal ── */
@@ -2228,61 +2682,155 @@ async function openGroomerPickerModal(bookingId, booking, setOutcomeFn) {
 /* ── Payslip Detail Modal ── */
 function openPayslipModal(row, c, from, to) {
   document.getElementById("payslipModal")?.remove();
-  const fmt = (v) => `₱${(v||0).toLocaleString("en-PH",{minimumFractionDigits:2})}`;
+ 
+  const fmt = (v) => `₱${(v || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
   const p   = row.payroll || {};
+  const b   = c.benefits || calcBenefits(parseFloat(p.basicPay || 0), p);
+ 
+  const basePayLabel = c.hourlyBased
+    ? `Hourly Pay (${fmt(p.hourlyRate || c.effectiveHourly)}/hr × ${c.effectiveHours}h)`
+    : `Semi-Monthly Basic Pay`;
+ 
+  const isEdited = Object.keys(row).some(k => k.startsWith("_edit"));
+ 
   const modal = document.createElement("div");
   modal.id = "payslipModal";
   modal.className = "stat-modal-overlay";
   modal.innerHTML = `
-    <div class="stat-modal" style="max-width:480px;width:95%;">
-      <div class="stat-modal-header" style="border-bottom-color:#f9c0d2;">
+    <div class="stat-modal" style="max-width:520px;width:96%;max-height:92vh;overflow-y:auto;">
+      <div class="stat-modal-header" style="border-bottom-color:#f9c0d2;position:sticky;top:0;background:#fff;z-index:2;">
         <div>
-          <h3 class="stat-modal-title" style="color:#9d174d;">Payslip — ${row.employee.name}</h3>
-          <p style="font-size:0.8rem;color:#888;margin:2px 0 0;">${row.employee.role} &bull; ${from} to ${to}</p>
+          <h3 class="stat-modal-title" style="color:#9d174d;">🧾 Payslip — ${row.employee.name}</h3>
+          <p style="font-size:0.8rem;color:#888;margin:2px 0 0;">
+            ${row.employee.role} &bull; ${from} to ${to}
+            ${isEdited ? `<span style="background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:8px;font-size:0.7rem;margin-left:6px;">✏️ edited</span>` : ""}
+          </p>
         </div>
         <button class="stat-modal-close" id="payslipClose">&#x2715;</button>
       </div>
+ 
       <div class="stat-modal-body" style="padding:20px;">
+ 
+        <!-- Attendance -->
         <p style="font-weight:700;color:#444;margin-bottom:8px;">Attendance</p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
-          <div class="profile-info-item"><span class="profile-info-label">Days Present</span><span class="profile-info-value">${row.attendance.daysPresent}</span></div>
-          <div class="profile-info-item"><span class="profile-info-label">Total Hours Logged</span><span class="profile-info-value">${row.attendance.totalHours}h</span></div>
+          <div class="profile-info-item">
+            <span class="profile-info-label">Days Present</span>
+            <span class="profile-info-value">${row.attendance.daysPresent}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label">Hours Worked</span>
+            <span class="profile-info-value">${c.effectiveHours}h</span>
+          </div>
         </div>
+ 
+        <!-- Earnings -->
         <p style="font-weight:700;color:#444;margin-bottom:8px;">Earnings</p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
-          <div class="profile-info-item"><span class="profile-info-label">Semi-Monthly Basic</span><span class="profile-info-value">${fmt(c.semiBasic)}</span></div>
-          <div class="profile-info-item"><span class="profile-info-label">OT Hours</span><span class="profile-info-value">${row.manualOT}h @ ${fmt(p.overtimeRate||0)}/hr</span></div>
-          <div class="profile-info-item"><span class="profile-info-label">OT Pay</span><span class="profile-info-value">${fmt(c.otPay)}</span></div>
-          <div class="profile-info-item"><span class="profile-info-label">Commission</span><span class="profile-info-value">${fmt(c.commission)}</span></div>
+          <div class="profile-info-item" style="grid-column:1/-1;">
+            <span class="profile-info-label">${basePayLabel}</span>
+            <span class="profile-info-value">${fmt(c.basePay)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label">OT (${c.effectiveOT}h × ${fmt(c.effectiveOTRate)}/hr)</span>
+            <span class="profile-info-value">${fmt(c.otPay)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label">Commission</span>
+            <span class="profile-info-value">${fmt(c.commission)}</span>
+          </div>
           <div class="profile-info-item" style="grid-column:1/-1;border-top:1px solid #f0e0e8;padding-top:8px;margin-top:4px;">
             <span class="profile-info-label">Gross Pay</span>
             <span class="profile-info-value" style="font-weight:700;font-size:1.05rem;">${fmt(c.gross)}</span>
           </div>
         </div>
-        <p style="font-weight:700;color:#444;margin-bottom:8px;">Deductions</p>
+ 
+        <!-- Benefits / Deductions -->
+        <p style="font-weight:700;color:#444;margin-bottom:4px;">Government Benefit Deductions</p>
+        <p style="font-size:0.75rem;color:#888;margin-bottom:10px;">
+          Semi-monthly share (÷2)
+          ${!b.sssIsManual || !b.philIsManual || !b.pagIbigIsManual
+            ? `&nbsp;·&nbsp; <span style="background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:4px;font-size:0.7rem;">computed</span> = auto-calculated from standard rates`
+            : ""}
+        </p>
         <div class="profile-info-grid" style="margin-bottom:16px;">
-          <div class="profile-info-item"><span class="profile-info-label">SSS</span><span class="profile-info-value">${fmt((p.sssAmt||0)/2)}</span></div>
-          <div class="profile-info-item"><span class="profile-info-label">PhilHealth</span><span class="profile-info-value">${fmt((p.philHealthAmt||0)/2)}</span></div>
-          <div class="profile-info-item"><span class="profile-info-label">Pag-IBIG</span><span class="profile-info-value">${fmt((p.pagIbigAmt||0)/2)}</span></div>
-          <div class="profile-info-item"><span class="profile-info-label">Withholding Tax</span><span class="profile-info-value">${fmt((p.tax||0)/2)}</span></div>
-          ${c.advance > 0 ? `<div class="profile-info-item"><span class="profile-info-label">Advance Salary</span><span class="profile-info-value" style="color:#856404;">${fmt(c.advance)}</span></div>` : ""}
+          <div class="profile-info-item">
+            <span class="profile-info-label">
+              SSS ${!b.sssIsManual ? `<span style="font-size:0.68rem;background:#fef3c7;color:#92400e;padding:0 4px;border-radius:3px;">computed</span>` : ""}
+            </span>
+            <span class="profile-info-value" style="color:#721c24;">${fmt(c.sssSemi)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label" style="font-size:0.72rem;color:#aaa;">Monthly</span>
+            <span class="profile-info-value" style="font-size:0.8rem;color:#aaa;">${fmt(c.sssSemi * 2)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label">
+              PhilHealth ${!b.philIsManual ? `<span style="font-size:0.68rem;background:#fef3c7;color:#92400e;padding:0 4px;border-radius:3px;">computed</span>` : ""}
+            </span>
+            <span class="profile-info-value" style="color:#721c24;">${fmt(c.philSemi)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label" style="font-size:0.72rem;color:#aaa;">Monthly</span>
+            <span class="profile-info-value" style="font-size:0.8rem;color:#aaa;">${fmt(c.philSemi * 2)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label">
+              Pag-IBIG ${!b.pagIbigIsManual ? `<span style="font-size:0.68rem;background:#fef3c7;color:#92400e;padding:0 4px;border-radius:3px;">computed</span>` : ""}
+            </span>
+            <span class="profile-info-value" style="color:#721c24;">${fmt(c.pagIbigSemi)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label" style="font-size:0.72rem;color:#aaa;">Monthly</span>
+            <span class="profile-info-value" style="font-size:0.8rem;color:#aaa;">${fmt(c.pagIbigSemi * 2)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label">
+              Withholding Tax
+              ${!b.taxIsManual ? `<span style="font-size:0.68rem;background:#fee2e2;color:#991b1b;padding:0 4px;border-radius:3px;">not set</span>` : ""}
+            </span>
+            <span class="profile-info-value" style="color:#721c24;">${fmt(c.taxSemi)}</span>
+          </div>
+          <div class="profile-info-item">
+            <span class="profile-info-label" style="font-size:0.72rem;color:#aaa;">Monthly</span>
+            <span class="profile-info-value" style="font-size:0.8rem;color:#aaa;">${fmt(c.taxSemi * 2)}</span>
+          </div>
+          ${c.advance > 0 ? `
+          <div class="profile-info-item">
+            <span class="profile-info-label">Advance Salary</span>
+            <span class="profile-info-value" style="color:#856404;">${fmt(c.advance)}</span>
+          </div>
+          <div class="profile-info-item"></div>` : ""}
           <div class="profile-info-item" style="grid-column:1/-1;border-top:1px solid #f0e0e8;padding-top:8px;margin-top:4px;">
             <span class="profile-info-label">Total Deductions</span>
             <span class="profile-info-value" style="color:#721c24;font-weight:700;">${fmt(c.deductions + c.advance)}</span>
           </div>
         </div>
-        <div style="background:${c.net>=0?"#d1fae5":"#fee2e2"};border:1px solid ${c.net>=0?"#6ee7b7":"#fca5a5"};border-radius:10px;padding:16px;text-align:center;">
-          <p style="margin:0;font-size:0.85rem;color:${c.net>=0?"#065f46":"#991b1b"};">Net Pay</p>
-          <p style="margin:4px 0 0;font-size:1.7rem;font-weight:700;color:${c.net>=0?"#065f46":"#991b1b"};">${fmt(c.net)}</p>
+ 
+        <!-- Net Pay -->
+        <div style="background:${c.net >= 0 ? "#d1fae5" : "#fee2e2"};border:1px solid ${c.net >= 0 ? "#6ee7b7" : "#fca5a5"};border-radius:10px;padding:16px;text-align:center;margin-bottom:16px;">
+          <p style="margin:0;font-size:0.85rem;color:${c.net >= 0 ? "#065f46" : "#991b1b"};">Net Pay</p>
+          <p style="margin:4px 0 0;font-size:1.7rem;font-weight:700;color:${c.net >= 0 ? "#065f46" : "#991b1b"};">${fmt(c.net)}</p>
           ${c.net < 0 ? `<p style="font-size:0.78rem;color:#991b1b;margin:4px 0 0;">Advance exceeds net — carry over balance.</p>` : ""}
+        </div>
+ 
+        <!-- Action buttons -->
+        <div style="display:flex;gap:10px;">
+          <button class="btn" id="printPayslipBtn" style="flex:1;background:linear-gradient(135deg,#9d174d,#d44d7c);">
+            🖨️ Print / Save as PDF
+          </button>
         </div>
       </div>
     </div>`;
+ 
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
+ 
   const close = () => { modal.remove(); document.body.style.overflow = ""; };
   document.getElementById("payslipClose").onclick = close;
   modal.addEventListener("click", e => { if (e.target === modal) close(); });
+ 
+  document.getElementById("printPayslipBtn").onclick = () => printPayslip(row, c, from, to);
 }
 
 /* ── Attendance Adjust Modal ── */
@@ -2334,6 +2882,432 @@ function openAdjustModal(id, timeIn, timeOut, from, to, reloadFn) {
       else { msg.textContent = result.message; msg.style.display = "block"; }
     } catch { msg.textContent = "Error saving."; msg.style.display = "block"; }
   };
+}
+
+/* ── Print Payslip ── */
+function printPayslip(row, c, from, to) {
+  const fmt  = (v) => `₱${(v || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+  const p    = row.payroll || {};
+  const b    = c.benefits || {};
+  const now  = new Date().toLocaleDateString("en-PH", { year:"numeric", month:"long", day:"numeric" });
+  const isEdited = Object.keys(row).some(k => k.startsWith("_edit"));
+ 
+  const basePayLabel = c.hourlyBased
+    ? `Hourly Pay (${fmt(p.hourlyRate || c.effectiveHourly)}/hr × ${c.effectiveHours} hrs)`
+    : `Semi-Monthly Basic Pay (½ of ${fmt(p.basicPay || c.effectiveBasic * 2)}/mo)`;
+ 
+  const benefitRow = (label, semiAmt, monthlyAmt, isManual, idNum) => {
+    const tag = !isManual
+      ? `<span style="background:#fef3c7;color:#92400e;border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;">AUTO</span>`
+      : "";
+    const sub = idNum ? `<div style="color:#aaa;font-size:9px;padding-left:14px;">No. ${idNum}</div>` : "";
+    return `
+      <tr>
+        <td>${label} ${tag}${sub}</td>
+        <td style="text-align:right;color:#721c24;">${fmt(semiAmt)}</td>
+        <td style="text-align:right;color:#aaa;font-size:11px;">${fmt(monthlyAmt)}</td>
+      </tr>`;
+  };
+ 
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Payslip — ${row.employee.name} — ${from}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+ 
+    * { margin:0; padding:0; box-sizing:border-box; }
+ 
+    body {
+      font-family: "DM Sans", "Segoe UI", Arial, sans-serif;
+      font-size: 12.5px;
+      color: #1a1a2e;
+      background: #fff;
+      padding: 36px 44px;
+      max-width: 720px;
+      margin: auto;
+    }
+ 
+    /* ── TOP HEADER ── */
+    .slip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 3px solid #d44d7c;
+    }
+    .slip-brand { display: flex; align-items: center; gap: 14px; }
+    .slip-logo {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #f9c0d2;
+    }
+    .slip-logo-fallback {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#d44d7c,#9d174d);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: #fff; font-weight: 800;
+      border: 2px solid #f9c0d2;
+    }
+    .slip-brand-name {
+      font-family: "DM Serif Display", serif;
+      font-size: 24px;
+      color: #9d174d;
+      line-height: 1;
+    }
+    .slip-brand-tagline {
+      font-size: 10px;
+      color: #d44d7c;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+    .slip-doc-meta { text-align: right; }
+    .slip-doc-title {
+      font-family: "DM Serif Display", serif;
+      font-size: 18px;
+      color: #9d174d;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .slip-doc-sub { font-size: 10.5px; color: #888; margin-top: 4px; line-height: 1.6; }
+ 
+    /* ── EMPLOYEE BAND ── */
+    .slip-emp-band {
+      background: linear-gradient(135deg, #fce7f0 0%, #fff5f8 100%);
+      border: 1px solid #f9c0d2;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slip-emp-name {
+      font-family: "DM Serif Display", serif;
+      font-size: 18px;
+      color: #9d174d;
+    }
+    .slip-emp-role { font-size: 11px; color: #888; margin-top: 2px; }
+    .slip-emp-email { font-size: 10px; color: #aaa; }
+    .slip-period {
+      background: #9d174d;
+      color: #fff;
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    ${isEdited ? `.slip-edited-badge {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 4px;
+    }` : ""}
+ 
+    /* ── SECTION LABEL ── */
+    .sec-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #d44d7c;
+      margin: 16px 0 7px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #f9c0d2;
+    }
+ 
+    /* ── TABLES ── */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    td { padding: 5.5px 8px; vertical-align: top; }
+    tr:nth-child(even) td { background: #fdf7fa; }
+ 
+    .col-label { width: 55%; color: #444; }
+    .col-semi  { width: 25%; text-align: right; font-weight: 600; }
+    .col-mo    { width: 20%; text-align: right; color: #aaa; font-size: 10.5px; }
+ 
+    .thead-row td {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      padding-bottom: 3px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+ 
+    .row-subtotal td {
+      border-top: 1px solid #d44d7c;
+      font-weight: 700;
+      padding-top: 7px;
+      margin-top: 3px;
+    }
+    .row-deduct td { color: #721c24; }
+    .row-advance td { color: #856404; }
+ 
+    /* ── NET PAY BOX ── */
+    .slip-net {
+      margin: 18px 0 24px;
+      border: 2px solid ${c.net >= 0 ? "#6ee7b7" : "#fca5a5"};
+      background: ${c.net >= 0 ? "#d1fae5" : "#fee2e2"};
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .slip-net-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: ${c.net >= 0 ? "#065f46" : "#991b1b"};
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .slip-net-period { font-size: 10px; color: #888; margin-top: 2px; }
+    .slip-net-amount {
+      font-family: "DM Serif Display", serif;
+      font-size: 30px;
+      color: ${c.net >= 0 ? "#065f46" : "#991b1b"};
+    }
+    ${c.net < 0 ? `.slip-net-warn { font-size:10px;color:#991b1b;text-align:right;margin-top:3px; }` : ""}
+ 
+    /* ── GOVERNMENT IDs ── */
+    .id-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+      font-size: 10.5px;
+      color: #555;
+      margin-bottom: 16px;
+    }
+    .id-grid span { color: #aaa; display: block; font-size: 9.5px; }
+ 
+    /* ── SIGNATURE BLOCK ── */
+    .slip-sigs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .slip-sig {
+      text-align: center;
+      border-top: 1.5px solid #ccc;
+      padding-top: 6px;
+      font-size: 10px;
+      color: #888;
+    }
+    .slip-sig strong { display: block; color: #444; font-size: 10.5px; margin-bottom: 2px; }
+ 
+    /* ── FOOTER ── */
+    .slip-foot {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 9px;
+      color: #ccc;
+      border-top: 1px dashed #eee;
+      padding-top: 10px;
+    }
+ 
+    @media print {
+      body { padding: 20px 28px; }
+      .no-print { display:none !important; }
+    }
+  </style>
+</head>
+<body>
+ 
+  <!-- ── HEADER ── -->
+  <div class="slip-header">
+    <div class="slip-brand">
+      <img src="/images/logo.png" alt="Logo" class="slip-logo"
+           onerror="this.outerHTML='<div class=slip-logo-fallback>🐾</div>'" />
+      <div>
+        <div class="slip-brand-name">Hungry Paws</div>
+        <div class="slip-brand-tagline">Pet Grooming &amp; Hotel</div>
+      </div>
+    </div>
+    <div class="slip-doc-meta">
+      <div class="slip-doc-title">Payslip</div>
+      <div class="slip-doc-sub">
+        Date Issued: ${now}<br/>
+        Pay Period: ${from} – ${to}
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ── EMPLOYEE BAND ── -->
+  <div class="slip-emp-band">
+    <div>
+      <div class="slip-emp-name">${row.employee.name}</div>
+      <div class="slip-emp-role">${row.employee.role}</div>
+      ${row.employee.email ? `<div class="slip-emp-email">${row.employee.email}</div>` : ""}
+      ${isEdited ? `<div class="slip-edited-badge">✏️ Manually Adjusted</div>` : ""}
+    </div>
+    <div class="slip-period">${from}&nbsp;–&nbsp;${to}</div>
+  </div>
+ 
+  <!-- ── ATTENDANCE ── -->
+  <div class="sec-label">Attendance Summary</div>
+  <table>
+    <tr><td class="col-label">Days Present</td><td class="col-semi">${row.attendance.daysPresent} day(s)</td><td class="col-mo"></td></tr>
+    <tr><td class="col-label">Total Hours Worked</td><td class="col-semi">${c.effectiveHours} hr(s)</td><td class="col-mo"></td></tr>
+    ${c.effectiveOT > 0 ? `<tr><td class="col-label">Overtime Hours</td><td class="col-semi">${c.effectiveOT} hr(s)</td><td class="col-mo"></td></tr>` : ""}
+  </table>
+ 
+  <!-- ── EARNINGS ── -->
+  <div class="sec-label">Earnings</div>
+  <table>
+    <tr class="thead-row">
+      <td class="col-label">Description</td>
+      <td class="col-semi">This Period</td>
+      <td class="col-mo">Notes</td>
+    </tr>
+    <tr>
+      <td class="col-label">${basePayLabel}</td>
+      <td class="col-semi">${fmt(c.basePay)}</td>
+      <td class="col-mo">${c.hourlyBased ? `${fmt(c.effectiveHourly)}/hr` : `÷2 of ${fmt((c.effectiveBasic || p.basicPay || 0) * 1)}/mo`}</td>
+    </tr>
+    ${c.otPay > 0 ? `
+    <tr>
+      <td class="col-label">Overtime Pay (${c.effectiveOT}h × ${fmt(c.effectiveOTRate)}/hr)</td>
+      <td class="col-semi">${fmt(c.otPay)}</td>
+      <td class="col-mo"></td>
+    </tr>` : ""}
+    ${c.commission > 0 ? `
+    <tr>
+      <td class="col-label">Commission / Incentive</td>
+      <td class="col-semi">${fmt(c.commission)}</td>
+      <td class="col-mo"></td>
+    </tr>` : ""}
+    <tr class="row-subtotal">
+      <td class="col-label">Gross Pay</td>
+      <td class="col-semi">${fmt(c.gross)}</td>
+      <td class="col-mo"></td>
+    </tr>
+  </table>
+ 
+  <!-- ── DEDUCTIONS ── -->
+  <div class="sec-label">Statutory Deductions &nbsp;<span style="font-size:9px;font-weight:400;letter-spacing:0;">(semi-monthly employee share)</span></div>
+  <table>
+    <tr class="thead-row">
+      <td class="col-label">Description</td>
+      <td class="col-semi">This Period</td>
+      <td class="col-mo">Monthly</td>
+    </tr>
+    ${benefitRow(
+      "SSS Contribution",
+      c.sssSemi, c.sssSemi * 2,
+      b.sssIsManual,
+      p.sssNo
+    )}
+    ${benefitRow(
+      "PhilHealth Contribution",
+      c.philSemi, c.philSemi * 2,
+      b.philIsManual,
+      p.philHealthNo
+    )}
+    ${benefitRow(
+      "Pag-IBIG (HDMF) Contribution",
+      c.pagIbigSemi, c.pagIbigSemi * 2,
+      b.pagIbigIsManual,
+      p.pagIbigNo
+    )}
+    ${c.taxSemi > 0 ? benefitRow(
+      "Withholding Tax",
+      c.taxSemi, c.taxSemi * 2,
+      b.taxIsManual,
+      p.tin
+    ) : ""}
+    ${c.advance > 0 ? `
+    <tr class="row-advance">
+      <td class="col-label">Advance Salary Deduction</td>
+      <td class="col-semi">${fmt(c.advance)}</td>
+      <td class="col-mo">—</td>
+    </tr>` : ""}
+    <tr class="row-subtotal row-deduct">
+      <td class="col-label">Total Deductions</td>
+      <td class="col-semi">${fmt(c.deductions + c.advance)}</td>
+      <td class="col-mo"></td>
+    </tr>
+  </table>
+ 
+  <!-- ── GOVERNMENT IDs ── -->
+  ${(p.sssNo || p.philHealthNo || p.pagIbigNo || p.tin) ? `
+  <div class="sec-label">Government ID Numbers</div>
+  <div class="id-grid">
+    ${p.sssNo       ? `<div><span>SSS No.</span>${p.sssNo}</div>`           : ""}
+    ${p.philHealthNo? `<div><span>PhilHealth No.</span>${p.philHealthNo}</div>` : ""}
+    ${p.pagIbigNo   ? `<div><span>Pag-IBIG No.</span>${p.pagIbigNo}</div>`  : ""}
+    ${p.tin         ? `<div><span>TIN</span>${p.tin}</div>`                 : ""}
+  </div>` : ""}
+ 
+  <!-- ── NET PAY ── -->
+  <div class="slip-net">
+    <div>
+      <div class="slip-net-label">Net Pay — Take Home</div>
+      <div class="slip-net-period">${from} to ${to}</div>
+      ${c.net < 0 ? `<div class="slip-net-warn">⚠️ Advance exceeds net pay — carry over to next period</div>` : ""}
+    </div>
+    <div class="slip-net-amount">${fmt(c.net)}</div>
+  </div>
+ 
+  <!-- ── BANK / WALLET ── -->
+  ${(p.bank || p.bankAcct) ? `
+  <div class="sec-label">Payment Details</div>
+  <table>
+    ${p.bank    ? `<tr><td class="col-label">Bank / Wallet</td><td>${p.bank}</td></tr>` : ""}
+    ${p.bankAcct? `<tr><td class="col-label">Account Number</td><td>${p.bankAcct}</td></tr>` : ""}
+  </table>` : ""}
+ 
+  <!-- ── SIGNATURES ── -->
+  <div class="slip-sigs">
+    <div class="slip-sig">
+      <strong>Prepared by</strong>
+      <br/><br/>___________________________<br/>
+      HR / Admin Officer
+    </div>
+    <div class="slip-sig">
+      <strong>Received by</strong>
+      <br/><br/>___________________________<br/>
+      ${row.employee.name}
+    </div>
+    <div class="slip-sig">
+      <strong>Approved by</strong>
+      <br/><br/>___________________________<br/>
+      Management
+    </div>
+  </div>
+ 
+  <!-- ── FOOTER ── -->
+  <div class="slip-foot">
+    This payslip is computer-generated and is valid without a signature unless otherwise specified.
+    &nbsp;·&nbsp; Hungry Paws Pet Grooming &amp; Hotel &nbsp;·&nbsp; Generated ${now}
+    ${isEdited ? "&nbsp;·&nbsp; ✏️ Values manually adjusted by admin" : ""}
+  </div>
+ 
+  <script>window.onload = () => window.print();</script>
+</body>
+</html>`;
+ 
+  const win = window.open("", "_blank", "width=800,height=950");
+  if (!win) {
+    showToast("Pop-up blocked — please allow pop-ups for this site.", "warning");
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
 }
 
 /* ═══════════════════════════════════════
