@@ -630,4 +630,38 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// ===== Scroll Animations =====
+const animateOnScroll = () => {
+  const elements = document.querySelectorAll(
+    '#about .about-img-col, #about .about-text-col, ' +
+    '.about-stat-mini, ' +
+    '.service-card, ' +
+    '.promotions-card, ' +
+    '.trust-item, ' +
+    '#our-shop .photo-grid, ' +
+    '.contact-form-wrap, .contact-info-col, ' +
+    '.testi-cta, #testimonialsCarousel, ' +
+    '.section-header-center, .section-eyebrow, .section-title, .section-sub, ' +
+    '.footer-inner'
+  );
+
+  elements.forEach(el => el.classList.add('scroll-hidden'));
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('scroll-visible');
+        observer.unobserve(entry.target); // animate once only
+      }
+    });
+  }, {
+    threshold: 0.12,
+    rootMargin: '0px 0px -40px 0px'
+  });
+
+  elements.forEach(el => observer.observe(el));
+};
+
+animateOnScroll();
+
 });

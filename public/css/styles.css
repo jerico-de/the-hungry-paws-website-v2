@@ -382,6 +382,47 @@ body {
 }
 
 /* ========================================
+   HERO ANIMATIONS
+======================================== */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Initial state */
+.hero-badge,
+#hero h1,
+#hero p,
+.hero-btns {
+  opacity: 0;
+  animation: fadeUp 0.9s ease forwards;
+}
+
+/* Staggered timing */
+.hero-badge {
+  animation-delay: 0.2s;
+}
+
+#hero h1 {
+  animation-delay: 0.4s;
+}
+
+#hero p {
+  animation-delay: 0.6s;
+}
+
+.hero-btns {
+  animation-delay: 0.8s;
+}
+
+/* ========================================
    TRUST STRIP
 ======================================== */
 .trust-strip {
@@ -2145,4 +2186,72 @@ select option:disabled { color: #bbb; background: #f5f5f5; }
   #hero h1 { font-size: 2rem; }
   .section-title { font-size: 1.5rem; }
   .trust-item { font-size: 0.78rem; padding: 6px 10px; }
+}
+
+/* ========================================
+   SCROLL ANIMATIONS
+======================================== */
+
+/* Base hidden state */
+.scroll-hidden {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.scroll-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children inside grids */
+.services-grid .service-card:nth-child(1) { transition-delay: 0s; }
+.services-grid .service-card:nth-child(2) { transition-delay: 0.12s; }
+
+.promotions-parent .promotions-card:nth-child(1) { transition-delay: 0s; }
+.promotions-parent .promotions-card:nth-child(2) { transition-delay: 0.12s; }
+.promotions-parent .promotions-card:nth-child(3) { transition-delay: 0.24s; }
+
+.about-stats-row .about-stat-mini:nth-child(1) { transition-delay: 0.1s; }
+.about-stats-row .about-stat-mini:nth-child(2) { transition-delay: 0.2s; }
+.about-stats-row .about-stat-mini:nth-child(3) { transition-delay: 0.3s; }
+
+/* About section — slide from sides */
+#about .about-img-col.scroll-hidden  { transform: translateX(-40px); opacity: 0; }
+#about .about-img-col.scroll-visible { transform: translateX(0);     opacity: 1; }
+#about .about-text-col.scroll-hidden  { transform: translateX(40px); opacity: 0; }
+#about .about-text-col.scroll-visible { transform: translateX(0);    opacity: 1; }
+
+/* Contact — slide from sides */
+.contact-form-wrap.scroll-hidden  { transform: translateX(-40px); opacity: 0; }
+.contact-form-wrap.scroll-visible { transform: translateX(0);     opacity: 1; }
+.contact-info-col.scroll-hidden   { transform: translateX(40px);  opacity: 0; }
+.contact-info-col.scroll-visible  { transform: translateX(0);     opacity: 1; }
+
+/* Trust strip items — slight scale */
+.trust-item.scroll-hidden  { transform: translateY(16px) scale(0.95); opacity: 0; }
+.trust-item.scroll-visible { transform: translateY(0)    scale(1);    opacity: 1; }
+
+/* Photo grid — fade up as one */
+#our-shop .photo-grid.scroll-hidden  { transform: translateY(40px); opacity: 0; }
+#our-shop .photo-grid.scroll-visible { transform: translateY(0);    opacity: 1; }
+
+/* Section headers — subtle fade up */
+.section-header-center.scroll-hidden  { transform: translateY(20px); opacity: 0; }
+.section-header-center.scroll-visible { transform: translateY(0);    opacity: 1; }
+
+/* Testimonials */
+#testimonialsCarousel.scroll-hidden  { transform: translateY(32px); opacity: 0; }
+#testimonialsCarousel.scroll-visible { transform: translateY(0);    opacity: 1; }
+.testi-cta.scroll-hidden  { transform: translateY(20px); opacity: 0; transition-delay: 0.2s; }
+.testi-cta.scroll-visible { transform: translateY(0);    opacity: 1; }
+
+/* Footer */
+.footer-inner.scroll-hidden  { transform: translateY(24px); opacity: 0; }
+.footer-inner.scroll-visible { transform: translateY(0);    opacity: 1; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hidden  { opacity: 1; transform: none; transition: none; }
+  .scroll-visible { opacity: 1; transform: none; }
 }
