@@ -588,16 +588,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ===== Lightbox Fix (prevent scroll-to-top on close) =====
-document.querySelectorAll('.photo-grid a, .services-image a, .promo-img-wrap, .promotions-card a').forEach(trigger => {
+document.querySelectorAll('a[href^="#"]').forEach(trigger => {
   trigger.addEventListener('click', (e) => {
     const href = trigger.getAttribute('href');
-    if (!href || !href.startsWith('#')) return;
+    if (!href || href === '#' || href === ' ') return;
     const target = document.querySelector(href);
     if (!target || !target.classList.contains('lightbox')) return;
     e.preventDefault();
     target.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    history.pushState(null, '', ' '); // blank history entry so back works
+    history.pushState(null, '', ' ');
   });
 });
 
