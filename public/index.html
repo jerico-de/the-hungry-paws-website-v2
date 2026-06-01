@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TheHungryPaws</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
@@ -10,14 +10,14 @@
       integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
       crossorigin="anonymous"
     />
-    <link href="https://fonts.googleapis.com/css2?family=Coiny&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
 
-    <!-- NAVBAR -->
+    <!-- ===================== NAVBAR ===================== -->
     <div id="navbar">
-      <div class="container nav-wrapper">
+      <div class="nav-wrapper">
 
         <!-- LEFT: LOGO -->
         <div class="nav-left">
@@ -25,11 +25,13 @@
         </div>
 
         <!-- CENTER: NAV LINKS -->
-        <div class="nav-links">
+        <nav class="nav-links">
           <a href="#hero">Home</a>
+          <a href="#about">About</a>
           <a href="#services">Services</a>
+          <a href="#promotions">Promos</a>
           <a href="#contact">Contact</a>
-        </div>
+        </nav>
 
         <!-- RIGHT: AUTH -->
         <div class="nav-auth">
@@ -51,7 +53,9 @@
           </div>
           <div class="mobile-nav-links">
             <a href="#hero">Home</a>
+            <a href="#about">About</a>
             <a href="#services">Services</a>
+            <a href="#promotions">Promos</a>
             <a href="#contact">Contact</a>
           </div>
           <div class="mobile-auth">
@@ -71,14 +75,11 @@
               <h2>Welcome Back</h2>
               <p>Sign in to your account</p>
             </div>
-
             <a href="/api/auth/google" class="google-btn">
               <img src="https://www.google.com/favicon.ico" width="20" height="20" alt="Google" />
               Sign in with Google
             </a>
-
             <div class="auth-divider">— or sign in with email —</div>
-
             <form id="loginForm" class="auth-form">
               <div class="auth-field">
                 <label for="loginEmail">Email</label>
@@ -167,143 +168,196 @@
       </div>
     </div>
 
-    <!-- HERO -->
+    <!-- ===================== HERO ===================== -->
     <div id="hero">
-      <div class="container">
-        <div class="hero-header">
-          <h1>Welcome to The HungryPaws!</h1>
-        </div>
-        <div class="hero-content">
-          <p>
-            At The HungryPaws PH, we're more than just a grooming salon and pet hotel—we're your
-            partner in keeping your furry family happy. We're dedicated to creating happy tails for
-            every pet, every time!
-          </p>
-        </div>
-        <div class="hero-btn">
-          <button><a href="#services">Check Services</a></button>
-          <button><a href="#about">Know More</a></button>
+      <div class="hero-inner">
+        <div class="hero-badge">🐾 Grooming · Hotel · Supplies</div>
+        <h1>Your Pet Deserves<br>The <span class="hero-accent">Happiest</span> Day</h1>
+        <p>At The HungryPaws PH, we're more than just a grooming salon and pet hotel — we're your partner in keeping your furry family happy. Creating happy tails every time!</p>
+        <div class="hero-btns">
+          <button id="bookGroomingBtn" class="hero-btn-primary">📅 Book an Appointment</button>
+          <a href="#services" class="hero-btn-secondary">See Our Services</a>
         </div>
       </div>
+      <svg class="hero-wave" viewBox="0 0 1440 60" preserveAspectRatio="none">
+        <path d="M0,40 Q360,5 720,40 Q1080,75 1440,25 L1440,60 L0,60 Z" fill="#fff5f8"/>
+      </svg>
     </div>
 
-    <!-- ABOUT -->
+    <!-- ===================== TRUST STRIP ===================== -->
+    <div class="trust-strip">
+      <div class="trust-item"><span>✂️</span> Professional Groomers</div>
+      <div class="trust-divider"></div>
+      <div class="trust-item"><span>🏨</span> 24/7 Pet Hotel</div>
+      <div class="trust-divider"></div>
+      <div class="trust-item"><span>❤️</span> Loved by Fur Parents</div>
+      <div class="trust-divider"></div>
+      <div class="trust-item"><span>📍</span> Del Monte Ave, QC</div>
+    </div>
+
+    <!-- ===================== ABOUT ===================== -->
     <div id="about">
-      <div class="container">
-        <div class="about-header">
-          <h2 class="section-header">About Us</h2>
+      <div class="about-inner">
+        <div class="about-img-col">
+          <div class="about-img-main">
+            <img src="images/ourshop1.JPEG" alt="Our Shop" onerror="this.parentElement.style.background='linear-gradient(135deg,#f5d5d5,#fce7f0)'" />
+          </div>
+          <div class="about-img-accent">
+            <img src="images/ourshop5.JPEG" alt="Our Shop Interior" onerror="this.parentElement.style.background='linear-gradient(135deg,#d44d7c,#e8739b)'" />
+          </div>
+          <div class="about-stat-chip">
+            <strong>500+</strong>
+            Happy pets served
+          </div>
         </div>
-        <div class="about-content">
-          <p>The HungryPaws is a one-stop-shop for all your pet needs. We have pet supplies, grooming services, and pet-hotel services for whenever you need someone to care for your pet.</p>
-          <p>We are dedicated to bringing happiness to your pets by making sure they are well taken care of.</p>
+        <div class="about-text-col">
+          <span class="section-eyebrow">About Us</span>
+          <h2 class="section-title">One-Stop Shop<br>for Happy Paws 🐾</h2>
+          <p class="about-desc">The HungryPaws is a one-stop-shop for all your pet needs. We have pet supplies, grooming services, and pet-hotel services for whenever you need someone to care for your pet.</p>
+          <p class="about-desc">We are dedicated to bringing happiness to your pets by making sure they are well taken care of.</p>
+          <div class="about-stats-row">
+            <div class="about-stat-mini">
+              <strong>5★</strong>
+              <span>Rated by clients</span>
+            </div>
+            <div class="about-stat-mini">
+              <strong>3+</strong>
+              <span>Years of care</span>
+            </div>
+            <div class="about-stat-mini">
+              <strong>2</strong>
+              <span>Core services</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- OUR SHOP -->
+    <!-- ===================== OUR SHOP ===================== -->
     <div id="our-shop">
-      <div class="container">
-        <div class="shop-header">
-          <h2 class="section-header">Our Shop</h2>
-        </div>
-        <div class="photo-grid">
-          <a href="#shop1" class="span-3"><img src="images/ourshop1.JPEG" alt="Our Shop 1" /></a>
-          <a href="#shop2" class="span-2"><img src="images/ourshop5.JPEG" alt="Our Shop 2" /></a>
-          <a href="#shop3" class="span-2"><img src="images/ourshop6.JPEG" alt="Our Shop 3" /></a>
-          <a href="#shop4" class="span-3"><img src="images/ourshop4.JPEG" alt="Our Shop 4" /></a>
-        </div>
-
-        <div id="shop1" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop1.JPEG" alt="Shop photo 1" /></div>
-        <div id="shop2" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop5.JPEG" alt="Shop photo 2" /></div>
-        <div id="shop3" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop6.JPEG" alt="Shop photo 3" /></div>
-        <div id="shop4" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop4.JPEG" alt="Shop photo 4" /></div>
+      <div class="section-header-center">
+        <span class="section-eyebrow">Our Space</span>
+        <h2 class="section-title">Take a Peek Inside</h2>
       </div>
+      <div class="photo-grid">
+        <a href="#shop1" class="span-3"><img src="images/ourshop1.JPEG" alt="Our Shop 1" /></a>
+        <a href="#shop2" class="span-2"><img src="images/ourshop5.JPEG" alt="Our Shop 2" /></a>
+        <a href="#shop3" class="span-2"><img src="images/ourshop6.JPEG" alt="Our Shop 3" /></a>
+        <a href="#shop4" class="span-3"><img src="images/ourshop4.JPEG" alt="Our Shop 4" /></a>
+      </div>
+      <div id="shop1" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop1.JPEG" alt="Shop photo 1" /></div>
+      <div id="shop2" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop5.JPEG" alt="Shop photo 2" /></div>
+      <div id="shop3" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop6.JPEG" alt="Shop photo 3" /></div>
+      <div id="shop4" class="lightbox"><a href="#our-shop" class="close">&times;</a><img src="images/ourshop4.JPEG" alt="Shop photo 4" /></div>
     </div>
 
-    <!-- SERVICES -->
+    <!-- ===================== SERVICES ===================== -->
     <div id="services">
-      <h2 class="services-header section-header">Our Services</h2>
-      <div class="container">
-
-        <div class="services-parent services-bg">
-          <div class="services-text">
-            <h3>Grooming Services</h3>
-            <p>Our grooming team is dedicated to making pets look great and feel even better. Safe, gentle, and joyful—creating happy tails every time!</p>
-            <p><em>Full Groom</em> starts at ₱500, while <em>Bath and Blowdry</em> starts at ₱250.</p>
-            <p>We also offer <em>A La Carte</em> services including nail trim, ear cleaning, teeth cleaning, and more!</p>
-            <button class="btn" id="bookGroomingBtn">Book Grooming</button>
-          </div>
-          <div class="services-image">
-            <a href="#grooming"><img src="images/grooming.jpg" alt="Grooming Services Pricelist" /></a>
-          </div>
-        </div>
-
-        <div class="services-parent services-bg">
-          <div class="services-text">
-            <h3>Pet Hotel Services</h3>
-            <p>From tiny paws to gentle giants, our pet hotel gives every guest a cozy space to rest, play, and feel loved. Because while you're away, we're here creating happy tails every day!</p>
-            <p><em>24 Hours Stay</em> starts at ₱450, while <em>12 Hours Stay</em> starts at ₱350.</p>
-            <p>We also offer <em>Day Care</em> services starting at ₱250 for 3 hours then ₱50 for every succeeding hour.</p>
-            <button class="btn" id="bookHotelBtn">Book Hotel</button>
-          </div>
-          <div class="services-image">
-            <a href="#petHotel"><img src="images/hotel.jpg" alt="Pet Hotel Pricelist" /></a>
-          </div>
-        </div>
-
-        <div id="grooming" class="lightbox"><a href="#services" class="close">&times;</a><img src="images/grooming.jpg" alt="Grooming pricelist" /></div>
-        <div id="petHotel" class="lightbox"><a href="#services" class="close">&times;</a><img src="images/hotel.jpg" alt="Pet hotel pricelist" /></div>
+      <div class="section-header-center">
+        <span class="section-eyebrow">What We Offer</span>
+        <h2 class="section-title">Services Tailored for Your Pets</h2>
+        <p class="section-sub">Safe, gentle, and joyful — creating happy tails every time.</p>
       </div>
+      <div class="services-grid">
+
+        <div class="service-card service-card--groom">
+          <div class="service-card-deco">✂️</div>
+          <div class="service-icon">✂️</div>
+          <h3>Grooming Services</h3>
+          <p>Our grooming team is dedicated to making pets look great and feel even better. Safe, gentle, and joyful — creating happy tails every time!</p>
+          <div class="service-pricing">
+            <span class="price-tag">Full Groom from <strong>₱500</strong></span>
+            <span class="price-tag">Bath & Blowdry from <strong>₱250</strong></span>
+          </div>
+          <p class="service-addons">+ A La Carte: nail trim, ear cleaning, teeth cleaning &amp; more</p>
+          <div class="service-actions">
+            <button class="service-btn-primary" id="bookGroomingBtn2">Book Grooming</button>
+            <a href="#grooming" class="service-btn-ghost">View Pricelist</a>
+          </div>
+        </div>
+
+        <div class="service-card service-card--hotel">
+          <div class="service-card-deco">🏨</div>
+          <div class="service-icon">🏨</div>
+          <h3>Pet Hotel Services</h3>
+          <p>From tiny paws to gentle giants, our pet hotel gives every guest a cozy space to rest, play, and feel loved. Because while you're away, we're here!</p>
+          <div class="service-pricing">
+            <span class="price-tag price-tag--blue">24 Hours from <strong>₱450</strong></span>
+            <span class="price-tag price-tag--blue">12 Hours from <strong>₱350</strong></span>
+          </div>
+          <p class="service-addons service-addons--blue">+ Day Care: ₱250 for 3 hrs, ₱50 each succeeding hour</p>
+          <div class="service-actions">
+            <button class="service-btn-primary service-btn-blue" id="bookHotelBtn">Book Hotel</button>
+            <a href="#petHotel" class="service-btn-ghost service-btn-ghost--blue">View Pricelist</a>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="grooming" class="lightbox"><a href="#services" class="close">&times;</a><img src="images/grooming.jpg" alt="Grooming pricelist" /></div>
+      <div id="petHotel" class="lightbox"><a href="#services" class="close">&times;</a><img src="images/hotel.jpg" alt="Pet hotel pricelist" /></div>
     </div>
 
-    <!-- PROMOTIONS -->
+    <!-- ===================== PROMOTIONS ===================== -->
     <div id="promotions">
-      <div class="container">
-        <div class="promotions-header">
-          <h2 class="section-header">Promotions</h2>
-        </div>
-          <div class="promotions-parent">
-            <div class="promotions-card">
-              <a href="#promo1"><img src="images/promo1.jpg" alt="Get A Crochet Paw Keychain" width="100%" /></a>
-              <h3>Get A Crochet Paw Keychain</h3>
-              <p class="details">Receive one (1) exclusive Crochet Paw Keychain when you reach a minimum 1,000 php single-receipt purchase in-store.</p>
-            </div>
-            <div class="promotions-card">
-              <a href="#promo2"><img src="images/promo2.jpg" alt="Win a 50ml Pet Cologne" width="100%" /></a>
-              <h3>Win a 50ml Pet Cologne</h3>
-              <p class="details">Get a chance to win a 50ml Pet Cologne when (1) you like this post and tag a friend in the comments, (2) post your pet's glow up after grooming at The HungryPaws, and (3) buy any grooming products in-store.</p>
-            </div>
-            <div class="promotions-card">
-              <a href="#promo3"><img src="images/promo3.jpg" alt="Win a Voucher worth 700 pesos off" width="100%" /></a>
-              <h3>Win a Voucher Worth 700 Pesos Off</h3>
-              <p class="details">Get a chance to win 700 pesos off when (1) you like this post and tag a friend in the comments, (2) post your pet's glow up after grooming at The HungryPaws, and (3) buy any grooming products in-store.</p>
-            </div>
-          </div>
-
-          <div id="promo1" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo1.jpg" alt="Promo 1" /></div>
-          <div id="promo2" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo2.jpg" alt="Promo 2" /></div>
-          <div id="promo3" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo3.jpg" alt="Promo 3" /></div>
+      <div class="section-header-center">
+        <span class="section-eyebrow">Current Offers</span>
+        <h2 class="section-title">Promos Just for You 🎉</h2>
+        <p class="section-sub">Exclusive deals for our fur-baby community.</p>
       </div>
+      <div class="promotions-parent">
+        <div class="promotions-card">
+          <a href="#promo1" class="promo-img-wrap">
+            <img src="images/promo1.jpg" alt="Get A Crochet Paw Keychain" />
+            <div class="promo-chip">🎁 In-Store</div>
+          </a>
+          <div class="promo-body">
+            <h3>Get A Crochet Paw Keychain</h3>
+            <p class="details">Receive one (1) exclusive Crochet Paw Keychain when you reach a minimum ₱1,000 single-receipt purchase in-store.</p>
+          </div>
+        </div>
+        <div class="promotions-card">
+          <a href="#promo2" class="promo-img-wrap">
+            <img src="images/promo2.jpg" alt="Win a 50ml Pet Cologne" />
+            <div class="promo-chip">✨ Raffle</div>
+          </a>
+          <div class="promo-body">
+            <h3>Win a 50ml Pet Cologne</h3>
+            <p class="details">Get a chance to win a 50ml Pet Cologne when you like, tag, post your pet's glow-up, and buy grooming products in-store.</p>
+          </div>
+        </div>
+        <div class="promotions-card">
+          <a href="#promo3" class="promo-img-wrap">
+            <img src="images/promo3.jpg" alt="Win a Voucher worth 700 pesos off" />
+            <div class="promo-chip">💰 Voucher</div>
+          </a>
+          <div class="promo-body">
+            <h3>Win a Voucher Worth ₱700 Off</h3>
+            <p class="details">Get a chance to win ₱700 off when you like, tag, post your pet's glow-up, and buy grooming products in-store.</p>
+          </div>
+        </div>
+      </div>
+      <div id="promo1" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo1.jpg" alt="Promo 1" /></div>
+      <div id="promo2" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo2.jpg" alt="Promo 2" /></div>
+      <div id="promo3" class="lightbox"><a href="#promotions" class="close">&times;</a><img src="images/promo3.jpg" alt="Promo 3" /></div>
     </div>
 
-    <!-- =====================
-         TESTIMONIALS
-    ===================== -->
+    <!-- ===================== TESTIMONIALS ===================== -->
     <div id="testimonials">
-      <div class="container">
-        <div class="testimonials-header">
-          <h2 class="section-header">Testimonials</h2>
-        </div>
- 
-        <!-- Carousel -->
-        <div id="testimonialsCarousel" class="carousel slide" style="margin-bottom:30px;">
+      <div class="section-header-center">
+        <span class="section-eyebrow">Happy Fur Parents</span>
+        <h2 class="section-title">What They're Saying 💬</h2>
+        <p class="section-sub">Real reviews from real pet lovers.</p>
+      </div>
+
+      <div class="testimonials-inner">
+        <div id="testimonialsCarousel" class="carousel slide">
           <div class="carousel-inner" id="featuredReviewsGrid">
             <div class="carousel-item active">
               <p class="review-cards-empty">Loading reviews...</p>
             </div>
           </div>
-          <div class="carousel-indicators" id="testimonialIndicators">
-          </div>
+          <div class="carousel-indicators" id="testimonialIndicators"></div>
           <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
@@ -313,17 +367,14 @@
             <span class="visually-hidden">Next</span>
           </button>
         </div>
- 
-        <!-- Feedback CTA -->
-        <div style="text-align:center;margin-top:30px;padding-bottom:10px;">
-          <p style="font-size:0.88rem;color:#888;margin-bottom:12px;">Had a great experience? Share it with us!</p>
-          <button id="publicFeedbackBtn" style="background:linear-gradient(135deg,#d44d7c,#e8739b);color:#fff;border:none;border-radius:30px;padding:12px 28px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 16px rgba(212,77,124,0.25);transition:transform .2s,box-shadow .2s;font-family:inherit;">
-            ⭐ Leave a Review
-          </button>
+
+        <div class="testi-cta">
+          <p>Had a great experience? Share it with us!</p>
+          <button id="publicFeedbackBtn" class="leave-review-btn">⭐ Leave a Review</button>
         </div>
       </div>
     </div>
- 
+
     <!-- PUBLIC FEEDBACK MODAL -->
     <div id="publicFeedbackModal" style="display:none;position:fixed;inset:0;z-index:9002;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;padding:20px;">
       <div class="feedback-modal">
@@ -335,7 +386,7 @@
         </div>
         <div id="pubFbFormBody">
           <div style="text-align:center;margin-bottom:4px;">
-            <span style="font-size:0.82rem;font-weight:600;color:#888;">Your Rating *</span>
+            <span style="font-size:0.82rem;font-weight:700;color:#888;">Your Rating *</span>
           </div>
           <div class="star-rating" id="pubStarRating">
             <span class="star" data-val="1">★</span>
@@ -371,45 +422,63 @@
       </div>
     </div>
 
-    <!-- CONTACT -->
-    <section id="contact" class="contact-section py-5">
-      <h2 class="services-header section-header">Contact Us</h2>
-      <div class="container">
-        <div class="row mb-4 text-center">
-          <div class="col">
-            <p class="text-muted">We'd love to hear from you! Send us a message, visit us, or fill out our form below.</p>
-          </div>
+    <!-- ===================== CONTACT ===================== -->
+    <section id="contact" class="contact-section">
+      <div class="section-header-center">
+        <span class="section-eyebrow">Get in Touch</span>
+        <h2 class="section-title">We'd Love to Hear<br>from You</h2>
+        <p class="section-sub">Have a question? We'll get back to you right away.</p>
+      </div>
+
+      <div class="contact-inner">
+        <!-- Contact Form -->
+        <div class="contact-form-wrap">
+          <h3 class="contact-form-title">Send a Message 🐾</h3>
+          <form id="contactForm">
+            <div class="contact-field">
+              <label for="contactName">Your Name</label>
+              <input type="text" id="contactName" placeholder="Juan dela Cruz" required />
+            </div>
+            <div class="contact-field">
+              <label for="contactEmail">Email Address</label>
+              <input type="email" id="contactEmail" placeholder="you@example.com" required />
+            </div>
+            <div class="contact-field">
+              <label for="contactMessage">Your Message</label>
+              <textarea id="contactMessage" rows="4" maxlength="300" placeholder="Type your message..." required></textarea>
+              <small id="charCount">0 / 300 characters</small>
+            </div>
+            <button type="submit" class="contact-submit-btn">Send Message →</button>
+          </form>
         </div>
 
-        <div class="row g-5 align-items-start">
-          <!-- Contact Form -->
-          <div class="col-md-6">
-            <form id="contactForm">
-              <div class="mb-3">
-                <label for="contactName" class="form-label fw-semibold">Your Name</label>
-                <input type="text" class="form-control" id="contactName" placeholder="Enter your name" required />
+        <!-- Info + Map -->
+        <div class="contact-info-col">
+          <div class="contact-info-items">
+            <div class="contact-info-item">
+              <div class="contact-info-icon">📍</div>
+              <div>
+                <p class="contact-info-label">Address</p>
+                <p class="contact-info-val">392 Del Monte Ave, Quezon City, Metro Manila</p>
               </div>
-              <div class="mb-3">
-                <label for="contactEmail" class="form-label fw-semibold">Email Address</label>
-                <input type="email" class="form-control" id="contactEmail" placeholder="Enter your email" required />
-              </div>
-              <div class="mb-3">
-                <label for="contactMessage" class="form-label fw-semibold">Your Message</label>
-                <textarea class="form-control" id="contactMessage" rows="4" maxlength="300" placeholder="Type your message..." required></textarea>
-                <small id="charCount" class="text-muted">0 / 300 characters</small>
-              </div>
-              <button type="submit" class="btn btn-pink px-4">Send Message</button>
-            </form>
-          </div>
-
-          <!-- Map + Info -->
-          <div class="col-md-6">
-            <div class="ratio ratio-4x3 rounded-3 shadow-sm mb-3">
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.3105448445394!2d120.99933307457346!3d14.63830517615344!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b79d068ff90f%3A0x6e5ecfe604108a34!2sThe%20Hungry%20Paws%20-%20Del%20Monte%20-%20Banawe%2C%20QC!5e0!3m2!1sen!2sph!4v1774832784252!5m2!1sen!2sph" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
-            <p class="text-muted mb-1"><strong>Address:</strong> 392 Del Monte Ave, Quezon City, Metro Manila</p>
-            <p class="text-muted mb-1"><strong>Phone:</strong> +63 912 345 6789</p>
-            <p class="text-muted"><strong>Email:</strong> contact@thehungrypaws.ph</p>
+            <div class="contact-info-item">
+              <div class="contact-info-icon">📞</div>
+              <div>
+                <p class="contact-info-label">Phone</p>
+                <p class="contact-info-val">+63 912 345 6789</p>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon">✉️</div>
+              <div>
+                <p class="contact-info-label">Email</p>
+                <p class="contact-info-val">contact@thehungrypaws.ph</p>
+              </div>
+            </div>
+          </div>
+          <div class="contact-map">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.3105448445394!2d120.99933307457346!3d14.63830517615344!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b79d068ff90f%3A0x6e5ecfe604108a34!2sThe%20Hungry%20Paws%20-%20Del%20Monte%20-%20Banawe%2C%20QC!5e0!3m2!1sen!2sph!4v1774832784252!5m2!1sen!2sph" width="100%" height="220" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
         </div>
       </div>
@@ -420,24 +489,36 @@
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-center p-4 position-relative">
           <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
-          <h4 class="text-pink mb-3">Thank You!</h4>
+          <div style="font-size:2.5rem;margin-bottom:12px;">🐾</div>
+          <h4 style="color:#d44d7c;font-family:'Fredoka One',cursive;font-weight:400;margin-bottom:12px;">Thank You!</h4>
           <p>Your message has been successfully sent. We'll get back to you soon.</p>
-          <button class="btn btn-pink mt-3" data-bs-dismiss="modal">Close</button>
+          <button class="contact-submit-btn" style="margin:16px auto 0;display:block;max-width:160px;" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
 
-    <!-- FOOTER -->
+    <!-- ===================== FOOTER ===================== -->
     <footer>
-      <div class="footer-container">
-        <p>
-          &copy; 2024 The HungryPaws PH<br />
-          Developed by Jerico Crisostomo
-        </p>
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="images/logo.png" alt="TheHungryPaws" class="footer-logo" onerror="this.style.display='none'" />
+          <p class="footer-tagline">Happy tails, every time. 🐾</p>
+        </div>
+        <div class="footer-links">
+          <a href="#hero">Home</a>
+          <a href="#about">About</a>
+          <a href="#services">Services</a>
+          <a href="#promotions">Promos</a>
+          <a href="#contact">Contact</a>
+          <a href="employee-login.html">Employee Portal</a>
+        </div>
+        <div class="footer-copy">
+          <p>&copy; 2024 The HungryPaws PH · Developed by Jerico Crisostomo</p>
+        </div>
       </div>
     </footer>
 
-    <!-- BOOKING CHOICE MODAL -->
+    <!-- ===================== BOOKING CHOICE MODAL ===================== -->
     <div id="bookingChoiceModal" class="booking-choice-modal">
       <div class="booking-choice-box">
         <div class="booking-choice-icon">🐾</div>
@@ -453,7 +534,7 @@
       </div>
     </div>
 
-    <!-- GUEST GROOMING BOOKING MODAL -->
+    <!-- ===================== GUEST GROOMING BOOKING MODAL ===================== -->
     <div id="guestBookingModal" class="guest-modal">
       <div class="guest-modal-box">
         <button id="guestFormClose" class="guest-modal-close">&#x2715;</button>
@@ -462,9 +543,7 @@
           <h2 class="guest-modal-title">Guest Grooming Booking</h2>
           <p class="guest-modal-sub">We'll email you when your booking is approved or rejected</p>
         </div>
-
         <form id="guestBookingForm" class="guest-form">
-
           <p class="guest-section-label guest-section-label--pink">OWNER INFORMATION</p>
           <div class="guest-grid-2">
             <label class="guest-label">Full Name *
@@ -477,7 +556,6 @@
           <label class="guest-label guest-mb">Email Address *
             <input type="email" name="email" required placeholder="juan@email.com" class="guest-input guest-input--pink" />
           </label>
-
           <p class="guest-section-label guest-section-label--pink">PET INFORMATION</p>
           <div class="guest-grid-2">
             <label class="guest-label">Pet Name *
@@ -500,7 +578,6 @@
           <label class="guest-label guest-mb">Last Anti-Rabies Shot
             <input type="date" name="lastAntiRabiesShot" class="guest-input guest-input--pink" />
           </label>
-
           <p class="guest-section-label guest-section-label--pink">GROOMING SERVICES</p>
           <div class="guest-mb-sm">
             <p class="guest-sublabel">Main Service *</p>
@@ -526,14 +603,12 @@
               <label class="guest-check"><input type="checkbox" name="addonServices" value="Anal Sac Draining" /> Anal Sac Draining</label>
             </div>
           </div>
-
           <label class="guest-label guest-mb">
             Request a Groomer <span class="guest-optional">(optional — subject to availability)</span>
             <select id="guestGroomerSelect" name="requestedGroomerId" class="guest-input guest-input--pink">
               <option value="">No preference</option>
             </select>
           </label>
-
           <p class="guest-section-label guest-section-label--pink">APPOINTMENT</p>
           <div class="guest-grid-2 guest-mb">
             <label class="guest-label">Date *
@@ -547,7 +622,6 @@
               </div>
             </label>
           </div>
-
           <div class="guest-notice guest-notice--pink">
             <strong>📌 Please note:</strong><br/>
             • Booking is <strong>PENDING</strong> until approved by our team<br/>
@@ -555,15 +629,9 @@
             • Payment is at the shop upon arrival<br/>
             • Prices vary based on pet size and fur condition
           </div>
-
           <p id="guestBookingMsg" class="guest-msg"></p>
-
-          <button type="submit" id="guestSubmitBtn" class="guest-submit-btn guest-submit-btn--pink">
-            Submit Booking Request
-          </button>
+          <button type="submit" id="guestSubmitBtn" class="guest-submit-btn guest-submit-btn--pink">Submit Booking Request</button>
         </form>
-
-        <!-- Success state -->
         <div id="guestBookingSuccess" class="guest-success">
           <div class="guest-success-icon">✅</div>
           <h3 class="guest-success-title">Booking Submitted!</h3>
@@ -574,7 +642,7 @@
       </div>
     </div>
 
-    <!-- GUEST HOTEL BOOKING MODAL -->
+    <!-- ===================== GUEST HOTEL BOOKING MODAL ===================== -->
     <div id="guestHotelModal" class="guest-modal">
       <div class="guest-modal-box">
         <button id="guestHotelClose" class="guest-modal-close">&#x2715;</button>
@@ -583,9 +651,7 @@
           <h2 class="guest-modal-title guest-modal-title--blue">Guest Pet Hotel Booking</h2>
           <p class="guest-modal-sub">We'll email you when your booking is approved or rejected</p>
         </div>
-
         <form id="guestHotelForm" class="guest-form">
-
           <p class="guest-section-label guest-section-label--blue">OWNER INFORMATION</p>
           <div class="guest-grid-2">
             <label class="guest-label">Full Name *
@@ -598,7 +664,6 @@
           <label class="guest-label guest-mb">Email Address *
             <input type="email" name="email" required placeholder="juan@email.com" class="guest-input guest-input--blue" />
           </label>
-
           <p class="guest-section-label guest-section-label--blue">PET INFORMATION</p>
           <div class="guest-grid-2 guest-mb">
             <label class="guest-label">Pet Name *
@@ -618,7 +683,6 @@
               <input type="text" name="age" placeholder="e.g. 2 years" class="guest-input guest-input--blue" />
             </label>
           </div>
-
           <p class="guest-section-label guest-section-label--blue">STAY TYPE *</p>
           <div class="guest-radio-group guest-mb">
             <label class="guest-radio-option">
@@ -631,7 +695,6 @@
               <input type="radio" name="stayType" value="Day Care" /> Day Care
             </label>
           </div>
-
           <p class="guest-section-label guest-section-label--blue">CHECK-IN &amp; CHECK-OUT</p>
           <div class="guest-grid-2 guest-mb">
             <label class="guest-label">Check-in Date *
@@ -647,7 +710,6 @@
               <input type="time" name="checkOutTime" required class="guest-input guest-input--blue" />
             </label>
           </div>
-
           <div class="guest-notice guest-notice--blue">
             <strong>📌 Please note:</strong><br/>
             • Booking is <strong>PENDING</strong> until approved by our team<br/>
@@ -655,15 +717,9 @@
             • 24 Hours Stay starts at ₱450 · 12 Hours Stay starts at ₱350<br/>
             • Day Care starts at ₱250 for 3 hours then ₱50/hour
           </div>
-
           <p id="guestHotelMsg" class="guest-msg"></p>
-
-          <button type="submit" id="guestHotelSubmitBtn" class="guest-submit-btn guest-submit-btn--blue">
-            Submit Hotel Booking Request
-          </button>
+          <button type="submit" id="guestHotelSubmitBtn" class="guest-submit-btn guest-submit-btn--blue">Submit Hotel Booking Request</button>
         </form>
-
-        <!-- Success state -->
         <div id="guestHotelSuccess" class="guest-success">
           <div class="guest-success-icon">✅</div>
           <h3 class="guest-success-title">Hotel Booking Submitted!</h3>

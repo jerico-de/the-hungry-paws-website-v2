@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const err = document.createElement("p");
     err.className = "auth-error-msg";
     err.textContent = message;
-    err.style.cssText = "color:#d44d7c;font-size:0.85rem;font-weight:600;text-align:center;margin:8px 0 0;";
+    err.style.cssText = "color:#d44d7c;font-size:0.85rem;font-weight:700;text-align:center;margin:8px 0 0;";
     const form = modal.querySelector(".auth-form");
     const submitBtn = form?.querySelector(".auth-submit-btn");
     if (submitBtn) submitBtn.insertAdjacentElement("afterend", err);
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function showAuthSuccess(message) {
     const toast = document.createElement("div");
     toast.textContent = message;
-    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:#d44d7c;color:#fff;padding:14px 28px;border-radius:30px;font-weight:600;font-size:0.95rem;z-index:99999;box-shadow:0 8px 24px rgba(212,77,124,0.35);opacity:0;transition:opacity 0.3s ease,transform 0.3s ease;max-width:90vw;text-align:center;`;
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:#d44d7c;color:#fff;padding:14px 28px;border-radius:50px;font-weight:700;font-size:0.95rem;z-index:99999;box-shadow:0 8px 24px rgba(212,77,124,0.35);opacity:0;transition:opacity 0.3s ease,transform 0.3s ease;max-width:90vw;text-align:center;font-family:'Nunito','Segoe UI',sans-serif;`;
     document.body.appendChild(toast);
     requestAnimationFrame(() => { toast.style.opacity = "1"; toast.style.transform = "translateX(-50%) translateY(0)"; });
     setTimeout(() => { toast.style.opacity = "0"; toast.style.transform = "translateX(-50%) translateY(20px)"; setTimeout(() => toast.remove(), 300); }, 5000);
@@ -202,28 +202,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const guestHotelModal    = document.getElementById("guestHotelModal");
 
   function openBookingChoice(forHotel = false) {
+    if (!bookingChoiceModal) return;
     bookingChoiceModal.style.display = "flex";
     document.body.style.overflow = "hidden";
-    // Set which form opens for Guest based on context
     document.getElementById("choiceGuest").onclick = forHotel ? openHotelGuestForm : openGuestForm;
   }
 
   function closeBookingChoice() {
+    if (!bookingChoiceModal) return;
     bookingChoiceModal.style.display = "none";
     document.body.style.overflow = "";
-    // Reset to grooming default
     document.getElementById("choiceGuest").onclick = openGuestForm;
   }
 
   /* Grooming guest form */
   function openGuestForm() {
     closeBookingChoice();
+    if (!guestBookingModal) return;
     guestBookingModal.style.display = "flex";
     document.body.style.overflow = "hidden";
     loadGuestGroomers();
     setGuestMinDate();
   }
+
   function closeGuestForm() {
+    if (!guestBookingModal) return;
     guestBookingModal.style.display = "none";
     document.body.style.overflow = "";
   }
@@ -240,35 +243,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (ciEl) ciEl.min = today;
     if (coEl) coEl.min = today;
   }
+
   function closeHotelGuestForm() {
     if (!guestHotelModal) return;
     guestHotelModal.style.display = "none";
     document.body.style.overflow = "";
   }
 
-  /* Trigger buttons */
-  document.getElementById("groomingBtn")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    openBookingChoice(false);
-  });
-  document.getElementById("bookGroomingBtn")?.addEventListener("click", () => openBookingChoice(false));
-  document.getElementById("bookHotelBtn")?.addEventListener("click",   () => openBookingChoice(true));
-
-  /* Hero "Check our Services" — smooth scroll only, no modal */
-  document.getElementById("checkServicesBtn")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
-  });
+  /* Trigger buttons — support both IDs (bookGroomingBtn and bookGroomingBtn2) */
+  document.getElementById("bookGroomingBtn")?.addEventListener("click",  () => openBookingChoice(false));
+  document.getElementById("bookGroomingBtn2")?.addEventListener("click", () => openBookingChoice(false));
+  document.getElementById("bookHotelBtn")?.addEventListener("click",     () => openBookingChoice(true));
 
   /* Choice modal buttons */
-  document.getElementById("choiceClose").onclick  = closeBookingChoice;
-  document.getElementById("choiceLogin").onclick  = () => { closeBookingChoice(); openModal(loginModal); };
-  document.getElementById("choiceSignup").onclick = () => { closeBookingChoice(); openModal(signupModal); };
-  document.getElementById("choiceGuest").onclick  = openGuestForm; // default
+  document.getElementById("choiceClose")?.addEventListener("click",  closeBookingChoice);
+  document.getElementById("choiceLogin")?.addEventListener("click",  () => { closeBookingChoice(); openModal(loginModal); });
+  document.getElementById("choiceSignup")?.addEventListener("click", () => { closeBookingChoice(); openModal(signupModal); });
+  document.getElementById("choiceGuest").onclick = openGuestForm; // default
 
   /* Close buttons */
-  document.getElementById("guestFormClose").onclick       = closeGuestForm;
-  document.getElementById("guestSuccessClose").onclick    = closeGuestForm;
+  document.getElementById("guestFormClose")?.addEventListener("click",       closeGuestForm);
+  document.getElementById("guestSuccessClose")?.addEventListener("click",    closeGuestForm);
   document.getElementById("guestHotelClose")?.addEventListener("click",        closeHotelGuestForm);
   document.getElementById("guestHotelSuccessClose")?.addEventListener("click", closeHotelGuestForm);
 
@@ -448,67 +443,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── Load featured reviews on homepage ── */
   async function loadFeaturedReviews() {
-  const grid = document.getElementById("featuredReviewsGrid");
-  const indicators = document.getElementById("testimonialIndicators");
+    const grid = document.getElementById("featuredReviewsGrid");
+    const indicators = document.getElementById("testimonialIndicators");
 
-  if (!grid) return;
+    if (!grid) return;
 
-  try {
-    const res  = await fetch("/api/feedback/featured");
-    const data = await res.json();
+    try {
+      const res  = await fetch("/api/feedback/featured");
+      const data = await res.json();
 
-    if (!data.success || !data.feedbacks?.length) {
+      if (!data.success || !data.feedbacks?.length) {
+        grid.innerHTML = `
+          <div class="carousel-item active">
+            <p class="review-cards-empty">Be the first to leave a review! 🐾</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = data.feedbacks.map((f, index) => {
+        const stars = "★".repeat(f.rating) + "☆".repeat(5 - f.rating);
+        return `
+          <div class="carousel-item ${index === 0 ? "active" : ""}">
+            <div class="review-card" style="max-width:560px;margin:auto;">
+              <div class="review-card-stars">${stars}</div>
+              <div class="review-card-text">${f.comment}</div>
+              <div class="review-card-meta">${f.name || "Anonymous"}</div>
+              <div class="review-card-service">${f.serviceType || ""}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      if (indicators) {
+        indicators.innerHTML = data.feedbacks.map((_, i) => `
+          <button type="button"
+            data-bs-target="#testimonialsCarousel"
+            data-bs-slide-to="${i}"
+            class="${i === 0 ? "active" : ""}"
+            ${i === 0 ? 'aria-current="true"' : ""}
+            aria-label="Slide ${i + 1}">
+          </button>
+        `).join("");
+      }
+
+      const carouselElement = document.querySelector("#testimonialsCarousel");
+      if (carouselElement && typeof bootstrap !== "undefined") {
+        new bootstrap.Carousel(carouselElement);
+      }
+
+    } catch (_) {
       grid.innerHTML = `
         <div class="carousel-item active">
-          <p class="review-cards-empty">Be the first to leave a review! 🐾</p>
+          <p class="review-cards-empty">Reviews unavailable.</p>
         </div>`;
-      return;
     }
-
-    // ✅ Slides
-    grid.innerHTML = data.feedbacks.map((f, index) => {
-      const stars = "★".repeat(f.rating) + "☆".repeat(5 - f.rating);
-
-      return `
-        <div class="carousel-item ${index === 0 ? "active" : ""}">
-          <div class="review-card" style="max-width:600px;margin:auto;">
-            <div class="review-card-stars">${stars}</div>
-            <div class="review-card-text">${f.comment}</div>
-            <div class="review-card-meta">${f.name || "Anonymous"}</div>
-            <div class="review-card-service">${f.serviceType || ""}</div>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    // ✅ Indicators
-    if (indicators) {
-      indicators.innerHTML = data.feedbacks.map((_, i) => `
-        <button type="button"
-          data-bs-target="#testimonialsCarousel"
-          data-bs-slide-to="${i}"
-          class="${i === 0 ? "active" : ""}"
-          ${i === 0 ? 'aria-current="true"' : ""}
-          aria-label="Slide ${i + 1}">
-        </button>
-      `).join("");
-    }
-
-    // ✅ Force re-init (important for dynamic content)
-    const carouselElement = document.querySelector("#testimonialsCarousel");
-    if (carouselElement && typeof bootstrap !== "undefined") {
-      new bootstrap.Carousel(carouselElement);
-    }
-
-  } catch (_) {
-    grid.innerHTML = `
-      <div class="carousel-item active">
-        <p class="review-cards-empty">Reviews unavailable.</p>
-      </div>`;
   }
-}
 
-loadFeaturedReviews();
+  loadFeaturedReviews();
 
   /* ── Public Feedback Modal ── */
   const pubModal = document.getElementById("publicFeedbackModal");
@@ -520,6 +511,7 @@ loadFeaturedReviews();
     pubModal.style.display = "flex";
     document.body.style.overflow = "hidden";
   }
+
   function closePubFeedback() {
     if (!pubModal) return;
     pubModal.style.display = "none";
@@ -594,5 +586,48 @@ loadFeaturedReviews();
       btn.disabled = false; btn.textContent = "Submit Review";
     }
   });
+
+  // ===== Lightbox Fix (prevent scroll-to-top on close) =====
+document.querySelectorAll('.photo-grid a, .services-image a, .promo-img-wrap, .promotions-card a').forEach(trigger => {
+  trigger.addEventListener('click', (e) => {
+    const href = trigger.getAttribute('href');
+    if (!href || !href.startsWith('#')) return;
+    const target = document.querySelector(href);
+    if (!target || !target.classList.contains('lightbox')) return;
+    e.preventDefault();
+    target.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    history.pushState(null, '', ' '); // blank history entry so back works
+  });
+});
+
+document.querySelectorAll('.lightbox .close').forEach(closeBtn => {
+  closeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const lightbox = closeBtn.closest('.lightbox');
+    if (lightbox) {
+      lightbox.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  });
+});
+
+document.querySelectorAll('.lightbox').forEach(lightbox => {
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+      lightbox.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  });
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.lightbox').forEach(lb => {
+      lb.style.display = 'none';
+    });
+    document.body.style.overflow = '';
+  }
+});
 
 });
